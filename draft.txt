@@ -1,0 +1,4 @@
+npm i @prisma/client dotenv body-parser
+npm install prisma --save-dev
+npx prisma init
+npm install @sentry/node @sentry/profiling-node --save
