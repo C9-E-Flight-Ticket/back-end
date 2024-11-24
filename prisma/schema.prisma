@@ -7,13 +7,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
 model User {
   id Int @id @default(autoincrement())
   name String 
   email String
   password String?
   phoneNumber String
-  role String
+  role Role @default(USER)
   createAt DateTime @default(now())
   updateAt DateTime @updatedAt
   deleteAt DateTime?
@@ -49,8 +54,8 @@ model Airport {
   name String
   code String
   city String
-  terminalName String
-  terminalCategory TerminalCategory
+  terminalName String @default("Terminal 1A")
+  terminalCategory TerminalCategory @default(Domestic)
   continent String
   urlImage String
   fileId String
