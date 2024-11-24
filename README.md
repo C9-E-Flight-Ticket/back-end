@@ -1,5 +1,5 @@
 # Seeding Data
 
 ```bash
-npx run seed
+npm run seed
 ```
