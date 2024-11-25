@@ -1,38 +1,54 @@
 function generateSeats(flightId) {
   const seats = [];
-  const rows = 12;
-  const columns = ['A', 'B', 'C', 'D', 'E', 'F'];
 
-  for (let row = 1; row <= rows; row++) {
-    for (const column of columns) {
-      let seatClass;
-      let price;
-      
-      if (row <= 2) {
-        seatClass = 'Business';
-        price = 1500000;
-      } else {
-        seatClass = 'Economy';
-        price = 800000;
-      }
-
-      let available = true;
-      if (
-        (row === 1 && column !== 'D') ||
-        (row === 2 && ['D', 'E', 'F'].includes(column)) ||
-        (row === 3 && ['A', 'B', 'C'].includes(column)) ||
-        row === 10 ||
-        (row === 11 && ['D', 'E', 'F'].includes(column))
-      ) {
-        available = false;
-      }
-
+  // First Class: Baris 1-2, Kolom A-D
+  for (let row = 1; row <= 2; row++) {
+    for (const column of ['A', 'B', 'C', 'D']) {
       seats.push({
         flightId: flightId,
         seatNumber: `${row}${column}`,
-        seatClass: seatClass,
-        price: price,
-        available: available
+        seatClass: 'First Class',
+        price: 3000000,
+        available: true,
+      });
+    }
+  }
+
+  // Business Class: Baris 3-6, Kolom A-D
+  for (let row = 3; row <= 6; row++) {
+    for (const column of ['A', 'B', 'C', 'D']) {
+      seats.push({
+        flightId: flightId,
+        seatNumber: `${row}${column}`,
+        seatClass: 'Business',
+        price: 1500000,
+        available: true,
+      });
+    }
+  }
+
+  // Premium Economy: Baris 7-12, Kolom A-F
+  for (let row = 7; row <= 12; row++) {
+    for (const column of ['A', 'B', 'C', 'D', 'E', 'F']) {
+      seats.push({
+        flightId: flightId,
+        seatNumber: `${row}${column}`,
+        seatClass: 'Premium Economy',
+        price: 1000000,
+        available: true,
+      });
+    }
+  }
+
+  // Economy Class: Baris 13-24, Kolom A-F
+  for (let row = 13; row <= 24; row++) {
+    for (const column of ['A', 'B', 'C', 'D', 'E', 'F']) {
+      seats.push({
+        flightId: flightId,
+        seatNumber: `${row}${column}`,
+        seatClass: 'Economy',
+        price: 800000,
+        available: true,
       });
     }
   }
@@ -41,5 +57,5 @@ function generateSeats(flightId) {
 }
 
 module.exports = {
-  generateSeats
+  generateSeats,
 };
