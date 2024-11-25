@@ -19,6 +19,8 @@ model User {
   password String?
   phoneNumber String
   role Role @default(USER)
+  otp_code String?
+  is_verified Boolean @default(false)
   createAt DateTime @default(now())
   updateAt DateTime @updatedAt
   deleteAt DateTime?
