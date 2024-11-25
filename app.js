@@ -6,6 +6,9 @@ const bodyParser = require('body-parser')
 const app = express()
 const PORT = process.env.PORT || 3000
 
+const registerRoute = require('./routes/registerRoutes');
+const loginRoute = require('./routes/loginRoutes');
+const verifyOTPMiddleware = require('./middleware/verifyOTP');
 const ticketRoute = require ('./routes/ticketRoutes');
 
 app.use(bodyParser.json());
@@ -15,6 +18,9 @@ app.get('/', (req, res) => {
   res.send('Hello World!')
 })
 
+app.use('/api/register', registerRoute)
+app.use('/api/register/verify', verifyOTPMiddleware)
+app.use('/api/login', loginRoute)
 app.use('/api/ticket', ticketRoute)
 
 Sentry.setupExpressErrorHandler(app);
