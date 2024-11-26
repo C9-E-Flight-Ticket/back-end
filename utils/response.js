@@ -1,4 +1,5 @@
 const response = (statusCode, status, data, message, res, pagination = {}) => {
+    // response(200, "success", ticket, "Berhasil menampilkan ticket", res)
     res.status(statusCode).json({
         payload: {
             status_code: statusCode,
