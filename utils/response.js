@@ -7,12 +7,12 @@ const response = (statusCode, status, data, message, res, pagination = {}) => {
             datas: data,
         },
         pagination: {
-            totalItems: 100, // jumlah semua data no limit
-            currentPage: 3, // page data yang lagi di buka user
-            pageSize: 5, // limit / data yg ditampilkan 
-            totalPages: 10, // seluruh page = seluruh data / limit
+            totalItems: pagination.totalItems || 0, // jumlah semua data no limit
+            currentPage: pagination.currentPage || 1, // page data yang lagi di buka user
+            pageSize: pagination.pageSize || 0, // limit / data yg ditampilkan 
+            totalPages: pagination.totalPages || 1, // seluruh page = seluruh data / limit
         },
     });
 };
 
-module.export = response;
+module.exports = response;
