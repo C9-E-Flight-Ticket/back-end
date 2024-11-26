@@ -1,4 +1,5 @@
 var ImageKit = require('imagekit');
+require('dotenv').config()
 
 const {
     IMAGEKIT_PUBLIC_KEY,

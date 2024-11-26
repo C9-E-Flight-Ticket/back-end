@@ -1,4 +1,5 @@
 const prisma = require("../models/prismaClients");
+const response = require('../utils/response')
 
 class TicketController {
   // Get all tickets 
@@ -90,6 +91,8 @@ class TicketController {
       res.status(500).json({ error: "Unable to soft delete ticket" });
     }
   }
+
+  static async 
 }
 
 module.exports = TicketController;
