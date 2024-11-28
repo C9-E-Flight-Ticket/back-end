@@ -3,6 +3,6 @@ const router = express.Router();
 const FlightController = require("../controllers/flightController");
 
 // Routes
-router.get("/", FlightController.searchFlight);
+router.get("/search/", FlightController.searchFlight);
 
 module.exports = router;

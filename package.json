@@ -20,7 +20,8 @@
     "body-parser": "^1.20.3",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
-    "imagekit": "^5.2.0"
+    "imagekit": "^5.2.0",
+    "otp-generator": "^4.0.1"
   },
   "devDependencies": {
     "prisma": "^5.22.0"
