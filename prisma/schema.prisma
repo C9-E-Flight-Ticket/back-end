@@ -15,7 +15,7 @@ enum Role {
 model User {
   id Int @id @default(autoincrement())
   name String 
-  email String
+  email String @unique
   password String?
   phoneNumber String
   role Role @default(USER)
@@ -143,8 +143,8 @@ model Transaction {
   bookingCode String
   tax Decimal
   totalAmmount Decimal
-  paymentMethod String
-  status Status
+  paymentMethod String?
+  status Status @default(Unpaid)
   Tickets Ticket[]
   createAt DateTime @default(now())
   updateAt DateTime @updatedAt
