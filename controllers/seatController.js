@@ -71,15 +71,19 @@ class SeatController {
                 baby: passengerCounts.baby * 0, 
             };
 
-            const totalPrice =
-                subTotalPrice.adult + subTotalPrice.child + subTotalPrice.baby;
+            const totalPrice = subTotalPrice.adult + subTotalPrice.child + subTotalPrice.baby;
 
+            const tax = 0.11 * parseInt(totalPrice);
+
+            const total = totalPrice + tax
+            
             const datas = {
                 user: user || "guest", 
                 seats,
                 passengerCounts,
                 subTotalPrice,
-                totalPrice,
+                tax,
+                total,
             };
 
             response(

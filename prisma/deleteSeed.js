@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 async function deleteImageFromImageKit(fileId) {
     if (!fileId) {
         console.warn("No fileId provided for deletion.");
-        return; // Jika tidak ada fileId, lewati penghapusan
+        return; 
     }
     try {
         await imagekit.deleteFile(fileId);
@@ -39,7 +39,7 @@ async function clearDatabase() {
         console.log("Deleting airlines...");
         const airlines = await prisma.airline.findMany();
         for (const airline of airlines) {
-            await deleteImageFromImageKit(airline.fileId); // Perbaiki penggunaan variabel
+            await deleteImageFromImageKit(airline.fileId); 
         }
         await prisma.airline.deleteMany();
         await prisma.$executeRaw`ALTER SEQUENCE capstone."Airline_id_seq" RESTART WITH 1`;
@@ -48,14 +48,14 @@ async function clearDatabase() {
         console.log("Deleting airports...");
         const airports = await prisma.airport.findMany();
         for (const airport of airports) {
-            await deleteImageFromImageKit(airport.fileId); // Perbaiki penggunaan variabel
+            await deleteImageFromImageKit(airport.fileId); 
         }
         await prisma.airport.deleteMany();
         await prisma.$executeRaw`ALTER SEQUENCE capstone."Airport_id_seq" RESTART WITH 1`;
 
         // 6. Hapus Passengers
         console.log("Deleting passengers...");
-        await prisma.passenger.deleteMany(); // Perbaiki penamaan model
+        await prisma.passenger.deleteMany();
         await prisma.$executeRaw`ALTER SEQUENCE capstone."Passenger_id_seq" RESTART WITH 1`;
 
         // 7. Hapus Users
