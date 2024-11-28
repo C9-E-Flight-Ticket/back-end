@@ -8,6 +8,7 @@ const PORT = process.env.PORT || 3000
 
 const ticketRoute = require ('./routes/ticketRoutes');
 const flightRoute = require('./routes/flightRoutes')
+const seatRoute = require('./routes/seatRoutes')
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -18,6 +19,7 @@ app.get('/', (req, res) => {
 
 app.use('/api/ticket', ticketRoute)
 app.use('/api/flight', flightRoute)
+app.use('/api/seat', seatRoute)
 
 Sentry.setupExpressErrorHandler(app);
 

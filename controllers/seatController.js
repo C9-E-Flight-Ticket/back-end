@@ -5,71 +5,95 @@ const jwt = require("jsonwebtoken");
 const JWT_SECRET = process.env.JWT_SECRET;
 
 class SeatController {
-    static async getDetailFlight() {
+    static async getDetailFlight(req, res) {
         try {
             const { flightId, seatClass, adult, child, baby } = req.query;
 
-            let token = req.cookies.token;
-            let userId
+            let token = req.cookies?.token;
+            let userId = null;
 
             if (token) {
                 jwt.verify(token, JWT_SECRET, (err, decoded) => {
                     if (err) {
-                        response(403, "error", null, "Token tidak valid", res);
+                        console.error("Token tidak valid:", err.message);
+                    } else {
+                        userId = decoded.userId;
                     }
-                    userId = decoded.userId
-                })
+                });
             }
 
-            const user = await prisma.user.findUnique({
-                where: {userId}
-            })
+            let user = null;
 
-            if (!user) {
+            if (userId) {
+                user = await prisma.user.findUnique({
+                    where: { id: userId },
+                });
+            }
+
+            if (userId && !user) {
                 response(404, "error", null, "User tidak ditemukan", res);
+                return;
             }
 
             const seats = await prisma.seat.findMany({
-                where: { flightId },
+                where: { 
+                    flightId: {
+                        equals: parseInt(flightId), 
+                    }
+                },
                 include: {
-                    flight: true,
-                    airline: true,
-                    airport: true
-                }
+                    flight: {
+                        include: {
+                            airline: true,
+                            departureAirport: true, 
+                            arrivalAirport: true,
+                        },
+                    },
+                },
             });
 
-            const filteredSeats = seats.filter((seat) => seat.seatClass === seatClass);
+            const filteredSeats = seatClass
+                ? seats.filter((seat) => seat.seatClass === seatClass)
+                : seats;
 
             const passengerCounts = {
                 adult: parseInt(adult) || 0,
                 child: parseInt(child) || 0,
-                baby: parseInt(baby) || 0
-            }
+                baby: parseInt(baby) || 0,
+            };
 
-            const seatPrice = filteredSeats.length > 0 ? filteredSeats[0].price : 0;
+            const seatPrice =
+                filteredSeats.length > 0 ? filteredSeats[0].price : 0;
 
             const subTotalPrice = {
                 adult: passengerCounts.adult * seatPrice,
-                child: passengerCounts.child * (seatPrice * 0.2), 
-                baby: passengerCounts.baby * 0,
+                child: passengerCounts.child * (seatPrice * 0.75), 
+                baby: passengerCounts.baby * 0, 
             };
 
-            const totalPrice = subTotalPrice.adult + subTotalPrice.child + subTotalPrice.baby;
+            const totalPrice =
+                subTotalPrice.adult + subTotalPrice.child + subTotalPrice.baby;
 
             const datas = {
-                user,
+                user: user || "guest", 
                 seats,
                 passengerCounts,
                 subTotalPrice,
-                totalPrice
-            }
+                totalPrice,
+            };
 
-            response(200, "success", datas, "Berhasil menampilkan detail penerbangan", res)
-
-
+            response(
+                200,
+                "success",
+                datas,
+                "Berhasil menampilkan detail penerbangan",
+                res
+            );
         } catch (error) {
             console.error(error);
             response(500, "error", null, "Terjadi kesalahan pada server", res);
         }
     }
 }
+
+module.exports = SeatController;
