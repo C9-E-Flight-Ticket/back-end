@@ -5,6 +5,7 @@ class FlightController {
     static async searchFlight(req, res) {
         try {
             const {
+                arrivalContinent,
                 departureCity,
                 arrivalCity,
                 departureDate,
@@ -27,6 +28,17 @@ class FlightController {
                 take: limit ? parseInt(limit) : undefined,
                 skip: offset ? parseInt(offset) : undefined,
             };
+
+            if (arrivalContinent) {
+                query.where.AND.push({
+                    arrivalAirport: {
+                        continent: {
+                            contains: arrivalContinent,
+                            mode: "insensitive"
+                        }
+                    }
+                })
+            }
 
             if (departureCity) {
                 query.where.AND.push({

@@ -7,7 +7,7 @@ class TicketController {
     try {
       const tickets = await prisma.ticket.findMany({
         where: { deleteAt: null },
-        include: { passanger: true, seat: true, transaction: true },
+        include: { passenger: true, seat: true, transaction: true },
       });
       res.status(200).json(tickets);
     } catch (error) {
@@ -22,7 +22,7 @@ class TicketController {
       const { id } = req.params;
       const ticket = await prisma.ticket.findUnique({
         where: { id: parseInt(id) },
-        include: { passanger: true, seat: true, transaction: true },
+        include: { passenger: true, seat: true, transaction: true },
       });
 
       if (!ticket) {
@@ -39,14 +39,15 @@ class TicketController {
   // Create a new ticket
   static async createTicket(req, res) {
     try {
-      const { transactionId, seatId, passangerId } = req.body;
+      const { transactionId, seatId, passengerId, category } = req.body;
 
       // Konversi ke integer
       const ticket = await prisma.ticket.create({
         data: {
           transactionId: parseInt(transactionId, 10),
           seatId: parseInt(seatId, 10),
-          passangerId: parseInt(passangerId, 10),
+          passengerId: parseInt(passengerId, 10),
+          category: category
         },
       });
 
@@ -61,11 +62,11 @@ class TicketController {
   static async updateTicket(req, res) {
     try {
       const { id } = req.params;
-      const { transactionId, seatId, passangerId } = req.body;
+      const { transactionId, seatId, passengerId } = req.body;
 
       const updatedTicket = await prisma.ticket.update({
         where: { id: parseInt(id) },
-        data: { transactionId, seatId, passangerId },
+        data: { transactionId, seatId, passengerId },
       });
 
       res.status(200).json(updatedTicket);

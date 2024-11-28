@@ -30,7 +30,7 @@ enum Title {
   Mrs
 }
 
-model Passanger {
+model Passenger {
   id Int @id @default(autoincrement())
   title Title
   name String
@@ -110,14 +110,21 @@ model Seat {
   tickets Ticket[]
 }
 
+enum PassengerCategory {
+    Adult
+    Child
+    Baby
+}
+
 model Ticket {
   id Int @id @default(autoincrement())
   transactionId Int
   transaction Transaction @relation(fields: [transactionId], references: [id])
   seatId Int
   seat Seat @relation(fields: [seatId], references: [id])
-  passangerId Int
-  passanger Passanger @relation(fields: [passangerId], references: [id])
+  passengerId Int
+  passenger Passenger @relation(fields: [passengerId], references: [id])
+  category PassengerCategory 
   createAt DateTime @default(now())
   updateAt DateTime @updatedAt
   deleteAt DateTime?
