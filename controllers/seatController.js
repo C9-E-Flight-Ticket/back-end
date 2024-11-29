@@ -36,25 +36,47 @@ class SeatController {
             }
 
             const seats = await prisma.seat.findMany({
-                where: { 
+                where: {
                     flightId: {
-                        equals: parseInt(flightId), 
-                    }
+                        equals: parseInt(flightId),
+                    },
                 },
                 include: {
                     flight: {
                         include: {
                             airline: true,
-                            departureAirport: true, 
+                            departureAirport: true,
                             arrivalAirport: true,
                         },
                     },
                 },
             });
 
+            if (!seats || seats.length === 0) {
+                response(
+                    404,
+                    "error",
+                    null,
+                    "Tidak ada kursi yang tersedia untuk penerbangan ini",
+                    res
+                );
+                return;
+            }
+
             const filteredSeats = seatClass
                 ? seats.filter((seat) => seat.seatClass === seatClass)
                 : seats;
+
+            if (!filteredSeats || filteredSeats.length === 0) {
+                response(
+                    404,
+                    "error",
+                    null,
+                    "Tidak ada kursi yang cocok dengan kelas yang diminta",
+                    res
+                );
+                return;
+            }
 
             const passengerCounts = {
                 adult: parseInt(adult) || 0,
@@ -67,18 +89,19 @@ class SeatController {
 
             const subTotalPrice = {
                 adult: passengerCounts.adult * seatPrice,
-                child: passengerCounts.child * (seatPrice * 0.75), 
-                baby: passengerCounts.baby * 0, 
+                child: passengerCounts.child * (seatPrice * 0.75),
+                baby: passengerCounts.baby * 0,
             };
 
-            const totalPrice = subTotalPrice.adult + subTotalPrice.child + subTotalPrice.baby;
+            const totalPrice =
+                subTotalPrice.adult + subTotalPrice.child + subTotalPrice.baby;
 
             const tax = 0.11 * parseInt(totalPrice);
 
-            const total = totalPrice + tax
-            
+            const total = totalPrice + tax;
+
             const datas = {
-                user: user || "guest", 
+                user: user || "guest",
                 seats,
                 passengerCounts,
                 subTotalPrice,
