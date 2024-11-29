@@ -47,7 +47,6 @@ class TicketController {
             data: passengerData,
         });
 
-        // Fetch passenger IDs
         const passengerIds = await prisma.passenger.findMany({
             where: { name: { in: passengers.map((p) => p.name) } }, 
             select: { id: true },
@@ -57,7 +56,7 @@ class TicketController {
             transactionId: transaction.id,
             seatId: seat.id,
             passengerId: passengerIds[index].id,
-            category: passengers[index].category, // Adult, Child, Baby
+            category: passengers[index].category, 
         }));
 
         await prisma.ticket.createMany({
@@ -72,7 +71,6 @@ class TicketController {
         response(200, "success", bookingCode, "Tickets successfully created", res)
     }
 
-    // Get all tickets
     static async getAllTickets(req, res) {
         try {
             const tickets = await prisma.ticket.findMany({
@@ -86,7 +84,6 @@ class TicketController {
         }
     }
 
-    // Get a ticket by ID
     static async getTicketById(req, res) {
         try {
             const { id } = req.params;
