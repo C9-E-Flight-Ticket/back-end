@@ -68,7 +68,7 @@ class TicketController {
             data: { available: false },
         });
 
-        response(200, "success", bookingCode, "Tickets successfully created", res)
+        response(201, "success", bookingCode, "Tickets successfully created", res)
     }
 
     static async getAllTickets(req, res) {
@@ -77,10 +77,10 @@ class TicketController {
                 where: { deleteAt: null },
                 include: { passenger: true, seat: true, transaction: true },
             });
-            res.status(200).json(tickets);
+            response(200, "success", tickets, " Get all tickets successfully ", res);
         } catch (error) {
             console.error(error);
-            res.status(500).json({ error: "Unable to fetch tickets" });
+            response(500, "failed", null, "Get all tickets failed", res);
         }
     }
 
@@ -93,13 +93,13 @@ class TicketController {
             });
 
             if (!ticket) {
-                return res.status(404).json({ error: "Ticket not found" });
+                return response(404, "failed", null, "Ticket not found", res);
             }
 
-            res.status(200).json(ticket);
+            response(200, "success", ticket, " Get all tickets by id successfully ", res);
         } catch (error) {
             console.error(error);
-            res.status(500).json({ error: "Unable to fetch ticket" });
+            response(500, "failed", null, "Get all tickets by id failed", res);
         }
     }
 
@@ -118,10 +118,10 @@ class TicketController {
                 },
             });
 
-            res.status(201).json(ticket);
+            response(201, "success", ticket, "create tickets successfully ", res);
         } catch (error) {
             console.error(error);
-            res.status(500).json({ error: "Unable to create ticket" });
+            response(500, "failed", null, "create tickets failed", res);
         }
     }
 
@@ -136,10 +136,10 @@ class TicketController {
                 data: { transactionId, seatId, passengerId },
             });
 
-            res.status(200).json(updatedTicket);
+            response(200, "success", updatedTicket, "update tickets successfully ", res);
         } catch (error) {
             console.error(error);
-            res.status(500).json({ error: "Unable to update ticket" });
+            response(500, "failed", null, "update tickets failed", res);
         }
     }
 
@@ -153,13 +153,10 @@ class TicketController {
                 data: { deleteAt: new Date() },
             });
 
-            res.status(200).json({
-                message: "Ticket soft deleted successfully",
-                deletedTicket,
-            });
+            response(200, "success", deletedTicket, "delete tickets successfully ", res);
         } catch (error) {
             console.error(error);
-            res.status(500).json({ error: "Unable to soft delete ticket" });
+            response(500, "failed", null, "delete tickets failed", res);
         }
     }
 
