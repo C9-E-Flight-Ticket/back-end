@@ -1,3 +1,13 @@
 node_modules
 # Keep environment variables out of version control
 .env
+
+# Migra
+prisma/migrations
+
+
+controllers/forgotpasswordController.js
+routes/forgotPasswordRoutes.js
+
+.gitignore
+.env.example
