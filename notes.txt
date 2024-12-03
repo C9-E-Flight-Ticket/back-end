@@ -1,0 +1,17 @@
+link web : 
+link API Dokumentasi nya : 
+link API contract : 
+link GitHub : https://github.com/C9-E-Flight-Ticket
+link clickup : https://app.clickup.com/9018678908/v/o/s/90182357280
+
+GET - /api/flight/search
+untuk melihat dan filter daftar penerbangan (homepage & flight search)
+
+GET - /api/seat/detail-flight
+untuk melihat detail penerbangan
+
+POST - /api/ticket/ticket-order
+untuk lanjut ke pembayaran
+
+GET - /api/ticket/transactions
+untuk mengembalikan waktu expired
