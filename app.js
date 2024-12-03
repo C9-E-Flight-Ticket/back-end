@@ -3,6 +3,7 @@ require('./middleware/intrument')
 const express = require('express')
 const Sentry = require('@sentry/node')
 const bodyParser = require('body-parser')
+const { errorHandler } = require('./middleware/errorMiddleware')
 const app = express()
 const PORT = process.env.PORT || 3000
 
@@ -21,6 +22,7 @@ app.use('/api/ticket', ticketRoute)
 app.use('/api/flight', flightRoute)
 app.use('/api/seat', seatRoute)
 
+app.use(errorHandler)
 Sentry.setupExpressErrorHandler(app);
 
 app.listen (PORT, () => {

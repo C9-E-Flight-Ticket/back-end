@@ -129,8 +129,7 @@ class FlightController {
                 pagination
             );
         } catch (error) {
-            console.error(error);
-            response(500, "failed", null, "Terjadi kesalahan pada server", res);
+            next(error);
         }
     }
 }
