@@ -1,0 +1,14 @@
+openapi: '3.0.3'
+info:
+  title: API Title
+  version: '1.0'
+servers:
+  - url: https://api.server.test/v1
+tags:
+  - name: flight
+  - name: ticket
+  - name: seat
+paths:
+  /api/flight/search:
+    
+
