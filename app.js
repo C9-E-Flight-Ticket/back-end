@@ -8,6 +8,8 @@ const PORT = process.env.PORT || 3000
 const registerRoute = require('./routes/registerRoutes');
 const loginRoute = require('./routes/loginRoutes');
 const ticketRoute = require ('./routes/ticketRoutes');
+const forgotPasswordRoute = require('./routes/forgotPasswordRoutes');
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -15,8 +17,9 @@ app.get('/', (req, res) => {
   res.send('Hello World!')
 })
 
-app.use('/api/auth', loginRoute)
-app.use('/api/auth', registerRoute)
+app.use('/api/register', registerRoute)
+app.use('/api/login', loginRoute)
+app.use('/api/forgot-password', forgotPasswordRoute)
 app.use('/api/ticket', ticketRoute)
 
 // Request logging middleware
