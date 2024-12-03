@@ -1,4 +1,7 @@
-require('dotenv').config()
+if (process.env.NODE_ENV !== "production") {
+  require("dotenv").config();
+}
+
 require('./middleware/intrument')
 const express = require('express')
 const Sentry = require('@sentry/node')
