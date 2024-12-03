@@ -15,17 +15,19 @@ enum Role {
 model User {
   id Int @id @default(autoincrement())
   name String 
-  email String
+  email String @unique
   password String?
   phoneNumber String
   role Role @default(USER)
-  otp_code String?
   is_verified Boolean @default(false)
   createAt DateTime @default(now())
   updateAt DateTime @updatedAt
   deleteAt DateTime?
   Transactions Transaction[]
+  refreshTokens RefreshToken[]
+  otps OTP[]
 }
+
 
 enum Title {
   Mr
@@ -144,4 +146,32 @@ model Transaction {
   createAt DateTime @default(now())
   updateAt DateTime @updatedAt
   deleteAt DateTime?
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  revokedAt DateTime?
+
+  @@index([userId])
+}
+
+model OTP {
+  id Int @id @default(autoincrement())
+  code String
+  type String
+  userId Int
+  user User @relation(fields: [userId], references: [id])
+  attempts Int @default(0)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  verifiedAt DateTime?
+  revokedAt DateTime?
+
+  @@index([userId])
 }
