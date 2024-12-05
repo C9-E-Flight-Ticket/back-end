@@ -79,7 +79,7 @@ class AirportController {
         } = req.body;
 
         try {
-            // Pastikan bandara ada dan belum dihapus
+           
             const existingAirport = await prisma.airport.findUnique({
                 where: { id: parseInt(id) },
             });
