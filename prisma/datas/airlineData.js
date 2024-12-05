@@ -6,8 +6,7 @@ const airlineData = [
     baggage: 20,
     cabinBaggage: 7,
     entertainment: "In Flight Entertainment",
-    urlImage: "https://example.com/garuda.jpg",
-    fileId: "garuda123",
+    localImagePath: "./prisma/images/airline-logo/ga.png",
   },
   {
     id: 2,
@@ -16,8 +15,7 @@ const airlineData = [
     baggage: 25,
     cabinBaggage: 7,
     entertainment: "KrisWorld Entertainment",
-    urlImage: "https://example.com/singapore.jpg",
-    fileId: "singapore456"
+    localImagePath: "./prisma/images/airline-logo/sq.png",
   },
   {
     id: 3,
@@ -26,8 +24,7 @@ const airlineData = [
     baggage: 23,
     cabinBaggage: 10,
     entertainment: "Delta Studio",
-    urlImage: "https://example.com/delta.jpg",
-    fileId: "delta789",
+    localImagePath: "./prisma/images/airline-logo/dl.png",
   },
   {
     id: 4,
@@ -36,8 +33,7 @@ const airlineData = [
     baggage: 22,
     cabinBaggage: 8,
     entertainment: "American Airlines Entertainment",
-    urlImage: "https://example.com/american.jpg",
-    fileId: "american012",
+    localImagePath: "./prisma/images/airline-logo/aa.png",
   },
   {
     id: 5,
@@ -46,8 +42,7 @@ const airlineData = [
     baggage: 24,
     cabinBaggage: 9,
     entertainment: "United Private Screening",
-    urlImage: "https://example.com/united.jpg",
-    fileId: "united345",
+    localImagePath: "./prisma/images/airline-logo/ua.png",
   },
   {
     id: 6,
@@ -56,8 +51,7 @@ const airlineData = [
     baggage: 30,
     cabinBaggage: 7,
     entertainment: "High Life Entertainment",
-    urlImage: "https://example.com/british.jpg",
-    fileId: "british678",
+    localImagePath: "./prisma/images/airline-logo/ba.png",
   },
   {
     id: 7,
@@ -66,8 +60,7 @@ const airlineData = [
     baggage: 30,
     cabinBaggage: 10,
     entertainment: "Oryx One",
-    urlImage: "https://example.com/qatar.jpg",
-    fileId: "qatar901",
+    localImagePath: "./prisma/images/airline-logo/qr.png",
   },
   {
     id: 8,
@@ -76,8 +69,7 @@ const airlineData = [
     baggage: 30,
     cabinBaggage: 7,
     entertainment: "ice Entertainment",
-    urlImage: "https://example.com/emirates.jpg",
-    fileId: "emirates234",
+    localImagePath: "./prisma/images/airline-logo/ek.png",
   },
   {
     id: 9,
@@ -86,8 +78,7 @@ const airlineData = [
     baggage: 23,
     cabinBaggage: 8,
     entertainment: "Lufthansa Inflight Entertainment",
-    urlImage: "https://example.com/lufthansa.jpg",
-    fileId: "lufthansa567",
+    localImagePath: "./prisma/images/airline-logo/lh.png",
   },
   {
     id: 10,
@@ -96,8 +87,7 @@ const airlineData = [
     baggage: 23,
     cabinBaggage: 10,
     entertainment: "Air France Entertainment",
-    urlImage: "https://example.com/airfrance.jpg",
-    fileId: "airfrance890",
+    localImagePath: "./prisma/images/airline-logo/af.png",
   },
   {
     id: 11,
@@ -106,8 +96,7 @@ const airlineData = [
     baggage: 23,
     cabinBaggage: 10,
     entertainment: "KLM Inflight Entertainment",
-    urlImage: "https://example.com/klm.jpg",
-    fileId: "klm123",
+    localImagePath: "./prisma/images/airline-logo/kl.png",
   },
   {
     id: 12,
@@ -116,8 +105,7 @@ const airlineData = [
     baggage: 30,
     cabinBaggage: 8,
     entertainment: "Turkish Airlines Entertainment",
-    urlImage: "https://example.com/turkish.jpg",
-    fileId: "turkish456",
+    localImagePath: "./prisma/images/airline-logo/tk.png",
   },
   {
     id: 13,
@@ -126,8 +114,7 @@ const airlineData = [
     baggage: 23,
     cabinBaggage: 10,
     entertainment: "JetBlue TV",
-    urlImage: "https://example.com/jetblue.jpg",
-    fileId: "jetblue789",
+    localImagePath: "./prisma/images/airline-logo/jb.png",
   },
   {
     id: 14,
@@ -136,8 +123,7 @@ const airlineData = [
     baggage: 2,
     cabinBaggage: 1,
     entertainment: "In-flight TV",
-    urlImage: "https://example.com/southwest.jpg",
-    fileId: "southwest012",
+    localImagePath: "./prisma/images/airline-logo/wn.png",
   },
   {
     id: 15,
@@ -146,8 +132,7 @@ const airlineData = [
     baggage: 23,
     cabinBaggage: 10,
     entertainment: "Alaska Beyond Entertainment",
-    urlImage: "https://example.com/alaska.jpg",
-    fileId: "alaska345",
+    localImagePath: "./prisma/images/airline-logo/as.png",
   },
   {
     id: 16,
@@ -156,8 +141,7 @@ const airlineData = [
     baggage: 50,
     cabinBaggage: 7,
     entertainment: "Hawaiian Airlines Entertainment",
-    urlImage: "https://example.com/hawaiian.jpg",
-    fileId: "hawaiian678",
+    localImagePath: "./prisma/images/airline-logo/ha.png",
   },
   {
     id: 17,
@@ -166,8 +150,7 @@ const airlineData = [
     baggage: 23,
     cabinBaggage: 10,
     entertainment: "Alitalia Inflight Entertainment",
-    urlImage: "https://example.com/alitalia.jpg",
-    fileId: "alitalia901",
+    localImagePath: "./prisma/images/airline-logo/az.png",
   },
   {
     id: 18,
@@ -176,8 +159,7 @@ const airlineData = [
     baggage: 23,
     cabinBaggage: 10,
     entertainment: "Austrian Inflight Entertainment",
-    urlImage: "https://example.com/austrian.jpg",
-    fileId: "austrian234",
+    localImagePath: "./prisma/images/airline-logo/os.png",
   },
   {
     id: 19,
@@ -186,8 +168,7 @@ const airlineData = [
     baggage: 23,
     cabinBaggage: 10,
     entertainment: "Finnair Entertainment",
-    urlImage: "https://example.com/finnair.jpg",
-    fileId: "finnair567",
+    localImagePath: "./prisma/images/airline-logo/ay.png",
   },
   {
     id: 20,
@@ -196,8 +177,7 @@ const airlineData = [
     baggage: 23,
     cabinBaggage: 10,
     entertainment: "Iberia Inflight Entertainment",
-    urlImage: "https://example.com/iberia.jpg",
-    fileId: "iberia890",
+    localImagePath: "./prisma/images/airline-logo/ib.png",
   },
   {
     id: 21,
@@ -206,8 +186,7 @@ const airlineData = [
     baggage: 23,
     cabinBaggage: 10,
     entertainment: "SAS Inflight Entertainment",
-    urlImage: "https://example.com/sas.jpg",
-    fileId: "sas123",
+    localImagePath: "./prisma/images/airline-logo/sk.png",
   }
 ]
 

@@ -2,6 +2,7 @@ require('dotenv').config()
 const express = require('express')
 const Sentry = require('@sentry/node')
 const bodyParser = require('body-parser')
+const { errorHandler } = require('./middleware/errorMiddleware')
 const app = express()
 const PORT = process.env.PORT || 3000
 
@@ -9,6 +10,10 @@ const registerRoute = require('./routes/registerRoutes');
 const loginRoute = require('./routes/loginRoutes');
 const ticketRoute = require ('./routes/ticketRoutes');
 const forgotPasswordRoute = require('./routes/forgotPasswordRoutes');
+const flightRoute = require('./routes/flightRoutes')
+const seatRoute = require('./routes/seatRoutes')
+const airlineRoute = require('./routes/airlineRoutes')
+const airportRoute = require('./routes/airportRoutes')
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -21,6 +26,10 @@ app.use('/api/register', registerRoute)
 app.use('/api/login', loginRoute)
 app.use('/api/forgot-password', forgotPasswordRoute)
 app.use('/api/ticket', ticketRoute)
+app.use('/api/flight', flightRoute)
+app.use('/api/seat', seatRoute)
+app.use('/api/airline', airlineRoute)
+app.use('/api/airport', airportRoute)
 
 // Request logging middleware
 app.use((req, res, next) => {
@@ -28,15 +37,8 @@ app.use((req, res, next) => {
   next()
 })
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack)
-  res.status(500).json({
-      status: "error",
-      message: "Something broke!"
-  })
-})
 
+app.use(errorHandler)
 Sentry.setupExpressErrorHandler(app);
 
 
