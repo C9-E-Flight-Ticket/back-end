@@ -11,6 +11,7 @@ const ticketRoute = require ('./routes/ticketRoutes');
 const flightRoute = require('./routes/flightRoutes')
 const seatRoute = require('./routes/seatRoutes')
 const airlineRoute = require('./routes/airlineRoutes')
+const airportRoute = require('./routes/airportRoutes')
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -23,6 +24,7 @@ app.use('/api/ticket', ticketRoute)
 app.use('/api/flight', flightRoute)
 app.use('/api/seat', seatRoute)
 app.use('/api/airline', airlineRoute)
+app.use('/api/airport', airportRoute)
 
 app.use(errorHandler)
 Sentry.setupExpressErrorHandler(app);
