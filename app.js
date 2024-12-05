@@ -14,6 +14,20 @@ const ticketRoute = require ('./routes/ticketRoutes');
 const flightRoute = require('./routes/flightRoutes')
 const seatRoute = require('./routes/seatRoutes')
 
+const corsOptions = {
+  origin: [
+    'https://krisnaepras.my.id', 
+    'http://localhost:3000', 
+    'http://localhost:5173', 
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  optionsSuccessStatus: 200
+}
+
+app.use(cors(corsOptions))
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
