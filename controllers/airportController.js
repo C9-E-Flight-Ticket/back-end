@@ -108,6 +108,30 @@ class AirportController {
             response(500, "error", null, "Terjadi kesalahan saat memperbarui bandara.", res);
         }
     }
+    
+    static async deleteAirport(req, res) {
+        const { id } = req.params;
+        try {
+            
+            const existingAirport = await prisma.airport.findUnique({
+                where: { id: parseInt(id) },
+            });
+
+            if (!existingAirport || existingAirport.deleteAt) {
+                response(404, "error", null, "Bandara tidak ditemukan.", res);
+                return;
+            }
+
+            await prisma.airport.update({
+                where: { id: parseInt(id) },
+                data: { deleteAt: new Date() },
+            });
+            response(200, "success", null, "Bandara berhasil dihapus.", res);
+        } catch (error) {
+            console.error(error);
+            response(500, "error", null, "Terjadi kesalahan saat menghapus bandara.", res);
+        }
+    }
 }
 
 module.exports = AirportController;
