@@ -3,9 +3,10 @@ require('./middleware/intrument');
 const express = require('express');
 const Sentry = require('@sentry/node');
 const bodyParser = require('body-parser');
-const cron = require('node-cron');
+const cron = require('node-cron'); 
+const { checkExpiredTransactions } = require('./services/transactionService'); 
 
-const TicketController = require("./controllers/ticketController");
+const transactionRoutes = require("./routes/transactionRoutes");
 const ticketRoutes = require("./routes/ticketRoutes");
 const flightRoutes = require('./routes/flightRoutes');
 const seatRoutes = require('./routes/seatRoutes');
@@ -20,14 +21,17 @@ app.get('/', (req, res) => {
   res.send('Hello World!');
 });
 
-app.use('/api/transactions', ticketRoutes);
-app.use('/api/ticket-order', ticketRoutes);
+app.use('/api/transaction', transactionRoutes);
+app.use('/api/ticket', ticketRoutes);
 app.use('/api/flight', flightRoutes);
 app.use('/api/seat', seatRoutes);
 
-cron.schedule("*/5 * * * *", async () => {
-  console.log('Running expired transaction check...');
-  await TicketController.checkExpiredTransactions();
+cron.schedule('* * * * *', async () => {
+  try {
+    await checkExpiredTransactions();
+  } catch (error) {
+    console.error('Error checking expired transactions:', error);
+  }
 });
 
 Sentry.setupExpressErrorHandler(app);
