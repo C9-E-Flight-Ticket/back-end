@@ -5,6 +5,7 @@ const FlightController = require("../controllers/flightController");
 
 router.get("/search", asyncErrorHandler(FlightController.searchFlight));
 router.get("/search-return", asyncErrorHandler(FlightController.searchReturnFlight));
+router.get('/createFlight', FlightController.getCreateFlight);
 router.get('/', FlightController.getFlights);
 router.get('/:id', FlightController.getFlight);
 router.post('/', FlightController.createFlight);

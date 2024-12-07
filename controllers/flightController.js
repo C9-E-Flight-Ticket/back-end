@@ -468,7 +468,56 @@ class FlightController {
         );
       }
     }
-    
+
+    static async getCreateFlight(req, res) {
+      try {
+          
+          const airlines = await prisma.airline.findMany({
+              select: {
+                  id: true,
+                  name: true,
+              },
+          });
+
+          
+          const airports = await prisma.airport.findMany({
+              select: {
+                  id: true,
+                  name: true,
+                  city: true,
+              },
+          });
+
+          
+          const departureAirports = airports;
+          const arrivalAirports = airports;
+
+          
+          const data = {
+              airlines,
+              departureAirports,
+              arrivalAirports,
+          };
+
+          return response(
+              200,
+              "success",
+              data,
+              "Data untuk membuat flight berhasil diambil",
+              res
+          );
+      } catch (error) {
+          console.error(error);
+          return response(
+              500,
+              "error",
+              null,
+              "Terjadi kesalahan pada server",
+              res
+          );
+      }
+  }
+
     static async updateFlight(req, res) {
       try {
         const { id } = req.params;
