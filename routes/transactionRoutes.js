@@ -7,4 +7,7 @@ router.post("/midtrans-callback", TransactionController.handleMidtransCallback);
 router.get('/status/:bookingCode', TransactionController.getTransactionStatus);
 router.get('/transactions', TransactionController.getAllTransactions);
 
+router.get('/generate-pdf/:bookingCode', TransactionController.generateTransactionPDF);
+router.get('/download/:bookingCode.pdf', TransactionController.downloadPDF);
+
 module.exports = router;
