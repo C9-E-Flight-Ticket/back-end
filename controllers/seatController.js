@@ -5,11 +5,6 @@ const jwt = require("jsonwebtoken");
 const JWT_SECRET = process.env.JWT_SECRET;
 
 class SeatController {
-  // not return flight
-  // GET /api/seats?flightId=101&seatClass=economy&adult=2&child=1&baby=0
-
-  // return flight
-  // GET /api/seats?flightId=101&flightId=202&seatClass=business&adult=1&child=0&baby=1
   static async getDetailFlight(req, res) {
     try {
       const { flightId, seatClass, adult, child, baby } = req.query;
