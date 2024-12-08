@@ -2,6 +2,8 @@ const prisma = require("../models/prismaClients");
 const response = require("../utils/response");
 const bcrypt = require("bcrypt");
 const { sendOtp, verifyOtp, OTP_TYPES } = require("../utils/otp");
+const AuthMiddleware = require("../middleware/authMiddleware");
+const CookieMiddleware = require("../middleware/cookieMiddleware");
 
 class RegisterController {
     // Register user
@@ -42,7 +44,6 @@ class RegisterController {
             });
 
             try {
-
                 await sendOtp(email, OTP_TYPES.EMAIL_VERIFICATION);
                 
                 return response(200, "success", {
@@ -113,6 +114,11 @@ class RegisterController {
                     }
                 });
 
+                const token = AuthMiddleware.generateToken(updatedUser);
+                CookieMiddleware.setTokenCookie(res, token);
+
+                console.log("Cookie set:", token);
+                
                 return response(200, "success", updatedUser, "Email berhasil diverifikasi", res);
             } catch (otpError) {
                 return response(400, "error", null, otpError.message, res);
