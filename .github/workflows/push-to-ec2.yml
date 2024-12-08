@@ -40,4 +40,4 @@ jobs:
              host: ${{ secrets.HOST_DNS }}
              username: ${{ secrets.USERNAME }}
              key: ${{ secrets.SSH_PRIVATE_KEY }}
-             script: "sudo pm2 restart all"
+             script: "sudo pm2 restart all --update-env"
