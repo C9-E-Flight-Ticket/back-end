@@ -145,7 +145,7 @@ model Transaction {
   id            Int       @id @default(autoincrement())
   userId        Int
   user          User      @relation(fields: [userId], references: [id])
-  bookingCode   String
+  bookingCode   String    @unique
   tax           Decimal
   totalAmmount  Decimal
   expiredAt     DateTime

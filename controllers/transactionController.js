@@ -1,3 +1,7 @@
+const { PDFDocument, rgb } = require("pdf-lib");
+const QRCode = require("qrcode");
+const fs = require("fs");
+const path = require("path");
 const prisma = require("../models/prismaClients");
 const response = require("../utils/response");
 const randomCode = require("otp-generator");
@@ -174,18 +178,6 @@ class TransactionController {
         },
         item_details: itemDetails,
       };
-
-    //   console.log(
-    //     "Midtrans Parameters:",
-    //     JSON.stringify(
-    //       {
-    //         transactionDetails: midtransParameter.transaction_details,
-    //         itemDetails: midtransParameter.item_details,
-    //       },
-    //       null,
-    //       2
-    //     )
-    //   );
 
       const midtransToken = await snap.createTransaction(midtransParameter);
 
@@ -364,6 +356,110 @@ class TransactionController {
       );
     } catch (error) {
       console.error("Error getting all transactions:", error);
+      response(500, "error", null, "Internal server error", res);
+    }
+  }
+
+  static async generateTransactionPDF(req, res) {
+    try {
+      const { bookingCode } = req.params;
+
+      // Fetch transaction details
+      const transaction = await prisma.transaction.findUnique({
+        where: { bookingCode },
+        include: {
+          Tickets: {
+            include: {
+              seat: {
+                include: {
+                  flight: {
+                    include: {
+                      airline: true,
+                      departureAirport: true,
+                      arrivalAirport: true,
+                    },
+                  },
+                },
+              },
+              passenger: true,
+            },
+          },
+        },
+      });
+
+      if (!transaction) {
+        return response(404, "error", null, "Transaction not found", res);
+      }
+
+      // Create PDF document
+      const pdfDoc = await PDFDocument.create();
+      const page = pdfDoc.addPage([600, 800]);
+      const { tickets } = transaction;
+
+      // Header
+      page.drawText(`Transaction: ${transaction.bookingCode}`, {
+        x: 50,
+        y: 750,
+        size: 20,
+        color: rgb(0, 0, 0),
+      });
+
+      // Tickets details
+      let y = 700;
+      tickets.forEach((ticket, index) => {
+        page.drawText(`Ticket ${index + 1}:`, { x: 50, y, size: 14 });
+        y -= 20;
+        page.drawText(`  Passenger: ${ticket.passenger.name}`, { x: 50, y, size: 12 });
+        y -= 20;
+        page.drawText(
+          `  Seat: ${ticket.seat.seatNumber} (${ticket.seat.flight.airline.name})`,
+          { x: 50, y, size: 12 }
+        );
+        y -= 20;
+        page.drawText(
+          `  Route: ${ticket.seat.flight.departureAirport.name} - ${ticket.seat.flight.arrivalAirport.name}`,
+          { x: 50, y, size: 12 }
+        );
+        y -= 30;
+      });
+
+      // Save PDF to buffer
+      const pdfBytes = await pdfDoc.save();
+
+      // Save PDF to a temporary file
+      const pdfFilePath = path.join(__dirname, `../tmp/${transaction.bookingCode}.pdf`);
+      fs.writeFileSync(pdfFilePath, pdfBytes);
+
+      // Generate QR code for the PDF download link
+      const downloadUrl = `${req.protocol}://${req.get("host")}/api/transaction/download/${transaction.bookingCode}.pdf`;
+      const qrCodeDataUrl = await QRCode.toDataURL(downloadUrl);
+
+      // Send QR code in the response
+      response(200, "success", { qrCode: qrCodeDataUrl }, "PDF generated successfully", res);
+    } catch (error) {
+      console.error("Error generating transaction PDF:", error);
+      response(500, "error", null, "Internal server error", res);
+    }
+  }
+
+  // Endpoint to serve the PDF file
+  static async downloadPDF(req, res) {
+    try {
+      const { bookingCode } = req.params;
+      const pdfFilePath = path.join(__dirname, `../tmp/${bookingCode}.pdf`);
+
+      if (!fs.existsSync(pdfFilePath)) {
+        return response(404, "error", null, "PDF not found", res);
+      }
+
+      res.download(pdfFilePath, `${bookingCode}.pdf`, (err) => {
+        if (err) {
+          console.error("Error serving PDF file:", err);
+          response(500, "error", null, "Internal server error", res);
+        }
+      });
+    } catch (error) {
+      console.error("Error downloading PDF:", error);
       response(500, "error", null, "Internal server error", res);
     }
   }
