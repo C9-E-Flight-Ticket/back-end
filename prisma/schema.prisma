@@ -25,10 +25,10 @@ model User {
   updateAt DateTime @updatedAt
   deleteAt DateTime?
   Transactions Transaction[]
-  refreshTokens RefreshToken[]
   otps OTP[]
-}
 
+  Notification Notification[]
+}
 
 enum Title {
   Mr
@@ -157,18 +157,6 @@ model Transaction {
   deleteAt DateTime?
 }
 
-model RefreshToken {
-  id        Int      @id @default(autoincrement())
-  token     String   @unique
-  userId    Int
-  user      User     @relation(fields: [userId], references: [id])
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-  revokedAt DateTime?
-
-  @@index([userId])
-}
-
 model OTP {
   id Int @id @default(autoincrement())
   code String
@@ -184,3 +172,16 @@ model OTP {
 
   @@index([userId])
 }
+
+model Notification {
+  id        Int  @id @default(autoincrement())
+  user      User @relation(fields: [userId], references: [id])
+  userId    Int
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updateAt DateTime @updatedAt
+  deleteAt DateTime?
+}
+
