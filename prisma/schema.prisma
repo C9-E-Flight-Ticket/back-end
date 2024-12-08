@@ -13,16 +13,21 @@ enum Role {
 }
 
 model User {
+
   id Int @id @default(autoincrement())
   name String 
   email String @unique
   password String?
   phoneNumber String
   role Role @default(USER)
+  is_verified Boolean @default(false)
   createAt DateTime @default(now())
   updateAt DateTime @updatedAt
   deleteAt DateTime?
   Transactions Transaction[]
+  otps OTP[]
+
+  Notification Notification[]
 }
 
 enum Title {
@@ -31,17 +36,17 @@ enum Title {
 }
 
 model Passenger {
-  id Int @id @default(autoincrement())
-  title Title
-  name String
-  familyName String?
-  dateOfBirth DateTime
-  nationality String
+  id             Int       @id @default(autoincrement())
+  title          Title
+  name           String
+  familyName     String?
+  dateOfBirth    DateTime
+  nationality    String
   identityNumber String
   issuingCountry String
-  validUntil DateTime?
-  deleteAt DateTime?
-  Tickets Ticket[]
+  validUntil     DateTime?
+  deleteAt       DateTime?
+  Tickets        Ticket[]
 }
 
 enum TerminalCategory {
@@ -50,84 +55,84 @@ enum TerminalCategory {
 }
 
 model Airport {
-  id Int @id @default(autoincrement())
-  name String
-  code String
-  city String
-  terminalName String @default("Terminal 1A")
+  id               Int              @id @default(autoincrement())
+  name             String
+  code             String
+  city             String
+  terminalName     String           @default("Terminal 1A")
   terminalCategory TerminalCategory @default(Domestic)
-  continent String
-  urlImage String
-  fileId String
-  createdAt DateTime @default(now())
-  updateAt DateTime @updatedAt
-  deleteAt DateTime?
-  flightFrom Flight[] @relation("DepartureFlight")
-  flightTo Flight[] @relation("ArrivalFlight")
+  continent        String
+  urlImage         String
+  fileId           String
+  createdAt        DateTime         @default(now())
+  updateAt         DateTime         @updatedAt
+  deleteAt         DateTime?
+  flightFrom       Flight[]         @relation("DepartureFlight")
+  flightTo         Flight[]         @relation("ArrivalFlight")
 }
 
 model Airline {
-  id Int @id @default(autoincrement())
-  name String
-  code String
-  baggage Int @default(20)
-  cabinBaggage Int @default(7)
-  entertainment String @default("In Flight Entertainment")
-  urlImage String
-  fileId String
-  createdAt DateTime @default(now())
-  updateAt DateTime @updatedAt
-  deleteAt DateTime?
-  flights Flight[]
+  id            Int       @id @default(autoincrement())
+  name          String
+  code          String
+  baggage       Int       @default(20)
+  cabinBaggage  Int       @default(7)
+  entertainment String    @default("In Flight Entertainment")
+  urlImage      String
+  fileId        String
+  createdAt     DateTime  @default(now())
+  updateAt      DateTime  @updatedAt
+  deleteAt      DateTime?
+  flights       Flight[]
 }
 
 model Flight {
-  id Int @id @default(autoincrement())
-  airlineId Int
-  airline Airline @relation(fields: [airlineId], references: [id])
+  id                 Int       @id @default(autoincrement())
+  airlineId          Int
+  airline            Airline   @relation(fields: [airlineId], references: [id])
   departureAirportId Int
-  departureAirport Airport @relation("DepartureFlight",fields: [departureAirportId], references: [id])
-  arrivalAirportId Int
-  arrivalAirport Airport @relation("ArrivalFlight",fields: [arrivalAirportId], references: [id])
-  flightNumber String
-  departureTime DateTime
-  arrivalTime DateTime
-  createAt DateTime @default(now())
-  updateAt DateTime @updatedAt
-  deleteAt DateTime?
-  seats Seat[]
+  departureAirport   Airport   @relation("DepartureFlight", fields: [departureAirportId], references: [id])
+  arrivalAirportId   Int
+  arrivalAirport     Airport   @relation("ArrivalFlight", fields: [arrivalAirportId], references: [id])
+  flightNumber       String
+  departureTime      DateTime
+  arrivalTime        DateTime
+  createAt           DateTime  @default(now())
+  updateAt           DateTime  @updatedAt
+  deleteAt           DateTime?
+  seats              Seat[]
 }
 
 model Seat {
-  id Int @id @default(autoincrement())
-  flightId Int
-  flight Flight @relation(fields: [flightId], references: [id])
+  id         Int       @id @default(autoincrement())
+  flightId   Int
+  flight     Flight    @relation(fields: [flightId], references: [id])
   seatNumber String
-  seatClass String
-  price Decimal
-  available Boolean @default(true)
-  deleteAt DateTime?
-  tickets Ticket[]
+  seatClass  String
+  price      Decimal
+  available  Boolean   @default(true)
+  deleteAt   DateTime?
+  tickets    Ticket[]
 }
 
 enum PassengerCategory {
-    Adult
-    Child
-    Baby
+  Adult
+  Child
+  Baby
 }
 
 model Ticket {
-  id Int @id @default(autoincrement())
+  id            Int               @id @default(autoincrement())
   transactionId Int
-  transaction Transaction @relation(fields: [transactionId], references: [id])
-  seatId Int
-  seat Seat @relation(fields: [seatId], references: [id])
-  passengerId Int
-  passenger Passenger @relation(fields: [passengerId], references: [id])
-  category PassengerCategory 
-  createAt DateTime @default(now())
-  updateAt DateTime @updatedAt
-  deleteAt DateTime?
+  transaction   Transaction       @relation(fields: [transactionId], references: [id])
+  seatId        Int
+  seat          Seat              @relation(fields: [seatId], references: [id])
+  passengerId   Int
+  passenger     Passenger         @relation(fields: [passengerId], references: [id])
+  category      PassengerCategory
+  createAt      DateTime          @default(now())
+  updateAt      DateTime          @updatedAt
+  deleteAt      DateTime?
 }
 
 enum Status {
@@ -137,12 +142,13 @@ enum Status {
 }
 
 model Transaction {
-  id Int @id @default(autoincrement())
-  userId Int
-  user User @relation(fields: [userId], references: [id])
-  bookingCode String
-  tax Decimal
-  totalAmmount Decimal
+  id            Int       @id @default(autoincrement())
+  userId        Int
+  user          User      @relation(fields: [userId], references: [id])
+  bookingCode   String    @unique
+  tax           Decimal
+  totalAmmount  Decimal
+  expiredAt     DateTime
   paymentMethod String?
   status Status @default(Unpaid)
   Tickets Ticket[]
@@ -150,3 +156,32 @@ model Transaction {
   updateAt DateTime @updatedAt
   deleteAt DateTime?
 }
+
+model OTP {
+  id Int @id @default(autoincrement())
+  code String
+  type String
+  userId Int
+  user User @relation(fields: [userId], references: [id])
+  attempts Int @default(0)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  verifiedAt DateTime?
+  revokedAt DateTime?
+
+  @@index([userId])
+}
+
+model Notification {
+  id        Int  @id @default(autoincrement())
+  user      User @relation(fields: [userId], references: [id])
+  userId    Int
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updateAt DateTime @updatedAt
+  deleteAt DateTime?
+}
+
