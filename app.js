@@ -1,10 +1,14 @@
-require('dotenv').config()
+if (process.env.NODE_ENV !== "production") {
+  require("dotenv").config();
+}
+
+require('./middleware/intrument')
 const express = require('express')
 const Sentry = require('@sentry/node')
 const bodyParser = require('body-parser')
+const cors = require('cors')
 const cookieParser = require('cookie-parser')
 const { errorHandler } = require('./middleware/errorMiddleware')
-const cron = require('node-cron'); 
 const { checkExpiredTransactions } = require('./services/transactionService'); 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -18,6 +22,19 @@ const seatRoute = require('./routes/seatRoutes')
 const airlineRoute = require('./routes/airlineRoutes')
 const airportRoute = require('./routes/airportRoutes')
 const notificationRoutes = require('./routes/notificationRoutes');
+
+const corsOptions = {
+  origin: [
+    'https://krisnaepras.my.id',
+    'http://krisnaepras.my.id',
+    'http://localhost:3000',
+    process.env.FRONTEND_URL,
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true,
+}
+
+app.use(cors(corsOptions))
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -35,14 +52,6 @@ app.use('/api/seat', seatRoute)
 app.use('/api/airline', airlineRoute)
 app.use('/api/airport', airportRoute)
 app.use('/api/notifications', notificationRoutes)
-
-cron.schedule('* * * * *', async () => {
-  try {
-    await checkExpiredTransactions();
-  } catch (error) {
-    console.error('Error checking expired transactions:', error);
-  }
-});
 
 // Request logging middleware
 app.use((req, res, next) => {

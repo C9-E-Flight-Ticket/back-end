@@ -83,8 +83,8 @@ class SeatController {
         ({ flightId, seats }) => ({
           flightId,
           seats: seatClass
-            ? seats.filter((seat) => seat.seatClass === seatClass)
-            : seats,
+            ? seats.filter((seat) => seat.seatClass.toLocaleLowerCase() === seatClass.toLocaleLowerCase()).sort((a, b) => a.seatNumber - b.seatNumber)
+            : seats.sort((a, b) => a.seatNumber - b.seatNumber),
         })
       );
 
@@ -142,12 +142,18 @@ class SeatController {
         { adult: 0, child: 0, baby: 0 }
       );
 
+      const prices = {
+        subTotalPrice: priceAllPassenger,
+        tax: pricesByFlight.reduce((acc, { tax }) => acc + tax, 0),
+        total: pricesByFlight.reduce((acc, { total }) => acc + total, 0),
+      };
+
       const datas = {
         user: user || "guest",
         flights: filteredSeatsByFlight,
         pricesByFlight,
-        priceAllPassenger,
         passengerCounts,
+        prices,
       };
 
       response(
