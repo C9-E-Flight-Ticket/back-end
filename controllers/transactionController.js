@@ -407,6 +407,10 @@ class TransactionController {
         return response(404, "error", null, "Transaction not found", res);
       }
 
+      if (transaction.status !== "Issued") {
+        return response(400, "error", null, "Tickets can only be printed if the transaction status is 'Issued'", res);
+    }
+
       const tickets = transaction.Tickets || [];
       if (tickets.length === 0) {
         return response(
