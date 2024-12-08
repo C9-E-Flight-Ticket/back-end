@@ -12,7 +12,7 @@ const userData = [
     role: "ADMIN"
   },
   {
-    name: "User Ganteng",
+    name: "Pras",
     email: "user@example.com",
     password: hashedPassword,
     phoneNumber: "+6281234567891",
