@@ -5,6 +5,7 @@ const { airportData } = require("./datas/airportData");
 const { passengerData } = require("./datas/passengerData");
 const { flightData } = require("./datas/flightData");
 const { generateSeats } = require("./datas/seatData");
+const { notificationData } = require("./datas/notificationData");
 const fs = require("fs").promises;
 
 const prisma = new PrismaClient();
@@ -130,6 +131,17 @@ async function main() {
         data: seats,
         skipDuplicates: true,
       });
+         // 7. Seed Notifications
+    console.log("Seeding notifications...");
+    await prisma.notification.createMany({
+      data: notificationData,
+      skipDuplicates: true,
+    });
+
+        console.log("Seed completed successfully!");
+    } catch (error) {
+        console.error("Error during seeding:", error);
+        throw error;
     }
 
     console.log("Seed completed successfully!");

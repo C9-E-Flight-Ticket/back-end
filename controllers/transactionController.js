@@ -1,3 +1,7 @@
+const { PDFDocument, rgb, StandardFonts } = require("pdf-lib");
+const QRCode = require("qrcode");
+const fs = require("fs");
+const path = require("path");
 const prisma = require("../models/prismaClients");
 const response = require("../utils/response");
 const randomCode = require("otp-generator");
@@ -13,17 +17,27 @@ class TransactionController {
         !seats ||
         !passengerDetails ||
         seats.length === 0 ||
-        passengerDetails.length === 0 ||
-        seats.length !== passengerDetails.length
-      ) {
+        passengerDetails.length === 0
+      )
+      {
         return response(
           400,
           "error",
           null,
-          "Invalid input: seats and passenger details must match",
+          "Invalid input: seats and passenger details must be provided",
           res
         );
       }
+
+      if (seats.length < passengerDetails.length || seats.length > passengerDetails.length * 2) {
+        return response(
+            400,
+            "error",
+            null,
+            "Invalid input: Jumlah kursi tidak sesuai dengan jumlah penumpang",
+            res
+        );
+    }
 
       const availableSeats = await prisma.seat.findMany({
         where: {
@@ -84,14 +98,20 @@ class TransactionController {
         // Create tiket untuk setiap seat dan passenger
         const createdTickets = await Promise.all(
           seats.map(async (seatId, index) => {
-            const passenger = createdPassengers[index];
+            // Tentukan index penumpang berdasarkan jumlah kursi dan penumpang
+            const passengerIndex =
+              passengerDetails.length > 1
+                ? index % passengerDetails.length
+                : index;
+
+            const passenger = createdPassengers[passengerIndex];
 
             return await prisma.ticket.create({
               data: {
                 transactionId: newTransaction.id,
                 seatId: seatId,
                 passengerId: passenger.id,
-                category: passengerDetails[index].category || "Adult",
+                category: passengerDetails[passengerIndex].category || "Adult",
               },
               include: {
                 passenger: true,
@@ -132,25 +152,25 @@ class TransactionController {
         const basePrice = roundPrice(ticket.seat.price);
 
         // faktor harga berdasarkan kategori
-      let priceFactor = 1;
-      switch (ticket.category) {
-        case 'Child':
-          priceFactor = 0.75; 
-          break;
-        case 'Baby':
-          priceFactor = 0; 
-          break;
-        default:
-          priceFactor = 1; 
-      }
+        let priceFactor = 1;
+        switch (ticket.category) {
+          case "Child":
+            priceFactor = 0.75;
+            break;
+          case "Baby":
+            priceFactor = 0;
+            break;
+          default:
+            priceFactor = 1;
+        }
 
-      // harga dengan faktor dan pajak
-      const adjustedPrice = roundPrice(basePrice * priceFactor);
-      const priceWithTax = roundPrice(adjustedPrice * 1.11);
+        // harga dengan faktor dan pajak
+        const adjustedPrice = roundPrice(basePrice * priceFactor);
+        const priceWithTax = roundPrice(adjustedPrice * 1.11);
 
         return {
           id: ticket.id.toString(),
-          price: priceWithTax, 
+          price: priceWithTax,
           quantity: 1,
           name: `${ticket.seat.flight.airline.name} - ${ticket.seat.seatNumber} (${ticket.passenger.name})`,
         };
@@ -325,32 +345,32 @@ class TransactionController {
 
   static async getAllTransactions(req, res) {
     try {
-      const { bookingCode, departureDate } = req.query; 
-  
+      const { bookingCode, departureDate } = req.query;
+
       const query = {};
       if (bookingCode) {
-        query.bookingCode = bookingCode; 
+        query.bookingCode = bookingCode;
       }
-  
+
       if (departureDate) {
         const parsedDate = new Date(departureDate);
         if (isNaN(parsedDate.getTime())) {
           return response(400, "error", null, "Invalid departure date", res);
         }
-  
+
         query.Tickets = {
           some: {
             seat: {
               flight: {
                 departureDate: {
-                  gte: parsedDate, 
+                  gte: parsedDate,
                 },
               },
             },
           },
         };
       }
-  
+
       const transactions = await prisma.transaction.findMany({
         where: query,
         include: {
@@ -373,7 +393,7 @@ class TransactionController {
           // user: true,
         },
       });
-  
+
       response(
         200,
         "success",
@@ -383,6 +403,215 @@ class TransactionController {
       );
     } catch (error) {
       console.error("Error getting all transactions:", error);
+      response(500, "error", null, "Internal server error", res);
+    }
+  }
+
+  static async generateTransactionPDF(req, res) {
+    try {
+      const { bookingCode } = req.params;
+
+      // Fetch transaction details
+      const transaction = await prisma.transaction.findUnique({
+        where: { bookingCode },
+        include: {
+          Tickets: {
+            include: {
+              seat: {
+                include: {
+                  flight: {
+                    include: {
+                      airline: true,
+                      departureAirport: true,
+                      arrivalAirport: true,
+                    },
+                  },
+                },
+              },
+              passenger: true,
+            },
+          },
+        },
+      });
+
+      if (!transaction) {
+        return response(404, "error", null, "Transaction not found", res);
+      }
+
+      if (transaction.status !== "Issued") {
+        return response(400, "error", null, "Tickets can only be printed if the transaction status is 'Issued'", res);
+    }
+
+      const tickets = transaction.Tickets || [];
+      if (tickets.length === 0) {
+        return response(
+          400,
+          "error",
+          null,
+          "No tickets found for this transaction",
+          res
+        );
+      }
+
+      const pdfDoc = await PDFDocument.create();
+      const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+      const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      const page = pdfDoc.addPage([600, 800]);
+      const margin = 50;
+      let y = 750;
+
+      // Header
+      page.drawText("Transaction Details", {
+        x: margin,
+        y,
+        size: 20,
+        font: fontBold,
+        color: rgb(0, 0, 0),
+      });
+      y -= 30;
+
+      page.drawText(`Booking Code: ${transaction.bookingCode}`, {
+        x: margin,
+        y,
+        size: 14,
+        font: fontRegular,
+      });
+      y -= 20;
+
+      page.drawText(`Payment Status: ${transaction.status}`, {
+        x: margin,
+        y,
+        size: 14,
+        font: fontRegular,
+        color: transaction.status === "Issued" ? rgb(0, 0.5, 0) : rgb(1, 0, 0),
+      });
+      y -= 20;
+
+      page.drawText(`Total Amount: Rp ${transaction.totalAmmount || "0"}`, {
+        x: margin,
+        y,
+        size: 14,
+        font: fontRegular,
+      });
+      y -= 30;
+
+      tickets.forEach((ticket, index) => {
+        page.drawText(`Ticket ${index + 1}`, {
+          x: margin,
+          y,
+          size: 16,
+          font: fontBold,
+        });
+        y -= 20;
+
+        page.drawText(`Passenger: ${ticket.passenger?.name || "N/A"}`, {
+          x: margin,
+          y,
+          size: 12,
+          font: fontRegular,
+        });
+        y -= 15;
+
+        page.drawText(`Seat: ${ticket.seat?.seatNumber || "N/A"}`, {
+          x: margin,
+          y,
+          size: 12,
+          font: fontRegular,
+        });
+        y -= 15;
+
+        page.drawText(
+          `Route: ${ticket.seat?.flight?.departureAirport?.name || "N/A"} -> ${
+            ticket.seat?.flight?.arrivalAirport?.name || "N/A"
+          }`,
+          {
+            x: margin,
+            y,
+            size: 12,
+            font: fontRegular,
+          }
+        );
+        y -= 15;
+
+        page.drawText(
+          `Departure: ${
+            ticket.seat?.flight?.departureTime
+              ? new Date(ticket.seat.flight.departureTime).toLocaleString()
+              : "N/A"
+          }`,
+          {
+            x: margin,
+            y,
+            size: 12,
+            font: fontRegular,
+          }
+        );
+        y -= 10;
+
+        // Garis Pemisah
+        page.drawLine({
+          start: { x: margin, y },
+          end: { x: 550, y },
+          thickness: 1,
+          color: rgb(0.5, 0.5, 0.5),
+        });
+        y -= 10;
+
+        y -= 10;
+        // Cek jika halaman penuh
+        if (y < 50) {
+          page.addPage([600, 800]);
+          y = 750;
+        }
+      });
+
+      const pdfBytes = await pdfDoc.save();
+
+      // Save PDF
+      const tmpDir = path.join(__dirname, "../tmp");
+      if (!fs.existsSync(tmpDir)) {
+        fs.mkdirSync(tmpDir, { recursive: true });
+      }
+      const pdfFilePath = path.join(tmpDir, `${transaction.bookingCode}.pdf`);
+      fs.writeFileSync(pdfFilePath, pdfBytes);
+
+      const downloadUrl = `${req.protocol}://${req.get(
+        "host"
+      )}/api/transaction/download/${transaction.bookingCode}.pdf`;
+
+      const qrCodeOptions = { width: 300, margin: 1 };
+      const qrCodeDataUrl = await QRCode.toDataURL(downloadUrl, qrCodeOptions);
+
+      response(
+        200,
+        "success",
+        { qrCode: qrCodeDataUrl, pdfPath: pdfFilePath },
+        "PDF generated successfully",
+        res
+      );
+    } catch (error) {
+      console.error("Error generating transaction PDF:", error);
+      response(500, "error", null, "Internal server error", res);
+    }
+  }
+
+  static async downloadPDF(req, res) {
+    try {
+      const { bookingCode } = req.params;
+      const pdfFilePath = path.join(__dirname, `../tmp/${bookingCode}.pdf`);
+
+      if (!fs.existsSync(pdfFilePath)) {
+        return response(404, "error", null, "PDF not found", res);
+      }
+
+      res.download(pdfFilePath, `${bookingCode}.pdf`, (err) => {
+        if (err) {
+          console.error("Error serving PDF file:", err);
+          response(500, "error", null, "Internal server error", res);
+        }
+      });
+    } catch (error) {
+      console.error("Error downloading PDF:", error);
       response(500, "error", null, "Internal server error", res);
     }
   }
