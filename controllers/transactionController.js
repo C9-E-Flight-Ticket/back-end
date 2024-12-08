@@ -173,19 +173,12 @@ class TransactionController {
           phone: user.phoneNumber || "",
         },
         item_details: itemDetails,
+        expiry: {
+          start_time: new Date().toISOString(),
+          unit: "hour",
+          duration: 1 
+        }
       };
-
-    //   console.log(
-    //     "Midtrans Parameters:",
-    //     JSON.stringify(
-    //       {
-    //         transactionDetails: midtransParameter.transaction_details,
-    //         itemDetails: midtransParameter.item_details,
-    //       },
-    //       null,
-    //       2
-    //     )
-    //   );
 
       const midtransToken = await snap.createTransaction(midtransParameter);
 
@@ -217,7 +210,7 @@ class TransactionController {
   static async handleMidtransCallback(req, res) {
     try {
       const { order_id, transaction_status, fraud_status } = req.body;
-
+  
       let newStatus;
       switch (transaction_status) {
         case "pending":
@@ -236,7 +229,8 @@ class TransactionController {
           newStatus = "Cancelled";
           break;
       }
-
+  
+      // Transaction update
       const transaction = await prisma.transaction.update({
         where: { bookingCode: order_id },
         data: {
@@ -244,7 +238,32 @@ class TransactionController {
           paymentMethod: req.body.payment_type,
         },
       });
-
+  
+      // Jika transaksi dibatalkan (expired/cancel)
+      if (newStatus === "Cancelled") {
+        // Kembalikan seat menjadi available
+        await prisma.seat.updateMany({
+          where: { 
+            Ticket: {
+              some: {
+                transactionId: transaction.id
+              }
+            }
+          },
+          data: { 
+            available: true 
+          }
+        });
+  
+        // Hapus tiket terkait
+        await prisma.ticket.deleteMany({
+          where: { 
+            transactionId: transaction.id 
+          }
+        });
+      }
+  
+      // Jika transaksi berhasil
       if (newStatus === "Issued") {
         await prisma.ticket.updateMany({
           where: { transactionId: transaction.id },
@@ -257,7 +276,7 @@ class TransactionController {
           },
         });
       }
-
+  
       res.status(200).send("OK");
     } catch (error) {
       console.error("Midtrans callback error:", error);
