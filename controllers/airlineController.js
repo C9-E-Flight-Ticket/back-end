@@ -23,7 +23,8 @@ class AirlineController {
       const airlines = await prisma.airline.findMany(query);
 
       if (!airlines.length) {
-        return response(404, "failed", null, "Airline tidak ditemukan", res);
+        return next(new AppError("Airline tidak ditemukan", 404));
+        
       }
 
       const totalPages = Math.ceil(totalAirlines / (limit || 10));
@@ -62,13 +63,7 @@ class AirlineController {
       } = req.body;
 
       if (!name || !code) {
-        return response(
-          400,
-          "failed",
-          null,
-          "Nama dan kode airline wajib diisi",
-          res
-        );
+        return next(new AppError("Nama dan kode airline wajib diisi", 400));
       }
 
       const newAirline = await prisma.airline.create({
@@ -113,13 +108,7 @@ class AirlineController {
       });
 
       if (!airline) {
-        return response(
-          404, 
-          "failed", 
-          null, 
-          "Airline tidak ditemukan", 
-          res
-        );
+        return next(new AppError("Airline tidak ditemukan", 404));
       }
 
       const updatedAirline = await prisma.airline.update({
@@ -154,12 +143,7 @@ class AirlineController {
       const airline = await prisma.airline.findUnique({ where: { id: parseInt(id) } });
   
       if (!airline) {
-        return response(
-          404, 
-          "failed", 
-          null, 
-          "Airline tidak ditemukan", 
-          res);
+        return next(new AppError("Airline tidak ditemukan", 404));
       }
   
       

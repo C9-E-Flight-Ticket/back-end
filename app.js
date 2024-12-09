@@ -12,10 +12,9 @@ const { errorHandler } = require('./middleware/errorMiddleware')
 const passport = require('./libs/passport')
 const cookieMiddleware = require('./middleware/cookieMiddleware')
 const swaggerUi = require('swagger-ui-express');
-// const { checkExpiredTransactions } = require('./services/transactionService'); 
+
 const app = express()
 const PORT = process.env.PORT || 3000
-
 
 const authRoute = require('./routes/authRoutes');
 const ticketRoute = require('./routes/ticketRoutes');
@@ -31,6 +30,7 @@ const corsOptions = {
     'https://krisnaepras.my.id',
     'http://krisnaepras.my.id',
     'http://localhost:3000',
+    'http://localhost:5173',
     process.env.FRONTEND_URL,
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -38,20 +38,6 @@ const corsOptions = {
 }
 
 app.use(cors(corsOptions))
-
-// const corsOptions = {
-//   origin: [
-//     'https://krisnaepras.my.id', 
-//     'http://localhost:3000', 
-//     'http://localhost:5173', 
-//   ],
-//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-//   allowedHeaders: ['Content-Type', 'Authorization'],
-//   credentials: true,
-//   optionsSuccessStatus: 200
-// }
-
-// app.use(cors(corsOptions))
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));

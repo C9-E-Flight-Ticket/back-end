@@ -1,28 +1,28 @@
 const express = require("express");
 const router = express.Router();
 const { asyncErrorHandler } = require("../middleware/errorMiddleware");
-const AuthMiddleware = require("../middleware/authMiddleware");
-const LoginController = require("../controllers/loginController");
-const RegisterController = require("../controllers/registerController");
-const ForgotPasswordController = require("../controllers/forgotpasswordController");
-const resendOtp = require("../utils/resendOtp");
+const AuthMiddleware = require('../middleware/authMiddleware');
+const LoginController = require('../controllers/loginController');
+const RegisterController = require('../controllers/registerController');
+const ForgotPasswordController = require('../controllers/forgotpasswordController');
+const resendOtp = require('../utils/resendOtp');
 const passport = require("../libs/passport");
 const OauthController = require("../controllers/oauthController");
 
 // Login routes
-router.post("/login", LoginController.login);
+router.post('/login', asyncErrorHandler(LoginController.login));
 
 // Registration routes
-router.post("/register", RegisterController.register);
-router.post("/verify-email/:id", RegisterController.verifyEmail);
-router.post("/resend-otp/:id", resendOtp);
+router.post('/register', asyncErrorHandler(RegisterController.register));
+router.post('/verify-email/:id', asyncErrorHandler(RegisterController.verifyEmail));
+router.post('/resend-otp/:id', resendOtp);
 
 // Forgot Password Routes
-router.post("/forgot-password", ForgotPasswordController.forgotPassword);
-router.post("/verify-otp/:id", ForgotPasswordController.verifyOTP);
-router.post("/reset-password/:id", ForgotPasswordController.resetPassword);
-router.post("/resend-password-otp/:id", (req, res) => {
-    req.body.type = "PASSWORD_RESET";
+router.post('/forgot-password', asyncErrorHandler(ForgotPasswordController.forgotPassword));
+router.post('/verify-otp/:id', asyncErrorHandler(ForgotPasswordController.verifyOTP));
+router.post('/reset-password/:id', asyncErrorHandler(ForgotPasswordController.resetPassword));
+router.post('/resend-password-otp/:id', (req, res) => {
+    req.body.type = 'PASSWORD_RESET';
     resendOtp(req, res);
 });
 
@@ -48,7 +48,7 @@ router.get("/google/failure", asyncErrorHandler(OauthController.googleFailure));
 router.get(
     "/logout",
     AuthMiddleware.verifyAuthentication,
-    LoginController.logout
+    asyncErrorHandler(LoginController.logout)
 );
 
 // Example Get profile
