@@ -131,13 +131,14 @@ async function main() {
         data: seats,
         skipDuplicates: true,
       });
-      // 7. Seed Notifications
-      console.log("Seeding notifications...");
-      await prisma.notification.createMany({
-        data: notificationData,
-        skipDuplicates: true,
-      });
     }
+
+    // 7. Seed Notifications
+    console.log("Seeding notifications...");
+    await prisma.notification.createMany({
+      data: notificationData,
+      skipDuplicates: true,
+    });
 
     console.log("Seed completed successfully!");
   } catch (error) {

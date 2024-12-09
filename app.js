@@ -12,7 +12,6 @@ const { errorHandler } = require('./middleware/errorMiddleware')
 const app = express()
 const PORT = process.env.PORT || 3000
 
-
 const authRoute = require('./routes/authRoutes');
 const ticketRoute = require('./routes/ticketRoutes');
 const transactionRoutes = require("./routes/transactionRoutes");

@@ -6,9 +6,10 @@ const prisma = require("../models/prismaClients");
 const response = require("../utils/response");
 const randomCode = require("otp-generator");
 const snap = require("../config/midtransConfig");
+const { AppError } = require("../middleware/errorMiddleware");
 
 class TransactionController {
-  static async createTicketTransaction(req, res) {
+  static async createTicketTransaction(req, res, next) {
     try {
       const { userId, seats, passengerDetails, tax, total } = req.body;
 
@@ -20,23 +21,11 @@ class TransactionController {
         passengerDetails.length === 0
       )
       {
-        return response(
-          400,
-          "error",
-          null,
-          "Invalid input: seats and passenger details must be provided",
-          res
-        );
+        return next(new AppError("Invalid input", 400));
       }
 
       if (seats.length < passengerDetails.length || seats.length > passengerDetails.length * 2) {
-        return response(
-            400,
-            "error",
-            null,
-            "Invalid input: Jumlah kursi tidak sesuai dengan jumlah penumpang",
-            res
-        );
+        return next(new AppError("Invalid input: Jumlah kursi tidak sesuai dengan jumlah penumpang", 400));
     }
 
       const availableSeats = await prisma.seat.findMany({
@@ -56,13 +45,7 @@ class TransactionController {
       });
 
       if (availableSeats.length !== seats.length) {
-        return response(
-          400,
-          "error",
-          null,
-          "Some seats are not available",
-          res
-        );
+        return next(new AppError("Beberapa kursi tidak tersedia", 400));
       }
 
       const bookingCode = randomCode.generate(9, { specialChars: false });
@@ -222,12 +205,11 @@ class TransactionController {
         res
       );
     } catch (error) {
-      console.error("Error creating ticket transaction:", error);
-      response(500, "error", null, "Internal server error", res);
+      next(error);
     }
   }
 
-  static async handleMidtransCallback(req, res) {
+  static async handleMidtransCallback(req, res, next) {
     try {
       const { order_id, transaction_status, fraud_status } = req.body;
   
@@ -304,7 +286,7 @@ class TransactionController {
     }
   }
 
-  static async getTransactionStatus(req, res) {
+  static async getTransactionStatus(req, res, next) {
     try {
       const { bookingCode } = req.params;
       const transaction = await prisma.transaction.findUnique({
@@ -338,12 +320,11 @@ class TransactionController {
         res
       );
     } catch (error) {
-      console.error("Error getting transaction status:", error);
-      response(500, "error", null, "Internal server error", res);
+      next(error);
     }
   }
 
-  static async getAllTransactions(req, res) {
+  static async getAllTransactions(req, res, next) {
     try {
       const { bookingCode, departureDate } = req.query;
 
@@ -355,7 +336,7 @@ class TransactionController {
       if (departureDate) {
         const parsedDate = new Date(departureDate);
         if (isNaN(parsedDate.getTime())) {
-          return response(400, "error", null, "Invalid departure date", res);
+          return next(new AppError("Invalid departure date", 400));
         }
 
         query.Tickets = {
@@ -402,12 +383,11 @@ class TransactionController {
         res
       );
     } catch (error) {
-      console.error("Error getting all transactions:", error);
-      response(500, "error", null, "Internal server error", res);
+      next(error);
     }
   }
 
-  static async generateTransactionPDF(req, res) {
+  static async generateTransactionPDF(req, res, next) {
     try {
       const { bookingCode } = req.params;
 
@@ -435,22 +415,16 @@ class TransactionController {
       });
 
       if (!transaction) {
-        return response(404, "error", null, "Transaction not found", res);
+        return next(new AppError("Transaction not found", 404));
       }
 
       if (transaction.status !== "Issued") {
-        return response(400, "error", null, "Tickets can only be printed if the transaction status is 'Issued'", res);
+        return next(new AppError("Tickets can only be printed if the transaction status is 'Issued'", 400));
     }
 
       const tickets = transaction.Tickets || [];
       if (tickets.length === 0) {
-        return response(
-          400,
-          "error",
-          null,
-          "No tickets found for this transaction",
-          res
-        );
+        return next(new AppError("No tickets found for this transaction", 404));
       }
 
       const pdfDoc = await PDFDocument.create();
@@ -590,29 +564,28 @@ class TransactionController {
         res
       );
     } catch (error) {
-      console.error("Error generating transaction PDF:", error);
-      response(500, "error", null, "Internal server error", res);
+      next(error);
     }
   }
 
-  static async downloadPDF(req, res) {
+  static async downloadPDF(req, res, next) {
     try {
       const { bookingCode } = req.params;
       const pdfFilePath = path.join(__dirname, `../tmp/${bookingCode}.pdf`);
 
       if (!fs.existsSync(pdfFilePath)) {
-        return response(404, "error", null, "PDF not found", res);
+        return next(new AppError("PDF not found", 404));
       }
 
       res.download(pdfFilePath, `${bookingCode}.pdf`, (err) => {
         if (err) {
           console.error("Error serving PDF file:", err);
-          response(500, "error", null, "Internal server error", res);
+          next(err);
         }
       });
     } catch (error) {
       console.error("Error downloading PDF:", error);
-      response(500, "error", null, "Internal server error", res);
+      next(error);
     }
   }
 }

@@ -3,7 +3,7 @@ const response = require("../utils/response");
 const { AppError } = require("../middleware/errorMiddleware");
 
 class FlightController {
-  static async searchFlight(req, res, next) {
+  static async searchFlight(req, res, next, next) {
     try {
       const {
         arrivalContinent,
@@ -179,13 +179,7 @@ class FlightController {
       global.displayedFlights = displayedFlightPairs;
 
       if (totalFlights === 0) {
-        return response(
-          404,
-          "failed",
-          null,
-          "Tidak ada penerbangan yang ditemukan berdasarkan filter",
-          res
-        );
+        return next(new AppError("Tidak ada penerbangan yang ditemukan", 404));
       }
 
       const totalPages = limit ? Math.ceil(totalFlights / parseInt(limit)) : 1;
@@ -212,7 +206,7 @@ class FlightController {
     }
   }
 
-  static async searchReturnFlight(req, res, next) {
+  static async searchReturnFlight(req, res, next, next) {
     try {
       const {
         departureCity,
@@ -322,13 +316,7 @@ class FlightController {
       const returnFlights = await prisma.flight.findMany(query);
 
       if (totalReturnFlights === 0) {
-        return response(
-          404,
-          "failed",
-          null,
-          "Tidak ada penerbangan kembali yang ditemukan berdasarkan filter",
-          res
-        );
+        return next(new AppError("Tidak ada penerbangan kembali yang ditemukan", 404));
       }
 
       const totalPages = limit
@@ -357,7 +345,7 @@ class FlightController {
     }
   }
 
-  static async createFlight(req, res) {
+  static async createFlight(req, res, next) {
     try {
       const {
         airlineId,
@@ -376,7 +364,7 @@ class FlightController {
         !departureTime ||
         !arrivalTime
       ) {
-        return response(400, "error", null, "Semua field wajib diisi", res);
+        return next(new AppError("Semua field wajib diisi", 400));
       }
 
       const newFlight = await prisma.flight.create({
@@ -397,12 +385,11 @@ class FlightController {
 
       return response(201, "success", newFlight, "Flight berhasil dibuat", res);
     } catch (error) {
-      console.error(error);
-      return response(500, "error", null, "Terjadi kesalahan pada server", res);
+      next(error);
     }
   }
 
-  static async getFlights(req, res) {
+  static async getFlights(req, res, next) {
     try {
       const { page = 1, limit = 10, search } = req.query;
       const skip = (page - 1) * limit;
@@ -448,12 +435,11 @@ class FlightController {
         }
       );
     } catch (error) {
-      console.error(error);
-      return response(500, "error", null, "Terjadi kesalahan pada server", res);
+      next(error);
     }
   }
 
-  static async getFlight(req, res) {
+  static async getFlight(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -468,7 +454,7 @@ class FlightController {
       });
 
       if (!flight || flight.deleteAt) {
-        return response(404, "error", null, "Flight tidak ditemukan", res);
+        return next(new AppError("Flight tidak ditemukan", 404));
       }
 
       return response(
@@ -479,12 +465,11 @@ class FlightController {
         res
       );
     } catch (error) {
-      console.error(error);
-      return response(500, "error", null, "Terjadi kesalahan pada server", res);
+      next(error);
     }
   }
 
-  static async getCreateFlight(req, res) {
+  static async getCreateFlight(req, res, next) {
     try {
       const airlines = await prisma.airline.findMany({
         select: {
@@ -518,12 +503,11 @@ class FlightController {
         res
       );
     } catch (error) {
-      console.error(error);
-      return response(500, "error", null, "Terjadi kesalahan pada server", res);
+      next(error);
     }
   }
 
-  static async updateFlight(req, res) {
+  static async updateFlight(req, res, next) {
     try {
       const { id } = req.params;
       const {
@@ -540,7 +524,7 @@ class FlightController {
       });
 
       if (!existingFlight) {
-        return response(404, "error", null, "Flight tidak ditemukan", res);
+        return next(new AppError("Flight tidak ditemukan", 404));
       }
 
       const updatedFlight = await prisma.flight.update({
@@ -573,12 +557,11 @@ class FlightController {
         res
       );
     } catch (error) {
-      console.error(error);
-      return response(500, "error", null, "Terjadi kesalahan pada server", res);
+      next(error);
     }
   }
 
-  static async deleteFlight(req, res) {
+  static async deleteFlight(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -587,7 +570,7 @@ class FlightController {
       });
 
       if (!existingFlight) {
-        return response(404, "error", null, "Flight tidak ditemukan", res);
+        return next(new AppError("Flight tidak ditemukan", 404));
       }
 
       await prisma.flight.update({
@@ -599,8 +582,7 @@ class FlightController {
 
       return response(200, "success", null, "Flight berhasil dihapus", res);
     } catch (error) {
-      console.error(error);
-      return response(500, "error", null, "Terjadi kesalahan pada server", res);
+      next(error);
     }
   }
 }

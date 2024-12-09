@@ -1,22 +1,22 @@
 const prisma = require("../models/prismaClients");
 const response = require("../utils/response");
+const { AppError } = require("../middleware/errorMiddleware");
 
 class AirportController {
     
-    static async getAllAirports(req, res) {
+    static async getAllAirports(req, res, next) {
         try {
             const airports = await prisma.airport.findMany({
                 where: { deleteAt: null },
             });
             response(200, "success", airports, "Berhasil mengambil semua bandara.", res);
         } catch (error) {
-            console.error(error);
-            response(500, "error", null, "Terjadi kesalahan saat mengambil data bandara.", res);
+            next(error);
         }
     }
 
     
-    static async getAirportById(req, res) {
+    static async getAirportById(req, res, next) {
         const { id } = req.params;
         try {
             const airport = await prisma.airport.findUnique({
@@ -25,15 +25,14 @@ class AirportController {
             if (airport && !airport.deleteAt) {
                 response(200, "success", airport, "Berhasil mengambil data bandara.", res);
             } else {
-                response(404, "error", null, "Bandara tidak ditemukan.", res);
+                throw new AppError("Bandara tidak ditemukan.", 404);
             }
         } catch (error) {
-            console.error(error);
-            response(500, "error", null, "Terjadi kesalahan saat mengambil data bandara.", res);
+            next(error);
         }
     }
 
-    static async createAirport(req, res) {
+    static async createAirport(req, res, next) {
         const {
             name,
             code,
@@ -60,12 +59,11 @@ class AirportController {
             });
             response(201, "success", newAirport, "Bandara berhasil dibuat.", res);
         } catch (error) {
-            console.error(error);
-            response(500, "error", null, "Terjadi kesalahan saat membuat bandara.", res);
+            next(error);
         }
     }
 
-    static async updateAirport(req, res) {
+    static async updateAirport(req, res, next) {
         const { id } = req.params;
         const {
             name,
@@ -85,8 +83,7 @@ class AirportController {
             });
 
             if (!existingAirport || existingAirport.deleteAt) {
-                response(404, "error", null, "Bandara tidak ditemukan.", res);
-                return;
+                throw new AppError("Bandara tidak ditemukan.", 404);
             }
 
             const updatedAirport = await prisma.airport.update({
@@ -104,12 +101,11 @@ class AirportController {
             });
             response(200, "success", updatedAirport, "Bandara berhasil diperbarui.", res);
         } catch (error) {
-            console.error(error);
-            response(500, "error", null, "Terjadi kesalahan saat memperbarui bandara.", res);
+            next(error);
         }
     }
     
-    static async deleteAirport(req, res) {
+    static async deleteAirport(req, res, next) {
         const { id } = req.params;
         try {
             
@@ -118,8 +114,7 @@ class AirportController {
             });
 
             if (!existingAirport || existingAirport.deleteAt) {
-                response(404, "error", null, "Bandara tidak ditemukan.", res);
-                return;
+                throw new AppError("Bandara tidak ditemukan.", 404);
             }
 
             await prisma.airport.update({
@@ -128,8 +123,7 @@ class AirportController {
             });
             response(200, "success", null, "Bandara berhasil dihapus.", res);
         } catch (error) {
-            console.error(error);
-            response(500, "error", null, "Terjadi kesalahan saat menghapus bandara.", res);
+            next(error);
         }
     }
 }
