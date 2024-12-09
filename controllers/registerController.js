@@ -4,15 +4,16 @@ const bcrypt = require("bcrypt");
 const { sendOtp, verifyOtp, OTP_TYPES } = require("../utils/otp");
 const AuthMiddleware = require("../middleware/authMiddleware");
 const CookieMiddleware = require("../middleware/cookieMiddleware");
+const { AppError } = require("../middleware/errorMiddleware");
 
 class RegisterController {
     // Register user
-    static async register(req, res) {
+    static async register(req, res, next) {
         const { name, email, phoneNumber, password } = req.body;
 
         try {
             if (!name || !email || !phoneNumber || !password) {
-                return response(400, "error", null, "Semua field harus diisi", res);
+                return next(new AppError("Semua field harus diisi", 400));
             }
 
             const existingUser = await prisma.user.findUnique({
@@ -21,7 +22,7 @@ class RegisterController {
             });
 
             if (existingUser) {
-                return response(400, "error", null, "Email sudah terdaftar", res);
+                return next(new AppError("Email sudah terdaftar", 400));
             }
 
             const hashedPassword = await bcrypt.hash(password, Number(process.env.SALT_ROUNDS));
@@ -68,20 +69,20 @@ class RegisterController {
         } catch (error) {
             console.error("Registration error:", error);
             if (error.code === 'P2002' && error.meta?.target?.includes('email')) {
-                return response(400, "error", null, "Email sudah terdaftar", res);
+                return next(new AppError("Email sudah terdaftar", 400));
             }
             return response(500, "error", null, "Terjadi kesalahan saat registrasi", res);
         }
     }
 
     // Verify OTP
-    static async verifyEmail(req, res) {
+    static async verifyEmail(req, res, next) {
         try {
             const { id } = req.params;
             const { otp } = req.body;
             
             if (!otp) {
-                return response(400, "error", null, "OTP harus diisi", res);
+                return next(new AppError("OTP harus diisi", 400));
             }
 
             const user = await prisma.user.findUnique({
@@ -89,11 +90,11 @@ class RegisterController {
             });
 
             if (!user) {
-                return response(404, "error", null, "User tidak ditemukan", res);
+                return next(new AppError("User tidak ditemukan", 404));
             }
 
             if (user.is_verified) {
-                return response(400, "error", null, "Email sudah terverifikasi", res);
+                return next(new AppError("Email sudah terverifikasi", 400));
             }
 
             try {
@@ -121,11 +122,10 @@ class RegisterController {
                 
                 return response(200, "success", updatedUser, "Email berhasil diverifikasi", res);
             } catch (otpError) {
-                return response(400, "error", null, otpError.message, res);
+                return next(new AppError(otpError.message, 400));
             }
         } catch (error) {
-            console.error("Verification error:", error);
-            return response(500, "error", null, "Terjadi kesalahan saat verifikasi", res);
+            next(error);
         }
     }
 }

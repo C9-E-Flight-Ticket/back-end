@@ -9,9 +9,12 @@ const bodyParser = require('body-parser')
 const cors = require('cors')
 const cookieParser = require('cookie-parser')
 const { errorHandler } = require('./middleware/errorMiddleware')
+const passport = require('./libs/passport')
+const cookieMiddleware = require('./middleware/cookieMiddleware')
+const swaggerUi = require('swagger-ui-express');
+
 const app = express()
 const PORT = process.env.PORT || 3000
-
 
 const authRoute = require('./routes/authRoutes');
 const ticketRoute = require('./routes/ticketRoutes');
@@ -27,6 +30,7 @@ const corsOptions = {
     'https://krisnaepras.my.id',
     'http://krisnaepras.my.id',
     'http://localhost:3000',
+    'http://localhost:5173',
     process.env.FRONTEND_URL,
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -38,9 +42,15 @@ app.use(cors(corsOptions))
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(cookieMiddleware.oauthSession);
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.get('/', (req, res) => {
   res.send('Hello World!');
+  // console.log('SESSION',req.session);
+  // console.log('sessionID', req.sessionID);
+  // console.log('USER', req.user);
 });
 
 app.use('/api/auth', authRoute)

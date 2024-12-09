@@ -1,11 +1,12 @@
 const prisma = require("../models/prismaClients");
 const response = require("../utils/response");
 const jwt = require("jsonwebtoken");
+const { AppError } = require("../middleware/errorMiddleware");
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
 class SeatController {
-  static async getDetailFlight(req, res) {
+  static async getDetailFlight(req, res, next) {
     try {
       const { flightId, seatClass, adult, child, baby } = req.query;
 
@@ -14,15 +15,22 @@ class SeatController {
         : [parseInt(flightId)];
 
       if (!flightIdsArray || flightIdsArray.length === 0) {
-        response(
-          400,
-          "error",
-          null,
-          "flightId harus berisi minimal satu flightId",
-          res
-        );
-        return;
+        throw new AppError("flightId harus berisi minimal satu flightId", 400);
       }
+
+      // add jumlah views di flight
+      await Promise.all(
+        flightIdsArray.map(async (flightId) => {
+          await prisma.flight.update({
+            where: { id: flightId },
+            data: {
+              views: {
+                increment: 1,
+              },
+            },
+          });
+        })
+      );
 
       let token = req.cookies?.token;
       let userId = null;
@@ -46,8 +54,7 @@ class SeatController {
       }
 
       if (userId && !user) {
-        response(404, "error", null, "User  tidak ditemukan", res);
-        return;
+        return next(new AppError("User tidak ditemukan", 404));
       }
 
       const seatsByFlight = await Promise.all(
@@ -87,14 +94,7 @@ class SeatController {
       if (
         filteredSeatsByFlight.every(({ seats }) => !seats || seats.length === 0)
       ) {
-        response(
-          404,
-          "error",
-          null,
-          "Tidak ada kursi yang tersedia untuk penerbangan ini",
-          res
-        );
-        return;
+        throw new AppError("Tidak ada kursi yang tersedia untuk penerbangan ini", 404);
       }
 
       const passengerCounts = {
@@ -159,8 +159,7 @@ class SeatController {
         res
       );
     } catch (error) {
-      console.error(error);
-      response(500, "error", null, "Terjadi kesalahan pada server", res);
+      next(error);
     }
   }
 }
