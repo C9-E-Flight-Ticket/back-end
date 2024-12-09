@@ -23,7 +23,8 @@ class AirlineController {
       const airlines = await prisma.airline.findMany(query);
 
       if (!airlines.length) {
-        return response(404, "failed", null, "Airline tidak ditemukan", res);
+        return next(new AppError("Airline tidak ditemukan", 404));
+        
       }
 
       const totalPages = Math.ceil(totalAirlines / (limit || 10));
