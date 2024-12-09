@@ -5,10 +5,478 @@ info:
 servers:
   - url: https://api.server.test/v1
 tags:
+  - name: airline
+  - name: airport
+  - name: auth
+    description: Authentication endpoints
   - name: flight
-  - name: ticket
+  - name: notification
   - name: seat
-paths:
-  /api/flight/search:
-    
+  - name: ticket
+  - name: transaction
 
+paths:
+  /api/auth/login:
+    post:
+      tags:
+        - auth
+      summary: Login user
+      description: Authenticate user with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  format: password
+                  example: "yourpassword123"
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Berhasil login
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Alamat email tidak terdaftar!
+
+  /api/auth/register:
+    post:
+      tags:
+        - auth
+      summary: Register new user
+      description: Create new user account and send verification email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - password
+                - phoneNumber
+              properties:
+                name:
+                  type: string
+                  example: John Doe
+                email:
+                  type: string
+                  format: email
+                  example: john@example.com
+                password:
+                  type: string
+                  format: password
+                  example: "password123"
+                phoneNumber:
+                  type: string
+                  example: "081234567890"
+      responses:
+        '200':
+          description: Registration successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+        '400':
+          description: Invalid input or email already registered
+
+  /api/auth/verify-email/{id}:
+    post:
+      tags:
+        - auth
+      summary: Verify email with OTP
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: User ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - otp
+              properties:
+                otp:
+                  type: string
+                  example: "123456"
+      responses:
+        '200':
+          description: Email verified successfully
+        '400':
+          description: Invalid OTP
+        '404':
+          description: User not found
+
+  /api/auth/resend-otp/{id}:
+    post:
+      tags:
+        - auth
+      summary: Resend verification OTP
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: User ID
+      responses:
+        '200':
+          description: OTP resent successfully
+        '404':
+          description: User not found
+
+  /api/auth/forgot-password:
+    post:
+      tags:
+        - auth
+      summary: Request password reset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+      responses:
+        '200':
+          description: Password reset OTP sent
+        '404':
+          description: Email not found
+
+  /api/auth/verify-otp/{id}:
+    post:
+      tags:
+        - auth
+      summary: Verify password reset OTP
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: User ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - otp
+              properties:
+                otp:
+                  type: string
+                  example: "123456"
+      responses:
+        '200':
+          description: OTP verified successfully
+        '400':
+          description: Invalid OTP
+        '404':
+          description: User not found
+
+  /api/auth/reset-password/{id}:
+    post:
+      tags:
+        - auth
+      summary: Reset password
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: User ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - newPassword
+                - retypePassword
+              properties:
+                newPassword:
+                  type: string
+                  format: password
+                  example: "newpassword123"
+                retypePassword:
+                  type: string
+                  format: password
+                  example: "newpassword123"
+      responses:
+        '200':
+          description: Password reset successful
+        '400':
+          description: Passwords don't match or invalid password
+        '404':
+          description: User not found
+
+  /api/auth/resend-password-otp/{id}:
+    post:
+      tags:
+        - auth
+      summary: Resend password reset OTP
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: User ID
+      responses:
+        '200':
+          description: Password reset OTP resent successfully
+        '404':
+          description: User not found
+
+  /api/auth/google:
+    get:
+      tags:
+        - auth
+      summary: Initiate Google OAuth login
+      description: Redirects to Google login page for OAuth authentication
+      responses:
+        '302':
+          description: Redirect to Google login page
+          headers:
+            Location:
+              schema:
+                type: string
+                description: Google OAuth URL
+
+  /api/auth/google/callback:
+    get:
+      tags:
+        - auth
+      summary: Google OAuth callback
+      description: Handles the response from Google OAuth
+      responses:
+        '200':
+          description: OAuth login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Login berhasil
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                          name:
+                            type: string
+                          email:
+                            type: string
+                          accessToken:
+                            type: string
+        '401':
+          description: OAuth authentication failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Gagal login dengan Google
+
+  /api/auth/google/failure:
+    get:
+      tags:
+        - auth
+      summary: Google OAuth failure handler
+      description: Endpoint for handling failed Google OAuth attempts
+      responses:
+        '401':
+          description: OAuth authentication failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Gagal login dengan Google
+
+  /api/auth/logout:
+    get:
+      tags:
+        - auth
+      summary: Logout user
+      description: Clear user session and authentication tokens
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Berhasil logout
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Authentication required
+
+  /api/auth/profile:
+    get:
+      tags:
+        - auth
+      summary: Get user profile
+      description: Retrieve authenticated user's profile information
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      responses:
+        '200':
+          description: Profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      name:
+                        type: string
+                      email:
+                        type: string
+                      phoneNumber:
+                        type: string
+                      role:
+                        type: string
+                        enum: [USER, ADMIN]
+                      is_verified:
+                        type: boolean
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Authentication required
+
+components:
+  schemas:
+    RegisterResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        message:
+          type: string
+          example: Berhasil register, silahkan cek email untuk verifikasi
+        data:
+          type: object
+          properties:
+            user:
+              type: object
+              properties:
+                id:
+                  type: integer
+                name:
+                  type: string
+                email:
+                  type: string
+                phoneNumber:
+                  type: string
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token for authentication
+    CookieAuth:
+      type: apiKey
+      in: cookie
+      name: access_token or connect.sid
+      description: Session cookie for authentication
