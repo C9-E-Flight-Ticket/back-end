@@ -3,7 +3,7 @@ const response = require("../utils/response");
 const { AppError } = require("../middleware/errorMiddleware");
 
 class FlightController {
-  static async searchFlight(req, res, next, next) {
+  static async searchFlight(req, res, next) {
     try {
       const {
         arrivalContinent,
@@ -206,7 +206,7 @@ class FlightController {
     }
   }
 
-  static async searchReturnFlight(req, res, next, next) {
+  static async searchReturnFlight(req, res, next) {
     try {
       const {
         departureCity,
@@ -316,7 +316,9 @@ class FlightController {
       const returnFlights = await prisma.flight.findMany(query);
 
       if (totalReturnFlights === 0) {
-        return next(new AppError("Tidak ada penerbangan kembali yang ditemukan", 404));
+        return next(
+          new AppError("Tidak ada penerbangan kembali yang ditemukan", 404)
+        );
       }
 
       const totalPages = limit
