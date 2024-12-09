@@ -101,6 +101,7 @@ model Flight {
   updateAt           DateTime  @updatedAt
   deleteAt           DateTime?
   seats              Seat[]
+  views              Int       @default(0)
 }
 
 model Seat {

@@ -2,15 +2,16 @@ const prisma = require("../models/prismaClients");
 const response = require("../utils/response");
 const bcrypt = require("bcrypt");
 const { sendOtp, verifyOtp, OTP_TYPES } = require("../utils/otp");
+const { AppError } = require("../middleware/errorMiddleware");
 
 class ForgotPasswordController {
     // Forgot Password
-    static async forgotPassword(req, res) {
+    static async forgotPassword(req, res, next) {
         const { email } = req.body;
 
         try {
             if (!email) {
-                return response(400, "error", null, "Email harus diisi", res);
+                return next(new AppError("Email harus diisi", 400));
             }
 
             const user = await prisma.user.findUnique({
@@ -18,7 +19,7 @@ class ForgotPasswordController {
             });
 
             if (!user) {
-                return response(404, "error", null, "Email tidak terdaftar", res);
+                return next(new AppError("Email tidak terdaftar", 404));
             }
 
             await sendOtp(email, OTP_TYPES.PASSWORD_RESET);
@@ -28,18 +29,17 @@ class ForgotPasswordController {
             }, "OTP untuk reset password telah dikirim ke email Anda", res);
 
         } catch (error) {
-            console.error("Forgot password error:", error);
-            return response(500, "error", null, "Terjadi kesalahan saat memproses permintaan", res);
+            next(error);
         }
     }
 
-    static async verifyOTP(req, res) {
+    static async verifyOTP(req, res, next) {
         try {
             const { id } = req.params;
             const { otp } = req.body;
 
             if (!otp) {
-                return response(400, "error", null, "OTP harus diisi", res);
+                return next(new AppError("OTP harus diisi", 400));
             }
 
             const user = await prisma.user.findUnique({
@@ -47,7 +47,7 @@ class ForgotPasswordController {
             });
 
             if (!user) {
-                return response(404, "error", null, "User tidak ditemukan", res);
+                return next(new AppError("User tidak ditemukan", 404));
             }
 
             try {
@@ -79,30 +79,29 @@ class ForgotPasswordController {
 
                 return response(200, "success", { userId: user.id }, "OTP berhasil diverifikasi", res);
             } catch (otpError) {
-                return response(400, "error", null, otpError.message, res);
+                return next(new AppError(otpError.message, 400));
             }
 
         } catch (error) {
-            console.error("OTP verification error:", error);
-            return response(500, "error", null, "Terjadi kesalahan saat verifikasi OTP", res);
+            next(error);
         }
     }
 
-    static async resetPassword(req, res) {
+    static async resetPassword(req, res, next) {
         try {
             const { id } = req.params;
             const { newPassword, retypePassword } = req.body;
 
             if (!newPassword || !retypePassword) {
-                return response(400, "error", null, "Password baru dan konfirmasi password harus diisi", res);
+                return next(new AppError("Password baru dan konfirmasi password harus diisi", 400));
             }
 
             if (newPassword !== retypePassword) {
-                return response(400, "error", null, "Password dan konfirmasi password tidak cocok", res);
+                return next(new AppError("Password dan konfirmasi password tidak cocok", 400));
             }
 
             if (newPassword.length < 8) {
-                return response(400, "error", null, "Password minimal 8 karakter", res);
+                return next(new AppError("Password minimal 8 karakter", 400));
             }
 
             const user = await prisma.user.findUnique({
@@ -110,7 +109,7 @@ class ForgotPasswordController {
             });
 
             if (!user) {
-                return response(404, "error", null, "User tidak ditemukan", res);
+                return next(new AppError("User tidak ditemukan", 404));
             }
 
             // Check for recently verified OTP
@@ -132,7 +131,7 @@ class ForgotPasswordController {
             });
 
             if (!verifiedOtp) {
-                return response(401, "error", null, "Silakan verifikasi OTP terlebih dahulu atau OTP sudah kadaluarsa", res);
+                return next(new AppError("Silakan verifikasi OTP terlebih dahulu atau OTP sudah kadaluarsa", 401));
             }
 
             const hashedPassword = await bcrypt.hash(newPassword, Number(process.env.SALT_ROUNDS));
@@ -159,8 +158,7 @@ class ForgotPasswordController {
             return response(200, "success", null, "Password berhasil diubah", res);
 
         } catch (error) {
-            console.error("Reset password error:", error);
-            return response(500, "error", null, "Terjadi kesalahan saat reset password", res);
+            next(error);
         }
     }
 }

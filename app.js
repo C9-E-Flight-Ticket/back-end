@@ -12,7 +12,6 @@ const { errorHandler } = require('./middleware/errorMiddleware')
 const app = express()
 const PORT = process.env.PORT || 3000
 
-
 const authRoute = require('./routes/authRoutes');
 const ticketRoute = require('./routes/ticketRoutes');
 const transactionRoutes = require("./routes/transactionRoutes");
@@ -27,6 +26,7 @@ const corsOptions = {
     'https://krisnaepras.my.id',
     'http://krisnaepras.my.id',
     'http://localhost:3000',
+    'http://localhost:5173',
     process.env.FRONTEND_URL,
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

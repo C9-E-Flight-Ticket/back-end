@@ -1,10 +1,11 @@
 const prisma = require("../models/prismaClients");
 const response = require("../utils/response");
 const randomCode = require("otp-generator");
+const { AppError } = require("../middleware/errorMiddleware");
 
 class TicketController {
 
-  static async getAllTransactions(req, res) {
+  static async getAllTransactions(req, res, next) {
     try {
       const transactions = await prisma.transaction.findMany({
         include: {
@@ -20,12 +21,11 @@ class TicketController {
         res
       );
     } catch (error) {
-      console.error(error);
-      response(500, "failed", null, "Unable to fetch transactions", res);
+      next(error);
     }
   }
 
-  static async getAllTickets(req, res) {
+  static async getAllTickets(req, res, next) {
     try {
       const tickets = await prisma.ticket.findMany({
         where: { deleteAt: null },
@@ -39,12 +39,11 @@ class TicketController {
         res
       );
     } catch (error) {
-      console.error(error);
-      response(500, "failed", null, "Unable to fetch tickets", res);
+      next(error);
     }
   }
 
-  static async getTicketById(req, res) {
+  static async getTicketById(req, res, next) {
     try {
       const { id } = req.params;
       const ticket = await prisma.ticket.findUnique({
@@ -64,17 +63,16 @@ class TicketController {
         res
       );
     } catch (error) {
-      console.error(error);
-      response(500, "failed", null, "Unable to fetch ticket", res);
+      next(error);
     }
   }
 
-  static async createTicket(req, res) {
+  static async createTicket(req, res, next) {
     try {
       const { transactionId, seatId, passengerId, category } = req.body;
 
       if (!["Adult", "Child", "Baby"].includes(category)) {
-        return response(400, "failed", null, "Invalid category value", res);
+        return next(new AppError("Invalid category value", 400));
       }
 
       const ticket = await prisma.ticket.create({
@@ -88,12 +86,11 @@ class TicketController {
 
       response(201, "success", ticket, "Ticket created successfully", res);
     } catch (error) {
-      console.error(error);
-      response(500, "failed", null, "Unable to create ticket", res);
+      next(error);
     }
   }
 
-  static async updateTicket(req, res) {
+  static async updateTicket(req, res, next) {
     try {
       const { id } = req.params;
       const { transactionId, seatId, passengerId } = req.body;
@@ -117,12 +114,11 @@ class TicketController {
         res
       );
     } catch (error) {
-      console.error(error);
-      response(500, "failed", null, "Unable to update ticket", res);
+      next(error);
     }
   }
 
-  static async deleteTicket(req, res) {
+  static async deleteTicket(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -142,8 +138,7 @@ class TicketController {
         res
       );
     } catch (error) {
-      console.error(error);
-      response(500, "failed", null, "Unable to soft delete ticket", res);
+      next(error);
     }
   }
 }

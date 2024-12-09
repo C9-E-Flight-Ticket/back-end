@@ -2,14 +2,15 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const response = require('../utils/response');
+const { AppError } = require("../middleware/errorMiddleware");
 
 class NotificationController {
  
-  static async getNotifications(req, res) {
+  static async getNotifications(req, res, next) {
     try {
       const userId = parseInt(req.query.userId, 10); // Mengambil userId dari query parameter
       if (!userId) {
-        return response(400, "error", null, "userId diperlukan", res);
+        return next (new AppError("userId diperlukan", 400));
       }
 
       const notifications = await prisma.notification.findMany({
@@ -18,18 +19,17 @@ class NotificationController {
       });
       return response(200, "success", notifications, "Notifikasi berhasil diambil", res);
     } catch (error) {
-      console.error("Error fetching notifications:", error);
-      return response(500, "error", null, "Gagal mengambil notifikasi", res);
+      next(error);
     }
   }
 
 
-  static async markAsRead(req, res) {
+  static async markAsRead(req, res, next) {
     const notificationId = parseInt(req.params.id, 10);
     const userId = parseInt(req.query.userId, 10);
 
     if (!userId) {
-      return response(400, "error", null, "userId diperlukan", res);
+      return next(new AppError("userId diperlukan", 400));
     }
 
     try {
@@ -44,13 +44,12 @@ class NotificationController {
       });
 
       if (notification.count === 0) {
-        return response(404, "error", null, "Notifikasi tidak ditemukan", res);
+        return next(new AppError("Notifikasi tidak ditemukan", 404));
       }
 
       return response(200, "success", null, "Notifikasi berhasil ditandai sebagai sudah dibaca", res);
     } catch (error) {
-      console.error("Error updating notification:", error);
-      return response(500, "error", null, "Gagal memperbarui notifikasi", res);
+      next(error);
     }
   }
 

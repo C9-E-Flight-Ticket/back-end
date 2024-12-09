@@ -1,37 +1,31 @@
-// errorMiddleware.js
+const response = require('../utils/response'); 
+
 const errorHandler = (err, req, res, next) => {
     console.error(err.stack);
-  
+
     const statusCode = err.statusCode || 500;
-    const response = {
-      status: 'error',
-      statusCode: statusCode,
-      message: err.message || 'Internal Server Error',
-      ...(process.env.NODE_ENV === 'development' && { 
-        stack: err.stack 
-      })
-    };
-  
-    res.status(statusCode).json(response);
-  };
-  
-  class AppError extends Error {
+    const message = err.message || 'Internal Server Error';
+
+    response(statusCode, 'error', null, message, res);
+};
+
+class AppError extends Error {
     constructor(message, statusCode) {
-      super(message);
-      this.statusCode = statusCode;
-      this.status = `${statusCode}`.startsWith('4') ? 'fail' : 'error';
-      Error.captureStackTrace(this, this.constructor);
+        super(message);
+        this.statusCode = statusCode;
+        this.status = `${statusCode}`.startsWith('4') ? 'fail' : 'error';
+        Error.captureStackTrace(this, this.constructor);
     }
-  }
-  
-  const asyncErrorHandler = (fn) => {
+}
+
+const asyncErrorHandler = (fn) => {
     return (req, res, next) => {
-      Promise.resolve(fn(req, res, next)).catch(next);
+        Promise.resolve(fn(req, res, next)).catch(next);
     };
-  };
-  
-  module.exports = {
+};
+
+module.exports = {
     errorHandler,
     AppError,
     asyncErrorHandler
-  };
+};
