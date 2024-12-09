@@ -5,7 +5,7 @@ const AuthMiddleware = require('../middleware/authMiddleware');
 
 const TransactionController = require("../controllers/transactionController");
 
-router.use(AuthMiddleware.verifyToken);
+router.use(AuthMiddleware.verifyAuthentication);
 
 router.post("/order", asyncErrorHandler(TransactionController.createTicketTransaction));
 router.post("/midtrans-callback", asyncErrorHandler(TransactionController.handleMidtransCallback));
