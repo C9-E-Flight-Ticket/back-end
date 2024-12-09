@@ -9,7 +9,6 @@ const bodyParser = require('body-parser')
 const cors = require('cors')
 const cookieParser = require('cookie-parser')
 const { errorHandler } = require('./middleware/errorMiddleware')
-const { checkExpiredTransactions } = require('./services/transactionService'); 
 const app = express()
 const PORT = process.env.PORT || 3000
 
