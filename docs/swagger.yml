@@ -14,6 +14,7 @@ tags:
   - name: seat
   - name: ticket
   - name: transaction
+    description: Transaction endpoints
 
 paths:
   /api/auth/login:
@@ -442,6 +443,132 @@ paths:
                   message:
                     type: string
                     example: Authentication required
+  
+  # Transaction endpoints
+
+  /api/transaction/order:
+    post:
+      tags:
+        - transaction
+      summary: Create a ticket transaction
+      description: Create a new ticket transaction for a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+                - seats
+                - passengerDetails
+                - tax
+                - total
+              properties:
+                userId:
+                  type: integer
+                  example: 2
+                seats:
+                  type: array
+                  items:
+                    type: integer
+                  example: [1, 2, 3, 4]
+                passengerDetails:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - title
+                      - name
+                      - familyName
+                      - dateOfBirth
+                      - nationality
+                      - identityNumber
+                      - issuingCountry
+                      - category
+                    properties:
+                      title:
+                        type: string
+                        example: "Mr"
+                      name:
+                        type: string
+                        example: "John Doe"
+                      familyName:
+                        type: string
+                        example: "Doe"
+                      dateOfBirth:
+                        type: string
+                        format: date
+                        example: "1990-01-01"
+                      nationality:
+                        type: string
+                        example: "Indonesia"
+                      identityNumber:
+                        type: string
+                        example: "1234567890"
+                      issuingCountry:
+                        type: string
+                        example: "Indonesia"
+                      category:
+                        type: string
+                        example: "Adult"
+                tax:
+                  type: integer
+                  example: 1320000
+                total:
+                  type: integer
+                  example: 13320000
+      responses:
+        '201':
+          description: Transaction created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Transaction, passengers, and tickets created successfully
+                  data:
+                    type: object
+                    properties:
+                      transaction:
+                        type: object
+                      tickets:
+                        type: array
+                        items:
+                          type: object
+                      passengers:
+                        type: array
+                        items:
+                          type: object
+                      bookingCode:
+                        type: string
+                        example: "ABC123456"
+                      midtransToken:
+                        type: string
+                      redirectUrl:
+                        type: string
+                      debugInfo:
+                        type: object
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Invalid input
+
+
 
 components:
   schemas:
