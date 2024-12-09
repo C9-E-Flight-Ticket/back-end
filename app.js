@@ -27,24 +27,11 @@ const corsOptions = {
     'https://krisnaepras.my.id',
     'http://krisnaepras.my.id',
     'http://localhost:3000',
+    'http://localhost:5173',
     process.env.FRONTEND_URL,
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,
-}
-
-app.use(cors(corsOptions))
-
-const corsOptions = {
-  origin: [
-    'https://krisnaepras.my.id', 
-    'http://localhost:3000', 
-    'http://localhost:5173', 
-  ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
-  optionsSuccessStatus: 200
 }
 
 app.use(cors(corsOptions))

@@ -24,6 +24,20 @@ class SeatController {
         return;
       }
 
+      // add jumlah views di flight
+      await Promise.all(
+        flightIdsArray.map(async (flightId) => {
+          await prisma.flight.update({
+            where: { id: flightId },
+            data: {
+              views: {
+                increment: 1,
+              },
+            },
+          });
+        })
+      );
+
       let token = req.cookies?.token;
       let userId = null;
 
