@@ -1,54 +1,61 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const AuthMiddleware = require('../middleware/authMiddleware');
-const LoginController = require('../controllers/loginController');
-const RegisterController = require('../controllers/registerController');
-const ForgotPasswordController = require('../controllers/forgotpasswordController');
-const resendOtp = require('../utils/resendOtp');
-const passport = require('../libs/passport');
-const OauthController = require('../controllers/oauthController');
+const { asyncErrorHandler } = require("../middleware/errorMiddleware");
+const AuthMiddleware = require("../middleware/authMiddleware");
+const LoginController = require("../controllers/loginController");
+const RegisterController = require("../controllers/registerController");
+const ForgotPasswordController = require("../controllers/forgotpasswordController");
+const resendOtp = require("../utils/resendOtp");
+const passport = require("../libs/passport");
+const OauthController = require("../controllers/oauthController");
 
 // Login routes
-router.post('/login', LoginController.login);
+router.post("/login", LoginController.login);
 
 // Registration routes
-router.post('/register', RegisterController.register);
-router.post('/verify-email/:id', RegisterController.verifyEmail);
-router.post('/resend-otp/:id', resendOtp);
+router.post("/register", RegisterController.register);
+router.post("/verify-email/:id", RegisterController.verifyEmail);
+router.post("/resend-otp/:id", resendOtp);
 
 // Forgot Password Routes
-router.post('/forgot-password', ForgotPasswordController.forgotPassword);
-router.post('/verify-otp/:id', ForgotPasswordController.verifyOTP);
-router.post('/reset-password/:id', ForgotPasswordController.resetPassword);
-router.post('/resend-password-otp/:id', (req, res) => {
-    req.body.type = 'PASSWORD_RESET';
+router.post("/forgot-password", ForgotPasswordController.forgotPassword);
+router.post("/verify-otp/:id", ForgotPasswordController.verifyOTP);
+router.post("/reset-password/:id", ForgotPasswordController.resetPassword);
+router.post("/resend-password-otp/:id", (req, res) => {
+    req.body.type = "PASSWORD_RESET";
     resendOtp(req, res);
 });
 
 // Oauth Routes
-router.get('/google',
-    passport.authenticate('google', { 
-        scope: ['profile', 'email'],
-        session: true 
+router.get(
+    "/google",
+    passport.authenticate("google", {
+        scope: ["profile", "email"],
+        session: true,
     })
 );
-router.get('/google/callback',
-    passport.authenticate('google', {
-        failureRedirect: '/api/auth/google/failure',
-        session: true
+router.get(
+    "/google/callback",
+    passport.authenticate("google", {
+        failureRedirect: "/api/auth/google/failure",
+        session: true,
     }),
-    OauthController.googleCallback
+    asyncErrorHandler(OauthController.googleCallbac)
 );
-router.get('/google/failure', OauthController.googleFailure);
+router.get("/google/failure", asyncErrorHandler(OauthController.googleFailure));
 
 // Logout routes
-router.get('/logout', AuthMiddleware.verifyAuthentication, LoginController.logout);
+router.get(
+    "/logout",
+    AuthMiddleware.verifyAuthentication,
+    LoginController.logout
+);
 
 // Example Get profile
-router.get('/profile', AuthMiddleware.verifyAuthentication, (req, res) => {
+router.get("/profile", AuthMiddleware.verifyAuthentication, (req, res) => {
     res.json({
         status: "success",
-        data: req.user
+        data: req.user,
     });
 });
 

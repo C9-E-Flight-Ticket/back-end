@@ -1,11 +1,12 @@
 const response = require("../utils/response");
 const { sendOtp, OTP_TYPES } = require("../utils/otp");
+const { AppError } = require("../middleware/errorMiddleware");
 
 class OauthController {
-    static async googleCallback(req, res) {
+    static async googleCallback(req, res, next) {
         try {
             if (!req.user) {
-                return response(401, "error", null, "Unauthorized access", res);
+                return next(new AppError("Unauthorized access", 401));
             }
 
             const user = req.user;
@@ -33,12 +34,12 @@ class OauthController {
 
         } catch (error) {
             console.error("Google callback error:", error);
-            return response(500, "error", null, "Terjadi kesalahan saat login dengan Google", res);
+            next(error);
         }
     }
 
-    static async googleFailure(req, res) {
-        return response(401, "error", null, "Gagal login dengan Google", res);
+    static async googleFailure(req, res, next) {
+        return next(new AppError("Google login failed", 401));
     }
 }
 
