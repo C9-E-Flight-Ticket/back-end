@@ -176,11 +176,6 @@ class TransactionController {
           phone: user.phoneNumber || "",
         },
         item_details: itemDetails,
-        expiry: {
-          start_time: new Date().toISOString(),
-          unit: "hour",
-          duration: 1 
-        }
       };
 
       const midtransToken = await snap.createTransaction(midtransParameter);
