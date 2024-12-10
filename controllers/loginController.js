@@ -32,9 +32,9 @@ class LoginController {
             const token = AuthMiddleware.generateToken(user);
             CookieMiddleware.setTokenCookie(res, token);
 
-            console.log("Cookie set:", token);
+            // console.log("Cookie set:", token);
 
-            response(200, "success", null, "Berhasil login", res);
+            response(200, "success", token, "Berhasil login", res);
         } catch (error) {
             next(error);
         }
