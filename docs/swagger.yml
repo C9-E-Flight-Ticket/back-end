@@ -1,21 +1,9 @@
-openapi: '3.0.3'
+openapi: "3.0.3"
 info:
   title: API Title
-  version: '1.0'
+  version: "1.0"
 servers:
-  - url: https://api.server.test/v1
-tags:
-  - name: airline
-  - name: airport
-  - name: auth
-    description: Authentication endpoints
-  - name: flight
-  - name: notification
-  - name: seat
-  - name: ticket
-  - name: transaction
-    description: Transaction endpoints
-
+  - url: http://localhost:3000
 paths:
   /api/auth/login:
     post:
@@ -42,7 +30,7 @@ paths:
                   format: password
                   example: "yourpassword123"
       responses:
-        '200':
+        "200":
           description: Login successful
           content:
             application/json:
@@ -55,7 +43,7 @@ paths:
                   message:
                     type: string
                     example: Berhasil login
-        '401':
+        "401":
           description: Authentication failed
           content:
             application/json:
@@ -102,13 +90,13 @@ paths:
                   type: string
                   example: "081234567890"
       responses:
-        '200':
+        "200":
           description: Registration successful
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RegisterResponse'
-        '400':
+                $ref: "#/components/schemas/RegisterResponse"
+        "400":
           description: Invalid input or email already registered
 
   /api/auth/verify-email/{id}:
@@ -136,11 +124,11 @@ paths:
                   type: string
                   example: "123456"
       responses:
-        '200':
+        "200":
           description: Email verified successfully
-        '400':
+        "400":
           description: Invalid OTP
-        '404':
+        "404":
           description: User not found
 
   /api/auth/resend-otp/{id}:
@@ -156,9 +144,9 @@ paths:
             type: integer
           description: User ID
       responses:
-        '200':
+        "200":
           description: OTP resent successfully
-        '404':
+        "404":
           description: User not found
 
   /api/auth/forgot-password:
@@ -180,9 +168,9 @@ paths:
                   format: email
                   example: user@example.com
       responses:
-        '200':
+        "200":
           description: Password reset OTP sent
-        '404':
+        "404":
           description: Email not found
 
   /api/auth/verify-otp/{id}:
@@ -210,11 +198,11 @@ paths:
                   type: string
                   example: "123456"
       responses:
-        '200':
+        "200":
           description: OTP verified successfully
-        '400':
+        "400":
           description: Invalid OTP
-        '404':
+        "404":
           description: User not found
 
   /api/auth/reset-password/{id}:
@@ -248,11 +236,11 @@ paths:
                   format: password
                   example: "newpassword123"
       responses:
-        '200':
+        "200":
           description: Password reset successful
-        '400':
+        "400":
           description: Passwords don't match or invalid password
-        '404':
+        "404":
           description: User not found
 
   /api/auth/resend-password-otp/{id}:
@@ -268,9 +256,9 @@ paths:
             type: integer
           description: User ID
       responses:
-        '200':
+        "200":
           description: Password reset OTP resent successfully
-        '404':
+        "404":
           description: User not found
 
   /api/auth/google:
@@ -280,7 +268,7 @@ paths:
       summary: Initiate Google OAuth login
       description: Redirects to Google login page for OAuth authentication
       responses:
-        '302':
+        "302":
           description: Redirect to Google login page
           headers:
             Location:
@@ -295,7 +283,7 @@ paths:
       summary: Google OAuth callback
       description: Handles the response from Google OAuth
       responses:
-        '200':
+        "200":
           description: OAuth login successful
           content:
             application/json:
@@ -322,7 +310,7 @@ paths:
                             type: string
                           accessToken:
                             type: string
-        '401':
+        "401":
           description: OAuth authentication failed
           content:
             application/json:
@@ -343,7 +331,7 @@ paths:
       summary: Google OAuth failure handler
       description: Endpoint for handling failed Google OAuth attempts
       responses:
-        '401':
+        "401":
           description: OAuth authentication failed
           content:
             application/json:
@@ -367,7 +355,7 @@ paths:
         - BearerAuth: []
         - CookieAuth: []
       responses:
-        '200':
+        "200":
           description: Logout successful
           content:
             application/json:
@@ -380,7 +368,7 @@ paths:
                   message:
                     type: string
                     example: Berhasil logout
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -404,7 +392,7 @@ paths:
         - BearerAuth: []
         - CookieAuth: []
       responses:
-        '200':
+        "200":
           description: Profile retrieved successfully
           content:
             application/json:
@@ -430,7 +418,7 @@ paths:
                         enum: [USER, ADMIN]
                       is_verified:
                         type: boolean
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -443,119 +431,362 @@ paths:
                   message:
                     type: string
                     example: Authentication required
-  
+
   # Transaction endpoints
 
   /api/transaction/order:
     post:
+      summary: Create Ticket Transaction
+      description: Create a new ticket transaction with passenger and seat details
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       tags:
-        - transaction
-      summary: Create a ticket transaction
-      description: Create a new ticket transaction for a user
+        - Transaction
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required:
-                - userId
-                - seats
-                - passengerDetails
-                - tax
-                - total
               properties:
                 userId:
                   type: integer
-                  example: 2
                 seats:
                   type: array
                   items:
                     type: integer
-                  example: [1, 2, 3, 4]
                 passengerDetails:
                   type: array
                   items:
                     type: object
-                    required:
-                      - title
-                      - name
-                      - familyName
-                      - dateOfBirth
-                      - nationality
-                      - identityNumber
-                      - issuingCountry
-                      - category
                     properties:
                       title:
                         type: string
-                        example: "Mr"
                       name:
                         type: string
-                        example: "John Doe"
                       familyName:
                         type: string
-                        example: "Doe"
                       dateOfBirth:
                         type: string
                         format: date
-                        example: "1990-01-01"
                       nationality:
                         type: string
-                        example: "Indonesia"
                       identityNumber:
                         type: string
-                        example: "1234567890"
                       issuingCountry:
                         type: string
-                        example: "Indonesia"
                       category:
                         type: string
-                        example: "Adult"
                 tax:
-                  type: integer
-                  example: 1320000
+                  type: number
                 total:
-                  type: integer
-                  example: 13320000
+                  type: number
       responses:
-        '201':
+        "201":
           description: Transaction created successfully
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  status:
-                    type: string
-                    example: success
-                  message:
-                    type: string
-                    example: Transaction, passengers, and tickets created successfully
-                  data:
+                  transaction:
                     type: object
-                    properties:
-                      transaction:
-                        type: object
-                      tickets:
-                        type: array
-                        items:
-                          type: object
-                      passengers:
-                        type: array
-                        items:
-                          type: object
-                      bookingCode:
-                        type: string
-                        example: "ABC123456"
-                      midtransToken:
-                        type: string
-                      redirectUrl:
-                        type: string
-                      debugInfo:
-                        type: object
-        '400':
-          description: Invalid input
+                  tickets:
+                    type: array
+                  passengers:
+                    type: array
+                  bookingCode:
+                    type: string
+                  midtransToken:
+                    type: string
+                  redirectUrl:
+                    type: string
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+          description: Invalid input or seat availability issues
+          content:
+            application/json:
+              examples:
+                invalidInput:
+                  value:
+                    status: error
+                    message: Invalid input
+                seatUnavailable:
+                  value:
+                    status: error
+                    message: Beberapa kursi tidak tersedia
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/transaction/status/{bookingCode}:
+    get:
+      summary: Get Transaction Status
+      description: Retrieve detailed status of a transaction by booking code
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      tags:
+        - Transaction
+      parameters:
+        - name: bookingCode
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Transaction status retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transaction:
+                    type: object
+                  tickets:
+                    type: array
+                  user:
+                    type: object
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+          description: Transaction not found
+          content:
+            application/json:
+              example:
+                status: error
+                message: Transaction not found
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/transaction/transactions:
+    get:
+      summary: Get All Transactions
+      description: Retrieve transactions with optional filtering
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      tags:
+        - Transaction
+      parameters:
+        - name: bookingCode
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: departureDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Transactions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transactions:
+                    type: array
+                    items:
+                      type: object
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+          description: Invalid departure date
+          content:
+            application/json:
+              example:
+                status: error
+                message: Invalid departure date
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/transaction/generate-pdf/{bookingCode}:
+    get:
+      summary: Generate Transaction PDF
+      description: Generate a PDF ticket for a specific transaction
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      tags:
+        - Transaction
+      parameters:
+        - name: bookingCode
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: PDF generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  qrCode:
+                    type: string
+                    description: Base64 encoded QR code
+                  pdfPath:
+                    type: string
+                    description: Path to generated PDF
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+          description: Invalid transaction status
+          content:
+            application/json:
+              example:
+                status: error
+                message: Tickets can only be printed if the transaction status is 'Issued'
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+          description: Transaction or tickets not found
+          content:
+            application/json:
+              examples:
+                transactionNotFound:
+                  value:
+                    status: error
+                    message: Transaction not found
+                noTicketsFound:
+                  value:
+                    status: error
+                    message: No tickets found for this transaction
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/transaction/download/{bookingCode}.pdf:
+    get:
+      summary: Download Transaction PDF
+      description: Download PDF ticket for a specific transaction
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      tags:
+        - Transaction
+      parameters:
+        - name: bookingCode
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: PDF downloaded successfully
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+          description: PDF not found
+          content:
+            application/json:
+              example:
+                status: error
+                message: PDF not found
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/transaction/midtrans/callback:
+    post:
+      summary: Midtrans Payment Callback
+      description: Webhook endpoint for Midtrans payment status updates
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      tags:
+        - Transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                order_id:
+                  type: string
+                transaction_status:
+                  type: string
+                fraud_status:
+                  type: string
+      responses:
+        "200":
+          description: Callback processed successfully
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  # Flight endpoints
+
+  /api/flight/search:
+    get:
+      summary: Search Flights
+      description: Search for flights with various filter options
+      tags:
+        - Flight
+      parameters:
+        - name: arrivalContinent
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: departureCity
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: arrivalCity
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: departureDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: seatClass
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - price
+              - duration
+              - earlierDeparture
+              - latestDeparture
+              - earlierArrival
+              - latestArrival
+              - views
+        - name: homepage
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful flight search
           content:
             application/json:
               schema:
@@ -563,12 +794,182 @@ paths:
                 properties:
                   status:
                     type: string
-                    example: error
                   message:
                     type: string
-                    example: Invalid input
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Flight"
+                  pagination:
+                    $ref: "#/components/schemas/PaginationInfo"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "500":
+          $ref: "#/components/responses/ServerError"
 
+  /api/flight/search-return:
+    get:
+      summary: Search Return Flights
+      description: Search for return flights with various filter options
+      tags:
+        - Flight
+      parameters:
+        - name: departureCity
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: arrivalCity
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: returnDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: seatClass
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - price
+              - duration
+              - earlierDeparture
+              - latestDeparture
+              - earlierArrival
+              - latestArrival
+      responses:
+        "200":
+          description: Successful return flight search
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Flight"
+                  pagination:
+                    $ref: "#/components/schemas/PaginationInfo"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "500":
+          $ref: "#/components/responses/ServerError"
 
+  # Seat endpoints
+
+  /api/seat/detail-flight:
+    get:
+      summary: Get Flight and Seat Details
+      description: Retrieve detailed seat information for specific flights
+      tags:
+        - Seat
+      parameters:
+        - name: flightId
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              type: integer
+        - name: seatClass
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: adult
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: child
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: baby
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: Successful retrieval of flight and seat details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                      flights:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            flightId:
+                              type: integer
+                            seats:
+                              type: array
+                              items:
+                                $ref: "#/components/schemas/Seat"
+                      pricesByFlight:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            flightId:
+                              type: integer
+                            subTotalPrice:
+                              type: object
+                            tax:
+                              type: number
+                            total:
+                              type: number
+                      passengerCounts:
+                        type: object
+                      prices:
+                        type: object
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "500":
+          $ref: "#/components/responses/ServerError"
 
 components:
   schemas:
@@ -595,6 +996,95 @@ components:
                   type: string
                 phoneNumber:
                   type: string
+
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: error
+        message:
+          type: string
+          example: An error occurred
+    Flight:
+      type: object
+      properties:
+        id:
+          type: integer
+        airline:
+          type: object
+        departureAirport:
+          type: object
+        arrivalAirport:
+          type: object
+        departureTime:
+          type: string
+          format: date-time
+        arrivalTime:
+          type: string
+          format: date-time
+        price:
+          type: number
+        duration:
+          type: number
+
+    Seat:
+      type: object
+      properties:
+        id:
+          type: integer
+        seatNumber:
+          type: string
+        seatClass:
+          type: string
+        price:
+          type: number
+        available:
+          type: boolean
+
+    PaginationInfo:
+      type: object
+      properties:
+        totalItems:
+          type: integer
+        currentPage:
+          type: integer
+        pageSize:
+          type: integer
+        totalPages:
+          type: integer
+
+  responses:
+    BadRequestError:
+      description: Bad Request - Invalid input
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    UnauthorizedError:
+      description: Unauthorized - Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    ForbiddenError:
+      description: Forbidden - Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFoundError:
+      description: Not Found - Resource does not exist
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    ServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
 
   securitySchemes:
     BearerAuth:
