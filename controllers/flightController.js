@@ -18,7 +18,7 @@ class FlightController {
       } = req.query;
 
       // Reset displayedFlightPairs setiap kali API di-hit
-      global.displayedFlights = []; // Reset daftar penerbangan yang sudah ditampilkan
+      global.displayedFlights = []; 
 
       const displayedFlightPairs = global.displayedFlights || [];
 
@@ -181,6 +181,10 @@ class FlightController {
       if (totalFlights === 0) {
         return next(new AppError("Tidak ada penerbangan yang ditemukan", 404));
       }
+
+      if (homepage === "true") {
+        return response(200, "success", flights, "Berhasil menampilkan daftar penerbangan", res);
+    }
 
       const totalPages = limit ? Math.ceil(totalFlights / parseInt(limit)) : 1;
 
