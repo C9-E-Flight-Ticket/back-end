@@ -7,27 +7,25 @@ const response = require("../utils/response");
 const randomCode = require("otp-generator");
 const snap = require("../config/midtransConfig");
 const { AppError } = require("../middleware/errorMiddleware");
+const jwt = require("jsonwebtoken");
 
 class TransactionController {
   static async createTicketTransaction(req, res, next) {
     try {
       const { seats, passengerDetails, tax, total } = req.body;
 
-      let token = req.cookies?.token;
-      let userId = null;
+      const userId = req.user?.id;
 
-      if (token) {
-        jwt.verify(token, JWT_SECRET, (err, decoded) => {
-          if (err) {
-            console.error("Token tidak valid:", err.message);
-          } else {
-            userId = decoded.userId;
-          }
-        });
+      const currentUser = await prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!currentUser) {
+        return next(new AppError("User not found", 404));
       }
 
+      // Validasi input lainnya
       if (
-        !userId ||
         !seats ||
         !passengerDetails ||
         seats.length === 0 ||
@@ -71,9 +69,12 @@ class TransactionController {
       const bookingCode = randomCode.generate(9, { specialChars: false });
 
       const transaction = await prisma.$transaction(async (prisma) => {
+        // Gunakan connect untuk menghubungkan user
         const newTransaction = await prisma.transaction.create({
           data: {
-            userId,
+            user: {
+              connect: { id: userId }, // Pastikan ini sesuai dengan skema Prisma
+            },
             bookingCode,
             tax: tax,
             totalAmmount: total,

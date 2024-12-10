@@ -1,9 +1,6 @@
 const prisma = require("../models/prismaClients");
 const response = require("../utils/response");
-const jwt = require("jsonwebtoken");
 const { AppError } = require("../middleware/errorMiddleware");
-
-const JWT_SECRET = process.env.JWT_SECRET;
 
 class SeatController {
   static async getDetailFlight(req, res, next) {
@@ -32,18 +29,7 @@ class SeatController {
         })
       );
 
-      let token = req.cookies?.token;
-      let userId = null;
-
-      if (token) {
-        jwt.verify(token, JWT_SECRET, (err, decoded) => {
-          if (err) {
-            console.error("Token tidak valid:", err.message);
-          } else {
-            userId = decoded.userId;
-          }
-        });
-      }
+      const userId = req.user?.id;
 
       let user = null;
 
