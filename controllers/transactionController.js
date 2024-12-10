@@ -11,7 +11,20 @@ const { AppError } = require("../middleware/errorMiddleware");
 class TransactionController {
   static async createTicketTransaction(req, res, next) {
     try {
-      const { userId, seats, passengerDetails, tax, total } = req.body;
+      const { seats, passengerDetails, tax, total } = req.body;
+
+      let token = req.cookies?.token;
+      let userId = null;
+
+      if (token) {
+        jwt.verify(token, JWT_SECRET, (err, decoded) => {
+          if (err) {
+            console.error("Token tidak valid:", err.message);
+          } else {
+            userId = decoded.userId;
+          }
+        });
+      }
 
       if (
         !userId ||
@@ -176,11 +189,6 @@ class TransactionController {
           phone: user.phoneNumber || "",
         },
         item_details: itemDetails,
-        expiry: {
-          start_time: new Date().toISOString(),
-          unit: "hour",
-          duration: 1 
-        }
       };
 
       const midtransToken = await snap.createTransaction(midtransParameter);

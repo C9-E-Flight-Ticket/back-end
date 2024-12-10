@@ -40,7 +40,7 @@ router.get(
         failureRedirect: "/api/auth/google/failure",
         session: true,
     }),
-    asyncErrorHandler(OauthController.googleCallbac)
+    asyncErrorHandler(OauthController.googleCallback)
 );
 router.get("/google/failure", asyncErrorHandler(OauthController.googleFailure));
 
