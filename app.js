@@ -12,6 +12,9 @@ const { errorHandler } = require('./middleware/errorMiddleware')
 const passport = require('./libs/passport')
 const cookieMiddleware = require('./middleware/cookieMiddleware')
 const swaggerUi = require('swagger-ui-express');
+const YAML = require('yamljs');
+const swaggerDocument = YAML.load('./docs/swagger.yml');
+
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -53,6 +56,7 @@ app.get('/', (req, res) => {
   // console.log('USER', req.user);
 });
 
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use('/api/auth', authRoute)
 app.use('/api/transaction', transactionRoutes);
 app.use('/api/ticket', ticketRoute)
