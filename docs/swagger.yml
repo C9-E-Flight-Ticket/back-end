@@ -3,7 +3,7 @@ info:
   title: API Title
   version: "1.0"
 servers:
-  - url: http://api.eflight.web.id
+  - url: https://api.eflight.web.id
 paths:
   /api/auth/login:
     post:
