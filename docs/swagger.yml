@@ -1,14 +1,139 @@
-openapi: '3.0.3'
+openapi: 3.0.0
 info:
-  title: API Title
-  version: '1.0'
+  title: User Profile API
+  description: API untuk mengelola profil pengguna
+  version: 1.0.0
 servers:
-  - url: https://api.server.test/v1
-tags:
-  - name: flight
-  - name: ticket
-  - name: seat
+  - url: 'http://localhost:3000/api'
+    description: Local server
 paths:
-  /api/flight/search:
-    
-
+  /user/{id}:
+    get:
+      summary: Mendapatkan profil pengguna berdasarkan ID
+      operationId: getProfile
+      tags:
+        - User
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            example: 1
+          description: ID pengguna yang ingin diambil profilnya
+      responses:
+        '200':
+          description: Profil pengguna berhasil diambil
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: "John Doe"
+                  email:
+                    type: string
+                    example: "johndoe@example.com"
+                  phoneNumber:
+                    type: string
+                    example: "081234567890"
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: "2023-12-01T10:00:00Z"
+        '404':
+          description: Pengguna tidak ditemukan
+        '500':
+          description: Terjadi kesalahan pada server
+    put:
+      summary: Memperbarui profil pengguna berdasarkan ID
+      operationId: updateProfile
+      tags:
+        - User
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            example: 1
+          description: ID pengguna yang ingin diperbarui
+      requestBody:
+        description: Data untuk memperbarui profil pengguna
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "John Doe"
+                email:
+                  type: string
+                  example: "johndoe@example.com"
+                phoneNumber:
+                  type: string
+                  example: "081234567890"
+      responses:
+        '200':
+          description: Profil pengguna berhasil diperbarui
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Profile updated successfully"
+                  updatedUser:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      name:
+                        type: string
+                        example: "John Doe"
+                      email:
+                        type: string
+                        example: "johndoe@example.com"
+                      phoneNumber:
+                        type: string
+                        example: "081234567890"
+        '404':
+          description: Pengguna tidak ditemukan
+        '500':
+          description: Terjadi kesalahan pada server
+    delete:
+      summary: Menghapus profil pengguna berdasarkan ID
+      operationId: deleteProfile
+      tags:
+        - User
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            example: 1
+          description: ID pengguna yang ingin dihapus
+      responses:
+        '200':
+          description: Profil pengguna berhasil dihapus
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Profile deleted successfully"
+        '404':
+          description: Pengguna tidak ditemukan
+        '500':
+          description: Terjadi kesalahan pada server
