@@ -14,16 +14,6 @@ jobs:
             - name: Checkout the files
               uses: actions/checkout@v4
 
-            - name: Prepare Server
-              uses: appleboy/ssh-action@v0.1.7
-              with:
-                host: ${{ secrets.HOST_DNS }}
-                username: ${{ secrets.USERNAME }}
-                key: ${{ secrets.SSH_PRIVATE_KEY }}
-                script: |
-                  mkdir -p ${{ secrets.TARGET_DIR }}
-                  chmod -R 755 ${{ secrets.TARGET_DIR }}
-
             - name: Set up Node.js
               uses: actions/setup-node@v4
               with:
@@ -39,7 +29,7 @@ jobs:
                   REMOTE_HOST: ${{ secrets.HOST_DNS }}
                   REMOTE_USER: ${{ secrets.USERNAME }}
                   TARGET: ${{ secrets.TARGET_DIR }}
-                  ARGS: "-avzr --delete --chmod=755"
+                  ARGS: "-avzr --chmod=755"
     followup:
        name: "Follow-up Tasks (PM2)"
        runs-on: ubuntu-latest
