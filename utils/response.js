@@ -12,7 +12,7 @@ const response = (statusCode, status, data, message, res, pagination = {}) => {
           currentPage: pagination.currentPage || 1, // page data yang lagi di buka user
           pageSize: pagination.pageSize || 0, // limit / data yg ditampilkan
           totalPages: pagination.totalPages || 1, // seluruh page = seluruh data / limit
-        }=
+        }
   });
 };
 
