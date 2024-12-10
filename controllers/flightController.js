@@ -198,6 +198,7 @@ class FlightController {
           res,
           pagination
         );
+        return;
       }
 
       if (totalFlights === 0) {
