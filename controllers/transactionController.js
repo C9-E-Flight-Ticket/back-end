@@ -19,14 +19,21 @@ class TransactionController {
         !passengerDetails ||
         seats.length === 0 ||
         passengerDetails.length === 0
-      )
-      {
+      ) {
         return next(new AppError("Invalid input", 400));
       }
 
-      if (seats.length < passengerDetails.length || seats.length > passengerDetails.length * 2) {
-        return next(new AppError("Invalid input: Jumlah kursi tidak sesuai dengan jumlah penumpang", 400));
-    }
+      if (
+        seats.length < passengerDetails.length ||
+        seats.length > passengerDetails.length * 2
+      ) {
+        return next(
+          new AppError(
+            "Invalid input: Jumlah kursi tidak sesuai dengan jumlah penumpang",
+            400
+          )
+        );
+      }
 
       const availableSeats = await prisma.seat.findMany({
         where: {
@@ -176,11 +183,6 @@ class TransactionController {
           phone: user.phoneNumber || "",
         },
         item_details: itemDetails,
-        expiry: {
-          start_time: new Date().toISOString(),
-          unit: "hour",
-          duration: 1 
-        }
       };
 
       const midtransToken = await snap.createTransaction(midtransParameter);
@@ -212,7 +214,7 @@ class TransactionController {
   static async handleMidtransCallback(req, res, next) {
     try {
       const { order_id, transaction_status, fraud_status } = req.body;
-  
+
       let newStatus;
       switch (transaction_status) {
         case "pending":
@@ -231,7 +233,7 @@ class TransactionController {
           newStatus = "Cancelled";
           break;
       }
-  
+
       // Transaction update
       const transaction = await prisma.transaction.update({
         where: { bookingCode: order_id },
@@ -240,31 +242,31 @@ class TransactionController {
           paymentMethod: req.body.payment_type,
         },
       });
-  
+
       // Jika transaksi dibatalkan (expired/cancel)
       if (newStatus === "Cancelled") {
         // Kembalikan seat menjadi available
         await prisma.seat.updateMany({
-          where: { 
+          where: {
             Ticket: {
               some: {
-                transactionId: transaction.id
-              }
-            }
+                transactionId: transaction.id,
+              },
+            },
           },
-          data: { 
-            available: true 
-          }
+          data: {
+            available: true,
+          },
         });
-  
+
         // Hapus tiket terkait
         await prisma.ticket.deleteMany({
-          where: { 
-            transactionId: transaction.id 
-          }
+          where: {
+            transactionId: transaction.id,
+          },
         });
       }
-  
+
       // Jika transaksi berhasil
       if (newStatus === "Issued") {
         await prisma.ticket.updateMany({
@@ -278,7 +280,7 @@ class TransactionController {
           },
         });
       }
-  
+
       res.status(200).send("OK");
     } catch (error) {
       console.error("Midtrans callback error:", error);
@@ -419,8 +421,13 @@ class TransactionController {
       }
 
       if (transaction.status !== "Issued") {
-        return next(new AppError("Tickets can only be printed if the transaction status is 'Issued'", 400));
-    }
+        return next(
+          new AppError(
+            "Tickets can only be printed if the transaction status is 'Issued'",
+            400
+          )
+        );
+      }
 
       const tickets = transaction.Tickets || [];
       if (tickets.length === 0) {
