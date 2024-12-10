@@ -57,7 +57,7 @@ app.get('/', (req, res) => {
   // console.log('USER', req.user);
 });
 
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use('/api/auth', authRoute)
 app.use('/api/transaction', transactionRoutes);
