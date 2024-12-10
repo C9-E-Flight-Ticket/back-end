@@ -1,14 +1,160 @@
-openapi: '3.0.3'
+openapi: 3.0.0
 info:
-  title: API Title
-  version: '1.0'
+  title: Passenger API
+  description: API untuk mengelola data penumpang.
+  version: 1.0.0
 servers:
-  - url: https://api.server.test/v1
-tags:
-  - name: flight
-  - name: ticket
-  - name: seat
-paths:
-  /api/flight/search:
-    
+  - url: http://localhost:3000/api
+    description: Development server
 
+paths:
+  /passenger:
+    get:
+      summary: Ambil semua data penumpang
+      responses:
+        200:
+          description: Berhasil mendapatkan semua data penumpang
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Passenger'
+        500:
+          description: Kesalahan server
+    post:
+      summary: Tambah data penumpang baru
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PassengerInput'
+      responses:
+        201:
+          description: Penumpang berhasil dibuat
+        500:
+          description: Kesalahan server
+
+  /passenger/{id}:
+    get:
+      summary: Ambil data penumpang berdasarkan ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID penumpang
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Berhasil mendapatkan data penumpang
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Passenger'
+        404:
+          description: Penumpang tidak ditemukan
+        500:
+          description: Kesalahan server
+    put:
+      summary: Perbarui data penumpang berdasarkan ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID penumpang
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PassengerInput'
+      responses:
+        200:
+          description: Data penumpang berhasil diperbarui
+        404:
+          description: Penumpang tidak ditemukan
+        500:
+          description: Kesalahan server
+    delete:
+      summary: Hapus data penumpang berdasarkan ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID penumpang
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Penumpang berhasil dihapus
+        404:
+          description: Penumpang tidak ditemukan
+        500:
+          description: Kesalahan server
+
+components:
+  schemas:
+    Passenger:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+          example: Mr
+        name:
+          type: string
+          example: John
+        familyName:
+          type: string
+          example: Doe
+        dateOfBirth:
+          type: string
+          format: date
+          example: "1990-01-01"
+        nationality:
+          type: string
+          example: American
+        identityNumber:
+          type: string
+          example: A1234567
+        issuingCountry:
+          type: string
+          example: USA
+        validUntil:
+          type: string
+          format: date
+          example: "2030-01-01"
+    PassengerInput:
+      type: object
+      properties:
+        title:
+          type: string
+          example: Mr
+        name:
+          type: string
+          example: John
+        familyName:
+          type: string
+          example: Doe
+        dateOfBirth:
+          type: string
+          format: date
+          example: "1990-01-01"
+        nationality:
+          type: string
+          example: American
+        identityNumber:
+          type: string
+          example: A1234567
+        issuingCountry:
+          type: string
+          example: USA
+        validUntil:
+          type: string
+          format: date
+          example: "2030-01-01"

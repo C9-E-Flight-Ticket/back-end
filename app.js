@@ -12,6 +12,8 @@ const { errorHandler } = require('./middleware/errorMiddleware')
 const passport = require('./libs/passport')
 const cookieMiddleware = require('./middleware/cookieMiddleware')
 const swaggerUi = require('swagger-ui-express');
+const YAML = require('yamljs');
+const swaggerDocument = YAML.load('./docs/swagger.yml');
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -24,6 +26,7 @@ const seatRoute = require('./routes/seatRoutes')
 const airlineRoute = require('./routes/airlineRoutes')
 const airportRoute = require('./routes/airportRoutes')
 const notificationRoutes = require('./routes/notificationRoutes');
+const passengerRoute = require('./routes/passengerRoutes');
 
 const corsOptions = {
   origin: [
@@ -53,6 +56,7 @@ app.get('/', (req, res) => {
   // console.log('USER', req.user);
 });
 
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use('/api/auth', authRoute)
 app.use('/api/transaction', transactionRoutes);
 app.use('/api/ticket', ticketRoute)
@@ -61,6 +65,7 @@ app.use('/api/seat', seatRoute)
 app.use('/api/airline', airlineRoute)
 app.use('/api/airport', airportRoute)
 app.use('/api/notifications', notificationRoutes)
+app.use('/api/passenger', passengerRoute);
 
 // Request logging middleware
 app.use((req, res, next) => {

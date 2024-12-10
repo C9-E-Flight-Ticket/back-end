@@ -18,7 +18,8 @@ class FlightController {
       } = req.query;
 
       // Reset displayedFlightPairs setiap kali API di-hit
-      global.displayedFlights = [];
+      global.displayedFlights = []; 
+
       const displayedFlightPairs = global.displayedFlights || [];
 
       const query = {
@@ -97,6 +98,7 @@ class FlightController {
 
       // Jika homepage=true, tambahkan filter untuk penerbangan unik
       if (homepage === "true") {
+        // Filter untuk penerbangan unik berdasarkan departureAirportId dan arrivalAirportId
         if (displayedFlightPairs.length > 0) {
           query.where.AND.push({
             NOT: {
@@ -110,19 +112,23 @@ class FlightController {
           });
         }
 
+        // Tambahkan include untuk kursi hanya ketika homepage=true
         query.include.seats = {
           where: {
             available: true,
             seatClass: "Economy",
           },
-          take: 1,
+          take: 1, // Ambil hanya satu kursi ekonomi
           select: {
             price: true,
           },
         };
 
+        // Tambahkan distinct untuk kombinasi unik
+        query.distinct = ["departureAirportId", "arrivalAirportId"];
+
         if (sort === "views") {
-          query.orderBy.push({ views: "desc" });
+          query.orderBy.push({ views: "desc" }); // Urutkan berdasarkan views secara menurun
         }
       }
 
@@ -155,11 +161,11 @@ class FlightController {
         }
       }
 
-      // Ambil penerbangan dengan query yang sesuai
-      const flights = await prisma.flight.findMany(query);
+      const totalFlights = await prisma.flight.count({
+        where: query.where,
+      });
 
-      // Hitung jumlah penerbangan berdasarkan hasil yang ditampilkan
-      const totalFlights = flights.length;
+      const flights = await prisma.flight.findMany(query);
 
       // Tambahkan flight yang baru ditampilkan ke dalam global state
       flights.forEach((flight) => {
@@ -169,41 +175,16 @@ class FlightController {
         });
       });
 
+      // Simpan kembali ke global
       global.displayedFlights = displayedFlightPairs;
-
-      if (homepage === "true") {
-        const uniqueFlightPairs = await prisma.flight.findMany({
-          where: query.where,
-          distinct: ["departureAirportId", "arrivalAirportId"],
-        });
-        const totalUniqueFlights = uniqueFlightPairs.length;
-        const totalPages = limit
-          ? Math.ceil(totalUniqueFlights / parseInt(limit))
-          : 1;
-
-        const pagination = {
-          totalItems: totalUniqueFlights,
-          currentPage: offset
-            ? Math.floor(parseInt(offset) / parseInt(limit)) + 1
-            : 1,
-          pageSize: limit ? parseInt(limit) : totalUniqueFlights,
-          totalPages: totalPages,
-        };
-
-        response(
-          200,
-          "success",
-          flights,
-          "Berhasil menampilkan daftar penerbangan",
-          res,
-          pagination
-        );
-        return;
-      }
 
       if (totalFlights === 0) {
         return next(new AppError("Tidak ada penerbangan yang ditemukan", 404));
       }
+
+      if (homepage === "true") {
+        return response(200, "success", flights, "Berhasil menampilkan daftar penerbangan", res);
+    }
 
       const totalPages = limit ? Math.ceil(totalFlights / parseInt(limit)) : 1;
 
