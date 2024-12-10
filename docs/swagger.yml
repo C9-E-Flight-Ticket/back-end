@@ -1,7 +1,7 @@
-openapi: '3.0.3'
+openapi: "3.0.3"
 info:
   title: API Title
-  version: '1.0'
+  version: "1.0"
 servers:
   - url: https://api.server.test/v1
 tags:
@@ -41,7 +41,7 @@ paths:
                   format: password
                   example: "yourpassword123"
       responses:
-        '200':
+        "200":
           description: Login successful
           content:
             application/json:
@@ -54,7 +54,7 @@ paths:
                   message:
                     type: string
                     example: Berhasil login
-        '401':
+        "401":
           description: Authentication failed
           content:
             application/json:
@@ -101,13 +101,13 @@ paths:
                   type: string
                   example: "081234567890"
       responses:
-        '200':
+        "200":
           description: Registration successful
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RegisterResponse'
-        '400':
+                $ref: "#/components/schemas/RegisterResponse"
+        "400":
           description: Invalid input or email already registered
 
   /api/auth/verify-email/{id}:
@@ -135,11 +135,11 @@ paths:
                   type: string
                   example: "123456"
       responses:
-        '200':
+        "200":
           description: Email verified successfully
-        '400':
+        "400":
           description: Invalid OTP
-        '404':
+        "404":
           description: User not found
 
   /api/auth/resend-otp/{id}:
@@ -155,9 +155,9 @@ paths:
             type: integer
           description: User ID
       responses:
-        '200':
+        "200":
           description: OTP resent successfully
-        '404':
+        "404":
           description: User not found
 
   /api/auth/forgot-password:
@@ -179,9 +179,9 @@ paths:
                   format: email
                   example: user@example.com
       responses:
-        '200':
+        "200":
           description: Password reset OTP sent
-        '404':
+        "404":
           description: Email not found
 
   /api/auth/verify-otp/{id}:
@@ -209,11 +209,11 @@ paths:
                   type: string
                   example: "123456"
       responses:
-        '200':
+        "200":
           description: OTP verified successfully
-        '400':
+        "400":
           description: Invalid OTP
-        '404':
+        "404":
           description: User not found
 
   /api/auth/reset-password/{id}:
@@ -247,11 +247,11 @@ paths:
                   format: password
                   example: "newpassword123"
       responses:
-        '200':
+        "200":
           description: Password reset successful
-        '400':
+        "400":
           description: Passwords don't match or invalid password
-        '404':
+        "404":
           description: User not found
 
   /api/auth/resend-password-otp/{id}:
@@ -267,9 +267,9 @@ paths:
             type: integer
           description: User ID
       responses:
-        '200':
+        "200":
           description: Password reset OTP resent successfully
-        '404':
+        "404":
           description: User not found
 
   /api/auth/google:
@@ -279,7 +279,7 @@ paths:
       summary: Initiate Google OAuth login
       description: Redirects to Google login page for OAuth authentication
       responses:
-        '302':
+        "302":
           description: Redirect to Google login page
           headers:
             Location:
@@ -294,7 +294,7 @@ paths:
       summary: Google OAuth callback
       description: Handles the response from Google OAuth
       responses:
-        '200':
+        "200":
           description: OAuth login successful
           content:
             application/json:
@@ -321,7 +321,7 @@ paths:
                             type: string
                           accessToken:
                             type: string
-        '401':
+        "401":
           description: OAuth authentication failed
           content:
             application/json:
@@ -342,7 +342,7 @@ paths:
       summary: Google OAuth failure handler
       description: Endpoint for handling failed Google OAuth attempts
       responses:
-        '401':
+        "401":
           description: OAuth authentication failed
           content:
             application/json:
@@ -366,7 +366,7 @@ paths:
         - BearerAuth: []
         - CookieAuth: []
       responses:
-        '200':
+        "200":
           description: Logout successful
           content:
             application/json:
@@ -379,7 +379,7 @@ paths:
                   message:
                     type: string
                     example: Berhasil logout
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -403,7 +403,7 @@ paths:
         - BearerAuth: []
         - CookieAuth: []
       responses:
-        '200':
+        "200":
           description: Profile retrieved successfully
           content:
             application/json:
@@ -429,7 +429,7 @@ paths:
                         enum: [USER, ADMIN]
                       is_verified:
                         type: boolean
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -442,6 +442,906 @@ paths:
                   message:
                     type: string
                     example: Authentication required
+  
+  /api/airline/get:
+    get:
+      tags:
+        - airline
+      summary: Get list of airlines
+      description: Retrieve a paginated list of airlines with optional search functionality.
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Number of items to return per page.
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            default: 0
+          description: Number of items to skip for pagination.
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Search term to filter airlines by code.
+      responses:
+        "200":
+          description: Successfully retrieved list of airlines.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Berhasil menampilkan daftar airline
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Airline"
+                  meta:
+                    type: object
+                    properties:
+                      totalItems:
+                        type: integer
+                        example: 50
+                      currentPage:
+                        type: integer
+                        example: 1
+                      pageSize:
+                        type: integer
+                        example: 10
+                      totalPages:
+                        type: integer
+                        example: 5
+        "404":
+          description: No airlines found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/airline/create:
+    post:
+      tags:
+        - airline
+      summary: Create a new airline
+      description: Add a new airline to the system.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAirlineRequest"
+      responses:
+        "201":
+          description: Airline successfully created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Airline berhasil ditambahkan
+                  data:
+                    $ref: "#/components/schemas/Airline"
+        "400":
+          description: Bad request. Missing required fields or invalid data.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/airline/update/{id}:
+    put:
+      tags:
+        - airline
+      summary: Update an existing airline
+      description: Update details of an existing airline by its ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the airline to update.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAirlineRequest"
+      responses:
+        "200":
+          description: Airline successfully updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Airline berhasil diperbarui
+                  data:
+                    $ref: "#/components/schemas/Airline"
+        "400":
+          description: Bad request. Invalid data.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Airline not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/airline/delete/{id}:
+    delete:
+      tags:
+        - airline
+      summary: Delete an airline
+      description: Soft delete an airline by its ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the airline to delete.
+      responses:
+        "200":
+          description: Airline successfully deleted.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Airline berhasil dihapus
+                  data:
+                    $ref: "#/components/schemas/Airline"
+        "404":
+          description: Airline not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/airport:
+    get:
+      tags:
+        - airport
+      summary: Get all airports
+      description: Retrieve a list of all airports that are not deleted.
+      responses:
+        "200":
+          description: Successfully retrieved list of airports.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Berhasil mengambil semua bandara.
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Airport"
+        "404":
+          description: No airports found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    post:
+      tags:
+        - airport
+      summary: Create a new airport
+      description: Add a new airport to the system.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAirportRequest"
+      responses:
+        "201":
+          description: Airport successfully created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Bandara berhasil dibuat.
+                  data:
+                    $ref: "#/components/schemas/Airport"
+        "400":
+          description: Bad request. Missing required fields or invalid data.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/airport/{id}:
+    get:
+      tags:
+        - airport
+      summary: Get airport by ID
+      description: Retrieve details of a specific airport by its ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the airport to retrieve.
+      responses:
+        "200":
+          description: Successfully retrieved airport details.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Berhasil mengambil data bandara.
+                  data:
+                    $ref: "#/components/schemas/Airport"
+        "404":
+          description: Airport not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    put:
+      tags:
+        - airport
+      summary: Update an existing airport
+      description: Update details of an existing airport by its ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the airport to update.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAirportRequest"
+      responses:
+        "200":
+          description: Airport successfully updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Bandara berhasil diperbarui.
+                  data:
+                    $ref: "#/components/schemas/Airport"
+        "400":
+          description: Bad request. Invalid data.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Airport not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    delete:
+      tags:
+        - airport
+      summary: Delete an airport
+      description: Soft delete an airport by its ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the airport to delete.
+      responses:
+        "200":
+          description: Airport successfully deleted.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Bandara berhasil dihapus.
+                  data:
+                    type: object
+                    nullable: true
+        "404":
+          description: Airport not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/flight/search:
+    get:
+      tags:
+        - flight
+      summary: Search for flights
+      description: Delve into available flights based on various search criteria.
+      parameters:
+        - in: query
+          name: arrivalContinent
+          schema:
+            type: string
+          description: Continent of the arrival airport.
+        - in: query
+          name: departureCity
+          schema:
+            type: string
+          description: City of the departure airport.
+        - in: query
+          name: arrivalCity
+          schema:
+            type: string
+          description: City of the arrival airport.
+        - in: query
+          name: departureDate
+          schema:
+            type: string
+            format: date
+          description: Date of departure.
+        - in: query
+          name: seatClass
+          schema:
+            type: string
+            enum: [Economy, Business, First]
+          description: Class of seat.
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Number of items to return per page.
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            default: 0
+          description: Number of items to skip for pagination.
+        - in: query
+          name: sort
+          schema:
+            type: string
+            enum: [price, duration, earlierDeparture, latestDeparture, earlierArrival, latestArrival, views]
+          description: Sorting criteria.
+        - in: query
+          name: homepage
+          schema:
+            type: boolean
+          description: If true, filters for unique flight pairs.
+      responses:
+        "200":
+          description: Successfully retrieved list of flights.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Berhasil menampilkan daftar penerbangan
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Flight"
+                  meta:
+                    type: object
+                    properties:
+                      totalItems:
+                        type: integer
+                        example: 100
+                      currentPage:
+                        type: integer
+                        example: 1
+                      pageSize:
+                        type: integer
+                        example: 10
+                      totalPages:
+                        type: integer
+                        example: 10
+        "404":
+          description: No flights found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/flight/search-return:
+    get:
+      tags:
+        - flight
+      summary: Search for return flights
+      description: Delve into available return flights based on search criteria.
+      parameters:
+        - in: query
+          name: departureCity
+          schema:
+            type: string
+          description: City of the departure airport for return flight.
+        - in: query
+          name: arrivalCity
+          schema:
+            type: string
+          description: City of the arrival airport for return flight.
+        - in: query
+          name: returnDate
+          schema:
+            type: string
+            format: date
+          description: Date of return.
+        - in: query
+          name: seatClass
+          schema:
+            type: string
+            enum: [Economy, Business, First]
+          description: Class of seat.
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Number of items to return per page.
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            default: 0
+          description: Number of items to skip for pagination.
+        - in: query
+          name: sort
+          schema:
+            type: string
+            enum: [price, duration, earlierDeparture, latestDeparture, earlierArrival, latestArrival]
+          description: Sorting criteria.
+      responses:
+        "200":
+          description: Successfully retrieved list of return flights.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Berhasil menampilkan daftar penerbangan kembali
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Flight"
+                  meta:
+                    type: object
+                    properties:
+                      totalItems:
+                        type: integer
+                        example: 50
+                      currentPage:
+                        type: integer
+                        example: 1
+                      pageSize:
+                        type: integer
+                        example: 10
+                      totalPages:
+                        type: integer
+                        example: 5
+        "404":
+          description: No return flights found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/flight/createFlight:
+    get:
+      tags:
+        - flight
+      summary: Get data for creating a flight
+      description: Retrieve necessary data to create a new flight.
+      responses:
+        "200":
+          description: Successfully retrieved data for creating a flight.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Data untuk membuat flight berhasil diambil
+                  data:
+                    type: object
+                    properties:
+                      airlines:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Airline"
+                      departureAirports:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Airport"
+                      arrivalAirports:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Airport"
+        "500":
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/flight:
+    get:
+      tags:
+        - flight
+      summary: Get all flights
+      description: Retrieve a paginated list of all flights that are not deleted.
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number for pagination.
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Number of items per page.
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Search term to filter flights by flight number.
+      responses:
+        "200":
+          description: Successfully retrieved list of flights.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Berhasil menampilkan daftar penerbangan
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Flight"
+                  meta:
+                    type: object
+                    properties:
+                      totalItems:
+                        type: integer
+                        example: 200
+                      currentPage:
+                        type: integer
+                        example: 1
+                      pageSize:
+                        type: integer
+                        example: 10
+                      totalPages:
+                        type: integer
+                        example: 20
+        "404":
+          description: No flights found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags:
+        - flight
+      summary: Create a new flight
+      description: Add a new flight to the system.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFlightRequest"
+      responses:
+        "201":
+          description: Flight successfully created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Flight berhasil dibuat
+                  data:
+                    $ref: "#/components/schemas/Flight"
+        "400":
+          description: Bad request. Missing required fields or invalid data.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/flight/{id}:
+    get:
+      tags:
+        - flight
+      summary: Get flight by ID
+      description: Retrieve details of a specific flight by its ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the flight to retrieve.
+      responses:
+        "200":
+          description: Successfully retrieved flight details.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Berhasil menampilkan detail penerbangan
+                  data:
+                    $ref: "#/components/schemas/Flight"
+        "404":
+          description: Flight not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      tags:
+        - flight
+      summary: Update an existing flight
+      description: Update details of an existing flight by its ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the flight to update.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateFlightRequest"
+      responses:
+        "200":
+          description: Flight successfully updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Flight berhasil diperbarui
+                  data:
+                    $ref: "#/components/schemas/Flight"
+        "400":
+          description: Bad request. Invalid data.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Flight not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags:
+        - flight
+      summary: Delete a flight
+      description: Soft delete a flight by its ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the flight to delete.
+      responses:
+        "200":
+          description: Flight successfully deleted.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Flight berhasil dihapus
+                  data:
+                    type: object
+                    nullable: true
+        "404":
+          description: Flight not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/notifications:
+    get:
+      tags:
+        - notification
+      summary: Get user notifications
+      description: Retrieve a list of notifications for a specific user.
+      parameters:
+        - in: query
+          name: userId
+          required: true
+          schema:
+            type: integer
+          description: ID pengguna untuk mengambil notifikasi.
+      responses:
+        "200":
+          description: Successfully retrieved list of notifications.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Notifikasi berhasil diambil
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Notification"
+        "400":
+          description: Bad request. Missing required parameters.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No notifications found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/notifications/{id}/read:
+    patch:
+      tags:
+        - notification
+      summary: Mark notification as read
+      description: Update a specific notification's status to read.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID dari notifikasi yang akan ditandai sebagai sudah dibaca.
+        - in: query
+          name: userId
+          required: true
+          schema:
+            type: integer
+          description: ID pengguna yang memiliki notifikasi.
+      responses:
+        "200":
+          description: Notification successfully marked as read.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Notifikasi berhasil ditandai sebagai sudah dibaca
+                  data:
+                    type: object
+                    nullable: true
+        "400":
+          description: Bad request. Missing required parameters.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Notification not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
 components:
   schemas:
@@ -469,6 +1369,331 @@ components:
                 phoneNumber:
                   type: string
 
+    Airline:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Garuda Indonesia"
+        code:
+          type: string
+          example: "GA"
+        baggage:
+          type: integer
+          example: 20
+        cabinBaggage:
+          type: integer
+          example: 7
+        entertainment:
+          type: string
+          example: "In Flight Entertainment"
+        urlImage:
+          type: string
+          format: uri
+          example: "https://example.com/images/garuda.png"
+        fileId:
+          type: string
+          example: "file_123456"
+        deleteAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: null
+
+    CreateAirlineRequest:
+      type: object
+      required:
+        - name
+        - code
+      properties:
+        name:
+          type: string
+          example: "Garuda Indonesia"
+        code:
+          type: string
+          example: "GA"
+        baggage:
+          type: integer
+          example: 20
+        cabinBaggage:
+          type: integer
+          example: 7
+        entertainment:
+          type: string
+          example: "In Flight Entertainment"
+        urlImage:
+          type: string
+          format: uri
+          example: "https://example.com/images/garuda.png"
+        fileId:
+          type: string
+          example: "file_123456"
+
+    UpdateAirlineRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Garuda Indonesia"
+        code:
+          type: string
+          example: "GA"
+        baggage:
+          type: integer
+          example: 25
+        cabinBaggage:
+          type: integer
+          example: 8
+        entertainment:
+          type: string
+          example: "Enhanced In Flight Entertainment"
+        urlImage:
+          type: string
+          format: uri
+          example: "https://example.com/images/garuda_updated.png"
+        fileId:
+          type: string
+          example: "file_654321" 
+
+    Airport:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Soekarno-Hatta International Airport"
+        code:
+          type: string
+          example: "CGK"
+        city:
+          type: string
+          example: "Jakarta"
+        terminalName:
+          type: string
+          example: "Terminal 1A"
+        terminalCategory:
+          type: string
+          example: "Domestic"
+        continent:
+          type: string
+          example: "Asia"
+        urlImage:
+          type: string
+          format: uri
+          example: "https://example.com/images/cgk.png"
+        fileId:
+          type: string
+          example: "file_789012"
+        deleteAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: null
+
+    CreateAirportRequest:
+      type: object
+      required:
+        - name
+        - code
+        - city
+        - continent
+      properties:
+        name:
+          type: string
+          example: "Soekarno-Hatta International Airport"
+        code:
+          type: string
+          example: "CGK"
+        city:
+          type: string
+          example: "Jakarta"
+        terminalName:
+          type: string
+          example: "Terminal 1A"
+        terminalCategory:
+          type: string
+          example: "Domestic"
+        continent:
+          type: string
+          example: "Asia"
+        urlImage:
+          type: string
+          format: uri
+          example: "https://example.com/images/cgk.png"
+        fileId:
+          type: string
+          example: "file_789012"
+
+    UpdateAirportRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Soekarno-Hatta International Airport"
+        code:
+          type: string
+          example: "CGK"
+        city:
+          type: string
+          example: "Jakarta"
+        terminalName:
+          type: string
+          example: "Terminal 2B"
+        terminalCategory:
+          type: string
+          example: "International"
+        continent:
+          type: string
+          example: "Asia"
+        urlImage:
+          type: string
+          format: uri
+          example: "https://example.com/images/cgk_updated.png"
+        fileId:
+          type: string
+          example: "file_345678"
+
+    Flight:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        airline:
+          $ref: "#/components/schemas/Airline"
+        departureAirport:
+          $ref: "#/components/schemas/Airport"
+        arrivalAirport:
+          $ref: "#/components/schemas/Airport"
+        flightNumber:
+          type: string
+          example: "GA123"
+        departureTime:
+          type: string
+          format: date-time
+          example: "2024-12-25T08:00:00Z"
+        arrivalTime:
+          type: string
+          format: date-time
+          example: "2024-12-25T12:00:00Z"
+        seats:
+          type: array
+          items:
+            $ref: "#/components/schemas/Seat"
+        deleteAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: null
+
+    Seat:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        seatClass:
+          type: string
+          enum: [Economy, Business, First]
+          example: "Economy"
+        available:
+          type: boolean
+          example: true
+        price:
+          type: number
+          format: float
+          example: 150.00
+
+    CreateFlightRequest:
+      type: object
+      required:
+        - airlineId
+        - departureAirportId
+        - arrivalAirportId
+        - flightNumber
+        - departureTime
+        - arrivalTime
+      properties:
+        airlineId:
+          type: integer
+          example: 1
+        departureAirportId:
+          type: integer
+          example: 1
+        arrivalAirportId:
+          type: integer
+          example: 2
+        flightNumber:
+          type: string
+          example: "GA123"
+        departureTime:
+          type: string
+          format: date-time
+          example: "2024-12-25T08:00:00Z"
+        arrivalTime:
+          type: string
+          format: date-time
+          example: "2024-12-25T12:00:00Z"
+
+    UpdateFlightRequest:
+      type: object
+      properties:
+        airlineId:
+          type: integer
+          example: 1
+        departureAirportId:
+          type: integer
+          example: 1
+        arrivalAirportId:
+          type: integer
+          example: 2
+        flightNumber:
+          type: string
+          example: "GA124"
+        departureTime:
+          type: string
+          format: date-time
+          example: "2024-12-26T09:00:00Z"
+        arrivalTime:
+          type: string
+          format: date-time
+          example: "2024-12-26T13:00:00Z"
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        userId:
+          type: integer
+          example: 123
+        message:
+          type: string
+          example: "Your flight GA123 has been booked successfully."
+        read:
+          type: boolean
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-12-10T14:48:00.000Z"
+
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: error
+        message:
+          type: string
+          example: "Data not found"
+  
   securitySchemes:
     BearerAuth:
       type: http
