@@ -757,27 +757,32 @@ paths:
       parameters:
         - name: arrivalContinent
           in: query
+          example: Asia
           required: false
           schema:
             type: string
         - name: departureCity
           in: query
+          example: Jakarta
           required: false
           schema:
             type: string
         - name: arrivalCity
           in: query
+          example: Singapore
           required: false
           schema:
             type: string
         - name: departureDate
           in: query
+          example: 2024-12-20
           required: false
           schema:
             type: string
             format: date
         - name: seatClass
           in: query
+          example: Economy
           required: false
           schema:
             type: string
@@ -841,16 +846,19 @@ paths:
       parameters:
         - name: departureCity
           in: query
+          example: Singapore
           required: false
           schema:
             type: string
         - name: arrivalCity
           in: query
+          example: Jakarta
           required: false
           schema:
             type: string
         - name: returnDate
           in: query
+          example: 2024-12-27
           required: false
           schema:
             type: string
@@ -1292,6 +1300,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+
+  ## Airline
+
 
 
 components:
