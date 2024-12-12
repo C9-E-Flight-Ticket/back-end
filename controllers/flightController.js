@@ -17,8 +17,7 @@ class FlightController {
         homepage,
       } = req.query;
   
-      // Inisialisasi global displayedFlights jika belum ada
-      global.displayedFlights = global.displayedFlights || [];
+      global.displayedFlights = [];
   
       // Konversi ke Set untuk menghindari duplikasi
       const displayedFlightPairsSet = new Set(
@@ -102,6 +101,7 @@ class FlightController {
             some: {
               available: true,
               seatClass: seatClass,
+              mode: "insensitive",
             },
           },
         });
@@ -129,6 +129,7 @@ class FlightController {
           where: {
             available: true,
             seatClass: "Economy",
+            mode: "insensitive",
           },
           take: 1,
           select: {
@@ -299,6 +300,7 @@ class FlightController {
             some: {
               available: true,
               seatClass: seatClass,
+              mode: "insensitive",
             },
           },
         });
