@@ -41,8 +41,6 @@ class FlightController {
           departureAirport: true,
           arrivalAirport: true,
         },
-        take: limit ? parseInt(limit) : undefined,
-        skip: offset ? parseInt(offset) : undefined,
         orderBy: [],
       };
   
@@ -101,7 +99,6 @@ class FlightController {
             some: {
               available: true,
               seatClass: seatClass,
-              mode: "insensitive",
             },
           },
         });
@@ -129,7 +126,6 @@ class FlightController {
           where: {
             available: true,
             seatClass: "Economy",
-            mode: "insensitive",
           },
           take: 1,
           select: {
@@ -300,7 +296,6 @@ class FlightController {
             some: {
               available: true,
               seatClass: seatClass,
-              mode: "insensitive",
             },
           },
         });
