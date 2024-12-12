@@ -17,7 +17,7 @@ class CookieMiddleware {
             secure: process.env.NODE_ENV === 'production',
             sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
             path: '/',
-            maxAge: 0 
+            maxAge: 0
         };
 
         res.cookie('access_token', '', cookieOptions);

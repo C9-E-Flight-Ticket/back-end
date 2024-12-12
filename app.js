@@ -21,18 +21,16 @@ const app = express()
 const PORT = process.env.PORT || 3000
 
 const authRoute = require('./routes/authRoutes');
-const ticketRoute = require('./routes/ticketRoutes');
 const transactionRoutes = require("./routes/transactionRoutes");
 const flightRoute = require('./routes/flightRoutes')
 const seatRoute = require('./routes/seatRoutes')
-const airlineRoute = require('./routes/airlineRoutes')
-const airportRoute = require('./routes/airportRoutes')
 const notificationRoutes = require('./routes/notificationRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 const corsOptions = {
   origin: [
-    'https://krisnaepras.my.id',
-    'http://krisnaepras.my.id',
+    'https://api.eflight.web.id',
+    'http://api.eflight.web.id',
     'http://localhost:3000',
     'http://localhost:5173',
     process.env.FRONTEND_URL,
@@ -60,12 +58,10 @@ app.get('/', (req, res) => {
 app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use('/api/auth', authRoute)
+app.use('/api/admin', adminRoutes)
 app.use('/api/transaction', transactionRoutes);
-app.use('/api/ticket', ticketRoute)
 app.use('/api/flight', flightRoute)
 app.use('/api/seat', seatRoute)
-app.use('/api/airline', airlineRoute)
-app.use('/api/airport', airportRoute)
 app.use('/api/notifications', notificationRoutes)
 
 // Request logging middleware

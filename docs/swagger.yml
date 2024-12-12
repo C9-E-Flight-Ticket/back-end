@@ -1,6 +1,6 @@
 openapi: "3.0.3"
 info:
-  title: API Title
+  title: E-Flight Ticket Team IX
   version: "1.0"
 servers:
   - url: https://api.eflight.web.id
@@ -450,14 +450,36 @@ paths:
             schema:
               type: object
               properties:
-                userId:
-                  type: integer
                 seats:
                   type: array
+                  example: [1, 2, 3, 4]
                   items:
                     type: integer
                 passengerDetails:
                   type: array
+                  example:
+                    [
+                      {
+                        "title": "Mr",
+                        "name": "Sung",
+                        "familyName": "Jinwoo",
+                        "dateOfBirth": "2001-01-01",
+                        "nationality": "Indonesia",
+                        "identityNumber": "1234567890",
+                        "issuingCountry": "Indonesia",
+                        "category": "Adult",
+                      },
+                      {
+                        "title": "Mrs",
+                        "name": "Sylvia",
+                        "familyName": "Atlante",
+                        "dateOfBirth": "2003-03-03",
+                        "nationality": "Indonesia",
+                        "identityNumber": "0987654321",
+                        "issuingCountry": "Indonesia",
+                        "category": "Adult",
+                      },
+                    ]
                   items:
                     type: object
                     properties:
@@ -478,10 +500,13 @@ paths:
                         type: string
                       category:
                         type: string
+                        enum: ["Adult", "Child", "Baby"]
                 tax:
                   type: number
+                  example: 1320000
                 total:
                   type: number
+                  example: 13320000
       responses:
         "201":
           description: Transaction created successfully
@@ -691,7 +716,7 @@ paths:
         "500":
           $ref: "#/components/responses/ServerError"
 
-  /api/transaction/midtrans/callback:
+  /api/transaction/midtrans-callback:
     post:
       summary: Midtrans Payment Callback
       description: Webhook endpoint for Midtrans payment status updates
@@ -971,191 +996,7 @@ paths:
         "500":
           $ref: "#/components/responses/ServerError"
 
-  /api/flight:
-    get:
-      tags:
-        - flight
-      summary: Get All Flights
-      description: Retrieve a paginated list of all flights.
-      parameters:
-        - in: query
-          name: page
-          schema:
-            type: integer
-            default: 1
-          description: Page number.
-        - in: query
-          name: limit
-          schema:
-            type: integer
-            default: 10
-          description: Number of records per page.
-        - in: query
-          name: search
-          schema:
-            type: string
-          description: Search term for flight number.
-      responses:
-        '200':
-          description: Successful retrieval of flights
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  message:
-                    type: string
-                    example: Berhasil menampilkan daftar penerbangan
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Flight'
-                  pagination:
-                    $ref: '#/components/schemas/Pagination'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-    post:
-      tags:
-        - flight
-      summary: Create a New Flight
-      description: Create a new flight with the provided details.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateFlightRequest'
-      responses:
-        '201':
-          description: Flight created successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FlightResponse'
-        '400':
-          description: Validation error or missing fields
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /api/flight/{id}:
-    get:
-      tags:
-        - flight
-      summary: Get Flight Details
-      description: Retrieve detailed information about a specific flight.
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-          description: ID of the flight.
-      responses:
-        '200':
-          description: Successful retrieval of flight details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FlightResponse'
-        '404':
-          description: Flight not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-    put:
-      tags:
-        - flight
-      summary: Update an Existing Flight
-      description: Update the details of an existing flight.
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-          description: ID of the flight to update.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateFlightRequest'
-      responses:
-        '200':
-          description: Flight updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FlightResponse'
-        '404':
-          description: Flight not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-    delete:
-      tags:
-        - flight
-      summary: Delete a Flight
-      description: Soft delete a flight by setting the `deleteAt` timestamp.
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-          description: ID of the flight to delete.
-      responses:
-        '200':
-          description: Flight deleted successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  message:
-                    type: string
-                    example: Flight berhasil dihapus
-        '404':
-          description: Flight not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+  # Notification endpoints
 
   /api/notifications:
     get:
@@ -1171,7 +1012,7 @@ paths:
             type: integer
           description: ID pengguna yang notifikasinya akan diambil.
       responses:
-        '200':
+        "200":
           description: Notifikasi berhasil diambil
           content:
             application/json:
@@ -1187,8 +1028,8 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Notification'
-        '400':
+                      $ref: "#/components/schemas/Notification"
+        "400":
           description: userId diperlukan
           content:
             application/json:
@@ -1222,7 +1063,7 @@ paths:
             type: integer
           description: ID pengguna yang notifikasinya akan ditandai.
       responses:
-        '200':
+        "200":
           description: Notifikasi berhasil ditandai sebagai sudah dibaca
           content:
             application/json:
@@ -1235,7 +1076,7 @@ paths:
                   message:
                     type: string
                     example: Notifikasi berhasil ditandai sebagai sudah dibaca
-        '400':
+        "400":
           description: userId diperlukan
           content:
             application/json:
@@ -1248,7 +1089,7 @@ paths:
                   message:
                     type: string
                     example: userId diperlukan
-        '404':
+        "404":
           description: Notifikasi tidak ditemukan
           content:
             application/json:
@@ -1261,6 +1102,197 @@ paths:
                   message:
                     type: string
                     example: Notifikasi tidak ditemukan
+
+  # Admin endpoints
+
+  ## Flight
+
+  /api/admin/flight:
+    get:
+      tags:
+        - Admin-Flight
+      summary: Get All Flights
+      description: Retrieve a paginated list of all flights.
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number.
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Number of records per page.
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Search term for flight number.
+      responses:
+        "200":
+          description: Successful retrieval of flights
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Berhasil menampilkan daftar penerbangan
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Flight"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    post:
+      tags:
+        - Admin-Flight
+      summary: Create a New Flight
+      description: Create a new flight with the provided details.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFlightRequest"
+      responses:
+        "201":
+          description: Flight created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FlightResponse"
+        "400":
+          description: Validation error or missing fields
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/admin/flight/{id}:
+    get:
+      tags:
+        - Admin-Flight
+      summary: Get Flight Details
+      description: Retrieve detailed information about a specific flight.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the flight.
+      responses:
+        "200":
+          description: Successful retrieval of flight details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FlightResponse"
+        "404":
+          description: Flight not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    put:
+      tags:
+        - Admin-Flight
+      summary: Update an Existing Flight
+      description: Update the details of an existing flight.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the flight to update.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateFlightRequest"
+      responses:
+        "200":
+          description: Flight updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FlightResponse"
+        "404":
+          description: Flight not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    delete:
+      tags:
+        - Admin-Flight
+      summary: Delete a Flight
+      description: Soft delete a flight by setting the `deleteAt` timestamp.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the flight to delete.
+      responses:
+        "200":
+          description: Flight deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Flight berhasil dihapus
+        "404":
+          description: Flight not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 
 components:
   schemas:
@@ -1295,11 +1327,11 @@ components:
           type: integer
           example: 1
         airline:
-          $ref: '#/components/schemas/Airline'
+          $ref: "#/components/schemas/Airline"
         departureAirport:
-          $ref: '#/components/schemas/Airport'
+          $ref: "#/components/schemas/Airport"
         arrivalAirport:
-          $ref: '#/components/schemas/Airport'
+          $ref: "#/components/schemas/Airport"
         flightNumber:
           type: string
           example: "GA123"
@@ -1314,7 +1346,7 @@ components:
         seats:
           type: array
           items:
-            $ref: '#/components/schemas/Seat'
+            $ref: "#/components/schemas/Seat"
         views:
           type: integer
           example: 150
@@ -1521,16 +1553,16 @@ components:
           format: date-time
           example: "2023-10-10T14:48:00.000Z"
     FlightResponse:
-          type: object
-          properties:
-            status:
-              type: string
-              example: success
-            message:
-              type: string
-              example: "Berhasil menampilkan detail penerbangan"
-            data:
-              $ref: '#/components/schemas/Flight'
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        message:
+          type: string
+          example: "Berhasil menampilkan detail penerbangan"
+        data:
+          $ref: "#/components/schemas/Flight"
 
   responses:
     BadRequestError:
@@ -1563,7 +1595,6 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
-    
 
   securitySchemes:
     BearerAuth:
