@@ -73,7 +73,7 @@ class TransactionController {
         const newTransaction = await prisma.transaction.create({
           data: {
             user: {
-              connect: { id: userId }, // Pastikan ini sesuai dengan skema Prisma
+              connect: { id: userId }, 
             },
             bookingCode,
             tax: tax,

@@ -21,14 +21,14 @@ class CookieMiddleware {
         };
 
         res.cookie('access_token', '', cookieOptions);
-        res.cookie('connect.sid', '', cookieOptions);
+        res.cookie('connect.sid', '', cookieOptions); 
     }
 
     static oauthSession = session({
-            secret: process.env.SESSION_SECRET,
-            resave: false,
-            saveUninitialized: true,
-            cookie: {
+        secret: process.env.SESSION_SECRET,
+        resave: false,
+        saveUninitialized: true,
+        cookie: {
             secure: process.env.NODE_ENV === 'production',
             httpOnly: false,
             sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
