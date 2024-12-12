@@ -57,7 +57,7 @@ class AuthMiddleware {
             if (req.user.role !== 'ADMIN') {
                 return response(403, "error", null, "Akses ditolak. Hanya admin yang diizinkan.", res);
             }
-            next();
+            next(); 
         } catch (error) {
             console.error("Admin auth error:", error);
             return response(500, "error", null, "Terjadi kesalahan pada autentikasi admin", res);

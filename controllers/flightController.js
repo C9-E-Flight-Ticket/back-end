@@ -16,11 +16,22 @@ class FlightController {
         sort,
         homepage,
       } = req.query;
-
-      // Reset displayedFlightPairs setiap kali API di-hit
+  
       global.displayedFlights = [];
-      const displayedFlightPairs = global.displayedFlights || [];
-
+  
+      // Konversi ke Set untuk menghindari duplikasi
+      const displayedFlightPairsSet = new Set(
+        global.displayedFlights.map(
+          pair => `${pair.departureAirportId}-${pair.arrivalAirportId}`
+        )
+      );
+  
+      // Reset jika terlalu banyak pasangan yang disimpan
+      if (displayedFlightPairsSet.size > 100) {
+        displayedFlightPairsSet.clear();
+        global.displayedFlights = [];
+      }
+  
       const query = {
         where: {
           AND: [],
@@ -34,8 +45,8 @@ class FlightController {
         skip: offset ? parseInt(offset) : undefined,
         orderBy: [],
       };
-
-      // Tambahkan filter berdasarkan parameter yang diterima
+  
+      // Filter berdasarkan parameter yang diterima
       if (arrivalContinent) {
         query.where.AND.push({
           arrivalAirport: {
@@ -46,7 +57,7 @@ class FlightController {
           },
         });
       }
-
+  
       if (departureCity) {
         query.where.AND.push({
           departureAirport: {
@@ -57,7 +68,7 @@ class FlightController {
           },
         });
       }
-
+  
       if (arrivalCity) {
         query.where.AND.push({
           arrivalAirport: {
@@ -68,14 +79,14 @@ class FlightController {
           },
         });
       }
-
+  
       if (departureDate) {
         const startOfDay = new Date(departureDate);
         startOfDay.setHours(0, 0, 0, 0);
-
+  
         const endOfDay = new Date(departureDate);
         endOfDay.setHours(23, 59, 59, 999);
-
+  
         query.where.AND.push({
           departureTime: {
             gte: startOfDay,
@@ -83,53 +94,61 @@ class FlightController {
           },
         });
       }
-
+  
       if (seatClass) {
         query.where.AND.push({
           seats: {
             some: {
               available: true,
               seatClass: seatClass,
+              mode: "insensitive",
             },
           },
         });
       }
-
-      // Jika homepage=true, tambahkan filter untuk penerbangan unik
+  
+      // Filter untuk homepage
       if (homepage === "true") {
-        if (displayedFlightPairs.length > 0) {
+        // Hindari rute yang sudah pernah ditampilkan
+        if (displayedFlightPairsSet.size > 0) {
           query.where.AND.push({
             NOT: {
-              OR: displayedFlightPairs.map((pair) => ({
-                AND: [
-                  { departureAirportId: pair.departureAirportId },
-                  { arrivalAirportId: pair.arrivalAirportId },
-                ],
-              })),
-            },
+              OR: Array.from(displayedFlightPairsSet).map(pairKey => {
+                const [departureAirportId, arrivalAirportId] = pairKey.split('-');
+                return {
+                  departureAirportId: parseInt(departureAirportId),
+                  arrivalAirportId: parseInt(arrivalAirportId)
+                };
+              })
+            }
           });
         }
-
+  
+        // Include harga kursi termurah
         query.include.seats = {
           where: {
             available: true,
             seatClass: "Economy",
+            mode: "insensitive",
           },
           take: 1,
           select: {
             price: true,
           },
         };
-
+  
+        // Sorting berdasarkan views
         if (sort === "views") {
           query.orderBy.push({ views: "desc" });
         }
       }
-
+  
+      // Hapus AND kosong
       if (query.where.AND.length === 0) {
         delete query.where.AND;
       }
-
+  
+      // Sorting tambahan
       if (sort) {
         switch (sort) {
           case "price":
@@ -150,63 +169,39 @@ class FlightController {
           case "latestArrival":
             query.orderBy.push({ arrivalTime: "desc" });
             break;
-          default:
-            break;
         }
       }
-
-      // Ambil penerbangan dengan query yang sesuai
+  
+      // Ambil penerbangan
       const flights = await prisma.flight.findMany(query);
-
-      // Hitung jumlah penerbangan berdasarkan hasil yang ditampilkan
-      const totalFlights = flights.length;
-
-      // Tambahkan flight yang baru ditampilkan ke dalam global state
-      flights.forEach((flight) => {
-        displayedFlightPairs.push({
-          departureAirportId: flight.departureAirportId,
-          arrivalAirportId: flight.arrivalAirportId,
-        });
-      });
-
-      global.displayedFlights = displayedFlightPairs;
-
-      if (homepage === "true") {
-        const uniqueFlightPairs = await prisma.flight.findMany({
-          where: query.where,
-          distinct: ["departureAirportId", "arrivalAirportId"],
-        });
-        const totalUniqueFlights = uniqueFlightPairs.length;
-        const totalPages = limit
-          ? Math.ceil(totalUniqueFlights / parseInt(limit))
-          : 1;
-
-        const pagination = {
-          totalItems: totalUniqueFlights,
-          currentPage: offset
-            ? Math.floor(parseInt(offset) / parseInt(limit)) + 1
-            : 1,
-          pageSize: limit ? parseInt(limit) : totalUniqueFlights,
-          totalPages: totalPages,
+  
+      // Filter untuk homepage - hanya rute baru
+      const uniqueFlights = homepage === "true" 
+        ? flights.filter(flight => {
+            const routeKey = `${flight.departureAirportId}-${flight.arrivalAirportId}`;
+            const isNewRoute = !displayedFlightPairsSet.has(routeKey);
+            
+            if (isNewRoute) {
+              displayedFlightPairsSet.add(routeKey);
+            }
+            
+            return isNewRoute;
+          })
+        : flights;
+  
+      // Update global state dengan pasangan rute baru
+      global.displayedFlights = Array.from(displayedFlightPairsSet).map(pairKey => {
+        const [departureAirportId, arrivalAirportId] = pairKey.split('-');
+        return {
+          departureAirportId: parseInt(departureAirportId),
+          arrivalAirportId: parseInt(arrivalAirportId)
         };
-
-        response(
-          200,
-          "success",
-          flights,
-          "Berhasil menampilkan daftar penerbangan",
-          res,
-          pagination
-        );
-        return;
-      }
-
-      if (totalFlights === 0) {
-        return next(new AppError("Tidak ada penerbangan yang ditemukan", 404));
-      }
-
+      });
+  
+      // Hitung total dan pagination
+      const totalFlights = uniqueFlights.length;
       const totalPages = limit ? Math.ceil(totalFlights / parseInt(limit)) : 1;
-
+  
       const pagination = {
         totalItems: totalFlights,
         currentPage: offset
@@ -215,15 +210,22 @@ class FlightController {
         pageSize: limit ? parseInt(limit) : totalFlights,
         totalPages: totalPages,
       };
-
+  
+      // Tidak ada penerbangan
+      if (totalFlights === 0) {
+        return next(new AppError("Tidak ada penerbangan yang ditemukan", 404));
+      }
+  
+      // Kirim response
       response(
         200,
         "success",
-        flights,
+        uniqueFlights,
         "Berhasil menampilkan daftar penerbangan",
         res,
         pagination
       );
+  
     } catch (error) {
       next(error);
     }
@@ -298,6 +300,7 @@ class FlightController {
             some: {
               available: true,
               seatClass: seatClass,
+              mode: "insensitive",
             },
           },
         });
