@@ -3,7 +3,7 @@ const response = require("../utils/response");
 const { AppError } = require("../middleware/errorMiddleware");
 
 class FlightController {
-  static async searchFlight(req, res, next) {
+    static async searchFlight(req, res, next) {
     try {
       const {
         arrivalContinent,
@@ -256,7 +256,7 @@ class FlightController {
       next(error);
     }
   }
-
+  
   static async searchReturnFlight(req, res, next) {
     try {
       const {
