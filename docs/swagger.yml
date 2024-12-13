@@ -1215,34 +1215,84 @@ paths:
           description: Pengguna tidak ditemukan
         '500':
           description: Terjadi kesalahan pada server
-    delete:
-      summary: Menghapus profil pengguna berdasarkan ID
-      operationId: deleteProfile
+          
+  /api/profile/reset-password:
+    post:
+      summary: Reset user password
+      description: Allows a user to reset their password by providing the old password and a new password.
       tags:
         - User
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-            example: 1
-          description: ID pengguna yang ingin dihapus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                oldPassword:
+                  type: string
+                  description: The user's current password.
+                  example: oldpassword123
+                newPassword:
+                  type: string
+                  description: The new password to be set.
+                  example: newpassword123
+              required:
+                - oldPassword
+                - newPassword
       responses:
         '200':
-          description: Profil pengguna berhasil dihapus
+          description: Password berhasil diubah
           content:
             application/json:
               schema:
                 type: object
                 properties:
+                  status:
+                    type: string
+                    example: success
                   message:
                     type: string
-                    example: "Profile deleted successfully"
+                    example: Password berhasil diubah
+        '400':
+          description: Invalid input or old password is incorrect
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Old password and new password are required
         '404':
-          description: Pengguna tidak ditemukan
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: User not found
         '500':
-          description: Terjadi kesalahan pada server
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: An error occurred while resetting the password
 
   # Admin endpoints
 

@@ -1,13 +1,13 @@
 const prisma = require("../models/prismaClients");
-const response = require("../utils/response"); 
+const response = require("../utils/response");
 const { AppError } = require("../middleware/errorMiddleware");
+const bcrypt = require("bcrypt");
 
 class ProfileController {
-
   // Get user profile
   static async getProfile(req, res, next) {
     try {
-      const userId = req.params.id;
+      const userId = req.user?.id;
       const user = await prisma.user.findUnique({
         where: { id: parseInt(userId) },
       });
@@ -25,8 +25,8 @@ class ProfileController {
   // Update user profile
   static async updateProfile(req, res, next) {
     try {
-      const userId = req.params.id;
       const { name, email, phoneNumber } = req.body;
+      const userId = req.user?.id;
 
       const updatedUser = await prisma.user.update({
         where: { id: parseInt(userId) },
@@ -39,16 +39,37 @@ class ProfileController {
     }
   }
 
-  // Delete user profile
-  static async deleteProfile(req, res, next) {
+  static async resetPassword(req, res, next) {
     try {
-      const userId = req.params.id;
+      const { oldPassword, newPassword } = req.body;
+      const userId = req.user?.id;
 
-      await prisma.user.delete({
+      if (!oldPassword || !newPassword) {
+        return next(new AppError("Old password and new password are required", 400));
+      }
+
+      const user = await prisma.user.findUnique({
         where: { id: parseInt(userId) },
       });
 
-      response(200, "success", null, "Profil berhasil dihapus", res);
+      if (!user) {
+        return next(new AppError("User not found", 404));
+      }
+
+      const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
+
+      if (!isPasswordValid) {
+        return next(new AppError("Old password is incorrect", 400));
+      }
+
+      const hashedPassword = await bcrypt.hash(newPassword, Number(process.env.SALT_ROUNDS));
+
+      await prisma.user.update({
+        where: { id: parseInt(userId) },
+        data: { password: hashedPassword },
+      });
+
+      response(200, "success", null, "Password berhasil diubah", res);
     } catch (error) {
       next(error);
     }
