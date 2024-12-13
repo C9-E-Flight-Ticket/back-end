@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@intelika/swagger-theme": "^1.0.4",
     "@prisma/client": "^6.0.1",
     "@sentry/node": "^8.41.0",
     "@sentry/profiling-node": "^8.41.0",

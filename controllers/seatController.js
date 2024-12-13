@@ -148,6 +148,128 @@ class SeatController {
       next(error);
     }
   }
+
+  static async getAllSeats(req, res) {
+    try {
+      const seats = await prisma.seat.findMany({
+        where: { deleteAt: null },
+        include: {
+          flight: {
+            include: {
+              airline: true,
+              departureAirport: true,
+              arrivalAirport: true,
+            },
+          },
+        },
+      });
+
+      response(200, "success", seats, "Berhasil mengambil semua seat.", res);
+    } catch (error) {
+      console.error(error);
+      response(500, "error", null, "Terjadi kesalahan saat mengambil data seat.", res);
+    }
+  }
+
+  // READ Seat by ID
+  static async getSeatById(req, res) {
+    const { id } = req.params;
+
+    try {
+      const seat = await prisma.seat.findUnique({
+        where: { id: parseInt(id) },
+        include: {
+          flight: {
+            include: {
+              airline: true,
+              departureAirport: true,
+              arrivalAirport: true,
+            },
+          },
+        },
+      });
+
+      if (seat && !seat.deleteAt) {
+        response(200, "success", seat, "Berhasil mengambil data seat.", res);
+      } else {
+        response(404, "error", null, "Seat tidak ditemukan.", res);
+      }
+    } catch (error) {
+      console.error(error);
+      response(500, "error", null, "Terjadi kesalahan saat mengambil data seat.", res);
+    }
+  }
+
+  // CREATE Seat
+  static async createSeat(req, res) {
+    const { flightId, seatNumber, seatClass, price, available } = req.body;
+
+    try {
+      const newSeat = await prisma.seat.create({
+        data: {
+          flightId,
+          seatNumber,
+          seatClass,
+          price: parseFloat(price),
+          available: available !== undefined ? available : true,
+        },
+      });
+
+      response(201, "success", newSeat, "Seat berhasil dibuat.", res);
+    } catch (error) {
+      console.error(error);
+      response(500, "error", null, "Terjadi kesalahan saat membuat seat.", res);
+    }
+  }
+
+  // UPDATE Seat
+  static async updateSeat(req, res) {
+    const { id } = req.params;
+    const { seatNumber, seatClass, price, available } = req.body;
+
+    try {
+      const existingSeat = await prisma.seat.findUnique({
+        where: { id: parseInt(id) },
+      });
+
+      if (!existingSeat || existingSeat.deleteAt) {
+        response(404, "error", null, "Seat tidak ditemukan.", res);
+        return;
+      }
+
+      const updatedSeat = await prisma.seat.update({
+        where: { id: parseInt(id) },
+        data: {
+          seatNumber,
+          seatClass,
+          price: parseFloat(price),
+          available,
+        },
+      });
+
+      response(200, "success", updatedSeat, "Seat berhasil diperbarui.", res);
+    } catch (error) {
+      console.error(error);
+      response(500, "error", null, "Terjadi kesalahan saat memperbarui seat.", res);
+    }
+  }
+
+  // DELETE Seat
+  static async deleteSeat(req, res) {
+    const { id } = req.params;
+
+    try {
+      await prisma.seat.update({
+        where: { id: parseInt(id) },
+        data: { deleteAt: new Date() },
+      });
+
+      response(200, "success", null, "Seat berhasil dihapus.", res);
+    } catch (error) {
+      console.error(error);
+      response(500, "error", null, "Terjadi kesalahan saat menghapus seat.", res);
+    }
+  }
 }
 
 module.exports = SeatController;
