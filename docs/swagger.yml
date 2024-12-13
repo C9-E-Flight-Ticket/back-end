@@ -1251,7 +1251,7 @@ paths:
   /api/admin/flight:
     get:
       tags:
-        - Admin-Flight
+        - Admin - Flight
       summary: Get All Flights
       description: Retrieve a paginated list of all flights.
       parameters:
@@ -1301,7 +1301,7 @@ paths:
 
     post:
       tags:
-        - Admin-Flight
+        - Admin - Flight
       summary: Create a New Flight
       description: Create a new flight with the provided details.
       requestBody:
@@ -1333,7 +1333,7 @@ paths:
   /api/admin/flight/{id}:
     get:
       tags:
-        - Admin-Flight
+        - Admin - Flight
       summary: Get Flight Details
       description: Retrieve detailed information about a specific flight.
       parameters:
@@ -1359,7 +1359,7 @@ paths:
 
     put:
       tags:
-        - Admin-Flight
+        - Admin - Flight
       summary: Update an Existing Flight
       description: Update the details of an existing flight.
       parameters:
@@ -1397,7 +1397,7 @@ paths:
 
     delete:
       tags:
-        - Admin-Flight
+        - Admin - Flight
       summary: Delete a Flight
       description: Soft delete a flight by setting the `deleteAt` timestamp.
       parameters:
@@ -1434,55 +1434,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
-  /api/admin/flight/createFlight:
-    get:
-      tags:
-        - flight
-      summary: Get data for creating a flight
-      description: Retrieve necessary data to create a new flight.
-      responses:
-        "200":
-          description: Successfully retrieved data for creating a flight.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  message:
-                    type: string
-                    example: Data untuk membuat flight berhasil diambil
-                  data:
-                    type: object
-                    properties:
-                      airlines:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/Airline"
-                      departureAirports:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/Airport"
-                      arrivalAirports:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/Airport"
-        "500":
-          description: Internal server error.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-
-
   ## Airline
 
   /api/admin/airline/get:
     get:
       tags:
-        - airline
+        - Admin - Airline
       summary: Get list of airlines
       description: Retrieve a paginated list of airlines with optional search functionality.
       parameters:
@@ -1546,7 +1503,7 @@ paths:
   /api/admin/airline/create:
     post:
       tags:
-        - airline
+        - Admin - Airline
       summary: Create a new airline
       description: Add a new airline to the system.
       requestBody:
@@ -1581,7 +1538,7 @@ paths:
   /api/admin/airline/update/{id}:
     put:
       tags:
-        - airline
+        - Admin - Airline
       summary: Update an existing airline
       description: Update details of an existing airline by its ID.
       parameters:
@@ -1629,7 +1586,7 @@ paths:
   /api/admin/airline/delete/{id}:
     delete:
       tags:
-        - airline
+        - Admin - Airline
       summary: Delete an airline
       description: Soft delete an airline by its ID.
       parameters:
@@ -1667,7 +1624,7 @@ paths:
   /api/admin/airport:
     get:
       tags:
-        - airport
+        - Admin - Airport
       summary: Get all airports
       description: Retrieve a list of all airports that are not deleted.
       responses:
@@ -1697,7 +1654,7 @@ paths:
 
     post:
       tags:
-        - airport
+        - Admin - Airport
       summary: Create a new airport
       description: Add a new airport to the system.
       requestBody:
@@ -1732,7 +1689,7 @@ paths:
   /api/admin/airport/{id}:
     get:
       tags:
-        - airport
+        - Admin - Airport
       summary: Get airport by ID
       description: Retrieve details of a specific airport by its ID.
       parameters:
@@ -1767,7 +1724,7 @@ paths:
 
     put:
       tags:
-        - airport
+        - Admin - Airport
       summary: Update an existing airport
       description: Update details of an existing airport by its ID.
       parameters:
@@ -1814,7 +1771,7 @@ paths:
 
     delete:
       tags:
-        - airport
+        - Admin - Airport
       summary: Delete an airport
       description: Soft delete an airport by its ID.
       parameters:
@@ -1852,6 +1809,8 @@ paths:
 
   /api/admin/passenger:
     get:
+      tags:
+        - Admin - Passenger
       summary: Ambil semua data penumpang
       responses:
         200:
@@ -1865,6 +1824,8 @@ paths:
         500:
           description: Kesalahan server
     post:
+      tags:
+        - Admin - Passenger
       summary: Tambah data penumpang baru
       requestBody:
         required: true
@@ -1880,6 +1841,8 @@ paths:
 
   /api/admin/passenger/{id}:
     get:
+      tags:
+        - Admin - Passenger
       summary: Ambil data penumpang berdasarkan ID
       parameters:
         - name: id
@@ -1900,6 +1863,8 @@ paths:
         500:
           description: Kesalahan server
     put:
+      tags:
+        - Admin - Passenger
       summary: Perbarui data penumpang berdasarkan ID
       parameters:
         - name: id
@@ -1922,6 +1887,8 @@ paths:
         500:
           description: Kesalahan server
     delete:
+      tags:
+        - Admin - Passenger
       summary: Hapus data penumpang berdasarkan ID
       parameters:
         - name: id
@@ -1944,7 +1911,7 @@ paths:
     post:
       summary: Create a new notification
       tags:
-        - Notifications
+        - Admin - Notifications
       requestBody:
         required: true
         content:
@@ -1993,7 +1960,7 @@ paths:
     get:
       summary: Get all notifications
       tags:
-        - Notifications
+        - Admin - Notifications
       parameters:
         - name: userId
           in: query
@@ -2033,7 +2000,7 @@ paths:
     patch:
       summary: Mark a notification as read
       tags:
-        - Notifications
+        - Admin - Notifications
       parameters:
         - name: id
           in: path
@@ -2061,7 +2028,7 @@ paths:
     delete:
       summary: Delete a notification
       tags:
-        - Notifications
+        - Admin - Notifications
       parameters:
         - name: id
           in: path
@@ -2089,6 +2056,8 @@ paths:
 
   /api/admin/seat:
     get:
+      tags:
+        - Admin - Seat
       summary: Get all seats
       description: Mengambil semua data kursi.
       responses:
@@ -2101,6 +2070,8 @@ paths:
                 items:
                   $ref: '#/components/schemas/SeatAdmin'
     post:
+      tags:
+        - Admin - Seat
       summary: Create a new seat
       description: Membuat data kursi baru.
       requestBody:
@@ -2119,6 +2090,8 @@ paths:
 
   /api/admin/seat/{id}:
     get:
+      tags:
+        - Admin - Seat
       summary: Get a seat by ID
       description: Mengambil data kursi berdasarkan ID.
       parameters:
@@ -2136,6 +2109,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/SeatAdmin'
     put:
+      tags:
+        - Admin - Seat
       summary: Update a seat by ID
       description: Memperbarui data kursi berdasarkan ID.
       parameters:
@@ -2159,6 +2134,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/SeatAdmin'
     delete:
+      tags:
+        - Admin - Seat
       summary: Delete a seat by ID
       description: Menghapus data kursi berdasarkan ID.
       parameters:
