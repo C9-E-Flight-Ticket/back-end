@@ -1,5 +1,5 @@
 const prisma = require("../models/prismaClients");
-const response = require("./utils/response"); // Assuming the response utility is imported
+const response = require("../utils/response"); 
 const { AppError } = require("../middleware/errorMiddleware");
 
 class ProfileController {
