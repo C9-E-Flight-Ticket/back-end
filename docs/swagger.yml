@@ -919,6 +919,9 @@ paths:
     get:
       summary: Get Flight and Seat Details
       description: Retrieve detailed seat information for specific flights
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       tags:
         - Seat
       parameters:
@@ -1012,6 +1015,9 @@ paths:
         - notification
       summary: Mendapatkan Notifikasi Pengguna
       description: Mengambil daftar notifikasi untuk pengguna tertentu.
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       parameters:
         - in: query
           name: userId
@@ -1057,6 +1063,9 @@ paths:
         - notification
       summary: Menandai Notifikasi sebagai Sudah Dibaca
       description: Menandai notifikasi tertentu sebagai sudah dibaca untuk pengguna tertentu.
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       parameters:
         - in: path
           name: id
@@ -1116,9 +1125,12 @@ paths:
   /api/profile/{id}:
     get:
       summary: Mendapatkan profil pengguna berdasarkan ID
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       operationId: getProfile
       tags:
-        - User
+        - Profile
       parameters:
         - in: path
           name: id
@@ -1157,9 +1169,12 @@ paths:
           description: Terjadi kesalahan pada server
     put:
       summary: Memperbarui profil pengguna berdasarkan ID
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       operationId: updateProfile
       tags:
-        - User
+        - Profile
       parameters:
         - in: path
           name: id
@@ -1219,9 +1234,12 @@ paths:
   /api/profile/reset-password:
     post:
       summary: Reset user password
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       description: Allows a user to reset their password by providing the old password and a new password.
       tags:
-        - User
+        - Profile
       requestBody:
         required: true
         content:
@@ -1300,8 +1318,11 @@ paths:
 
   /api/admin/flight:
     get:
-      tags:
+      tags: 
         - Admin - Flight
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Get All Flights
       description: Retrieve a paginated list of all flights.
       parameters:
@@ -1352,6 +1373,9 @@ paths:
     post:
       tags:
         - Admin - Flight
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Create a New Flight
       description: Create a new flight with the provided details.
       requestBody:
@@ -1384,6 +1408,9 @@ paths:
     get:
       tags:
         - Admin - Flight
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Get Flight Details
       description: Retrieve detailed information about a specific flight.
       parameters:
@@ -1410,6 +1437,9 @@ paths:
     put:
       tags:
         - Admin - Flight
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Update an Existing Flight
       description: Update the details of an existing flight.
       parameters:
@@ -1448,6 +1478,9 @@ paths:
     delete:
       tags:
         - Admin - Flight
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Delete a Flight
       description: Soft delete a flight by setting the `deleteAt` timestamp.
       parameters:
@@ -1490,6 +1523,9 @@ paths:
     get:
       tags:
         - Admin - Airline
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Get list of airlines
       description: Retrieve a paginated list of airlines with optional search functionality.
       parameters:
@@ -1554,6 +1590,9 @@ paths:
     post:
       tags:
         - Admin - Airline
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Create a new airline
       description: Add a new airline to the system.
       requestBody:
@@ -1589,6 +1628,9 @@ paths:
     put:
       tags:
         - Admin - Airline
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Update an existing airline
       description: Update details of an existing airline by its ID.
       parameters:
@@ -1637,6 +1679,9 @@ paths:
     delete:
       tags:
         - Admin - Airline
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Delete an airline
       description: Soft delete an airline by its ID.
       parameters:
@@ -1675,6 +1720,9 @@ paths:
     get:
       tags:
         - Admin - Airport
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Get all airports
       description: Retrieve a list of all airports that are not deleted.
       responses:
@@ -1705,6 +1753,9 @@ paths:
     post:
       tags:
         - Admin - Airport
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Create a new airport
       description: Add a new airport to the system.
       requestBody:
@@ -1740,6 +1791,9 @@ paths:
     get:
       tags:
         - Admin - Airport
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Get airport by ID
       description: Retrieve details of a specific airport by its ID.
       parameters:
@@ -1775,6 +1829,9 @@ paths:
     put:
       tags:
         - Admin - Airport
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Update an existing airport
       description: Update details of an existing airport by its ID.
       parameters:
@@ -1822,6 +1879,9 @@ paths:
     delete:
       tags:
         - Admin - Airport
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Delete an airport
       description: Soft delete an airport by its ID.
       parameters:
@@ -1861,6 +1921,9 @@ paths:
     get:
       tags:
         - Admin - Passenger
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Ambil semua data penumpang
       responses:
         200:
@@ -1876,6 +1939,9 @@ paths:
     post:
       tags:
         - Admin - Passenger
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Tambah data penumpang baru
       requestBody:
         required: true
@@ -1893,6 +1959,9 @@ paths:
     get:
       tags:
         - Admin - Passenger
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Ambil data penumpang berdasarkan ID
       parameters:
         - name: id
@@ -1915,6 +1984,9 @@ paths:
     put:
       tags:
         - Admin - Passenger
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Perbarui data penumpang berdasarkan ID
       parameters:
         - name: id
@@ -1939,6 +2011,9 @@ paths:
     delete:
       tags:
         - Admin - Passenger
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Hapus data penumpang berdasarkan ID
       parameters:
         - name: id
@@ -1959,6 +2034,9 @@ paths:
 
   /api/admin/createNotification:
     post:
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Create a new notification
       tags:
         - Admin - Notifications
@@ -2008,6 +2086,9 @@ paths:
 
   /api/admin/:
     get:
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Get all notifications
       tags:
         - Admin - Notifications
@@ -2048,6 +2129,9 @@ paths:
 
   /api/admin/{id}/read:
     patch:
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Mark a notification as read
       tags:
         - Admin - Notifications
@@ -2076,6 +2160,9 @@ paths:
 
   /api/admin/{id}:
     delete:
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Delete a notification
       tags:
         - Admin - Notifications
@@ -2108,6 +2195,9 @@ paths:
     get:
       tags:
         - Admin - Seat
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Get all seats
       description: Mengambil semua data kursi.
       responses:
@@ -2122,6 +2212,9 @@ paths:
     post:
       tags:
         - Admin - Seat
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Create a new seat
       description: Membuat data kursi baru.
       requestBody:
@@ -2142,6 +2235,9 @@ paths:
     get:
       tags:
         - Admin - Seat
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Get a seat by ID
       description: Mengambil data kursi berdasarkan ID.
       parameters:
@@ -2161,6 +2257,9 @@ paths:
     put:
       tags:
         - Admin - Seat
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Update a seat by ID
       description: Memperbarui data kursi berdasarkan ID.
       parameters:
@@ -2186,6 +2285,9 @@ paths:
     delete:
       tags:
         - Admin - Seat
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Delete a seat by ID
       description: Menghapus data kursi berdasarkan ID.
       parameters:
