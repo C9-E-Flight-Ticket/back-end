@@ -7,7 +7,9 @@ class CookieMiddleware {
             secure: process.env.NODE_ENV === 'production',
             sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
             path: '/',
-            domain: process.env.NODE_ENV === 'production' ? process.env.FRONTEND_URL : undefined,
+            domain: process.env.NODE_ENV === 'production' 
+                ? new URL(process.env.FRONTEND_URL).hostname 
+                : undefined,
             maxAge: process.env.COOKIE_EXPIRED * 60 * 60 * 1000
         });
     }
@@ -18,7 +20,9 @@ class CookieMiddleware {
             secure: process.env.NODE_ENV === 'production',
             sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
             path: '/',
-            domain: process.env.NODE_ENV === 'production' ? process.env.FRONTEND_URL : undefined,
+            domain: process.env.NODE_ENV === 'production' 
+                ? new URL(process.env.FRONTEND_URL).hostname 
+                : undefined,
             maxAge: 0
         };
 
@@ -35,7 +39,9 @@ class CookieMiddleware {
             httpOnly: false,
             sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
             path: '/', 
-            domain: process.env.NODE_ENV === 'production' ? process.env.FRONTEND_URL : undefined,
+            domain: process.env.NODE_ENV === 'production' 
+                ? new URL(process.env.FRONTEND_URL).hostname 
+                : undefined,
             maxAge: process.env.COOKIE_EXPIRED * 60 * 60 * 1000
         }
     });
