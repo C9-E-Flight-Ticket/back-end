@@ -7,7 +7,6 @@ const response = require("../utils/response");
 const randomCode = require("otp-generator");
 const snap = require("../config/midtransConfig");
 const { AppError } = require("../middleware/errorMiddleware");
-const jwt = require("jsonwebtoken");
 
 class TransactionController {
   static async createTicketTransaction(req, res, next) {
@@ -46,34 +45,35 @@ class TransactionController {
         );
       }
 
-      const availableSeats = await prisma.seat.findMany({
-        where: {
-          id: { in: seats },
-          available: true,
-        },
-        include: {
-          flight: {
-            include: {
-              airline: true,
-              departureAirport: true,
-              arrivalAirport: true,
+      const transaction = await prisma.$transaction(async (prisma) => {
+        const availableSeats = await prisma.seat.findMany({
+          where: {
+            id: { in: seats },
+            available: true,
+          },
+          include: {
+            flight: {
+              include: {
+                airline: true,
+                departureAirport: true,
+                arrivalAirport: true,
+              },
             },
           },
-        },
-      });
+          lock: { mode: "for update" }, 
+        });
 
-      if (availableSeats.length !== seats.length) {
-        return next(new AppError("Beberapa kursi tidak tersedia", 400));
-      }
+        if (availableSeats.length !== seats.length) {
+          throw new AppError("Beberapa kursi tidak tersedia", 400);
+        }
 
-      const bookingCode = randomCode.generate(9, { specialChars: false });
+        const bookingCode = randomCode.generate(9, { specialChars: false });
 
-      const transaction = await prisma.$transaction(async (prisma) => {
         // Gunakan connect untuk menghubungkan user
         const newTransaction = await prisma.transaction.create({
           data: {
             user: {
-              connect: { id: userId }, 
+              connect: { id: userId },
             },
             bookingCode,
             tax: tax,
@@ -228,7 +228,7 @@ class TransactionController {
   static async handleMidtransCallback(req, res, next) {
     try {
       const { order_id, transaction_status, fraud_status } = req.body;
-
+  
       let newStatus;
       switch (transaction_status) {
         case "pending":
@@ -247,54 +247,56 @@ class TransactionController {
           newStatus = "Cancelled";
           break;
       }
-
-      // Transaction update
-      const transaction = await prisma.transaction.update({
-        where: { bookingCode: order_id },
-        data: {
-          status: newStatus,
-          paymentMethod: req.body.payment_type,
-        },
+  
+      await prisma.$transaction(async (prisma) => {
+        // Transaction update
+        const transaction = await prisma.transaction.update({
+          where: { bookingCode: order_id },
+          data: {
+            status: newStatus,
+            paymentMethod: req.body.payment_type,
+          },
+        });
+  
+        // Jika transaksi dibatalkan (expired/cancel)
+        if (newStatus === "Cancelled") {
+          // Kembalikan seat menjadi available
+          await prisma.seat.updateMany({
+            where: {
+              Ticket: {
+                some: {
+                  transactionId: transaction.id,
+                },
+              },
+            },
+            data: {
+              available: true,
+            },
+          });
+  
+          // Hapus tiket terkait
+          await prisma.ticket.deleteMany({
+            where: {
+              transactionId: transaction.id,
+            },
+          });
+        }
+  
+        // Jika transaksi berhasil
+        if (newStatus === "Issued") {
+          await prisma.ticket.updateMany({
+            where: { transactionId: transaction.id },
+            data: {
+              seat: {
+                update: {
+                  available: false,
+                },
+              },
+            },
+          });
+        }
       });
-
-      // Jika transaksi dibatalkan (expired/cancel)
-      if (newStatus === "Cancelled") {
-        // Kembalikan seat menjadi available
-        await prisma.seat.updateMany({
-          where: {
-            Ticket: {
-              some: {
-                transactionId: transaction.id,
-              },
-            },
-          },
-          data: {
-            available: true,
-          },
-        });
-
-        // Hapus tiket terkait
-        await prisma.ticket.deleteMany({
-          where: {
-            transactionId: transaction.id,
-          },
-        });
-      }
-
-      // Jika transaksi berhasil
-      if (newStatus === "Issued") {
-        await prisma.ticket.updateMany({
-          where: { transactionId: transaction.id },
-          data: {
-            seat: {
-              update: {
-                available: false,
-              },
-            },
-          },
-        });
-      }
-
+  
       res.status(200).send("OK");
     } catch (error) {
       console.error("Midtrans callback error:", error);
@@ -788,29 +790,31 @@ class TransactionController {
   static async softDeleteTransaction(req, res, next) {
     try {
       const { id } = req.params;
-
-      const existingTransaction = await prisma.transaction.findUnique({
-        where: { id },
+  
+      await prisma.$transaction(async (prisma) => {
+        const existingTransaction = await prisma.transaction.findUnique({
+          where: { id },
+        });
+  
+        if (!existingTransaction) {
+          throw new AppError("Transaction not found", 404);
+        }
+  
+        const deletedTransaction = await prisma.transaction.update({
+          where: { id },
+          data: {
+            deletedAt: new Date(),
+          },
+        });
+  
+        response(
+          200,
+          "success",
+          deletedTransaction,
+          "Transaction soft deleted successfully",
+          res
+        );
       });
-
-      if (!existingTransaction) {
-        return next(new AppError("Transaction not found", 404));
-      }
-
-      const deletedTransaction = await prisma.transaction.update({
-        where: { id },
-        data: {
-          deletedAt: new Date(),
-        },
-      });
-
-      response(
-        200,
-        "success",
-        deletedTransaction,
-        "Transaction soft deleted successfully",
-        res
-      );
     } catch (error) {
       next(error);
     }
@@ -819,34 +823,36 @@ class TransactionController {
   static async restoreTransaction(req, res, next) {
     try {
       const { id } = req.params;
-
-      // Cari transaksi yang sudah di-soft delete
-      const deletedTransaction = await prisma.transaction.findUnique({
-        where: {
-          id,
-          deletedAt: { not: null },
-        },
+  
+      await prisma.$transaction(async (prisma) => {
+        // Cari transaksi yang sudah di-soft delete
+        const deletedTransaction = await prisma.transaction.findUnique({
+          where: {
+            id,
+            deletedAt: { not: null },
+          },
+        });
+  
+        if (!deletedTransaction) {
+          throw new AppError("Deleted transaction not found", 404);
+        }
+  
+        // Kembalikan transaksi
+        const restoredTransaction = await prisma.transaction.update({
+          where: { id },
+          data: {
+            deletedAt: null,
+          },
+        });
+  
+        response(
+          200,
+          "success",
+          restoredTransaction,
+          "Transaction restored successfully",
+          res
+        );
       });
-
-      if (!deletedTransaction) {
-        return next(new AppError("Deleted transaction not found", 404));
-      }
-
-      // Kembalikan transaksi
-      const restoredTransaction = await prisma.transaction.update({
-        where: { id },
-        data: {
-          deletedAt: null,
-        },
-      });
-
-      response(
-        200,
-        "success",
-        restoredTransaction,
-        "Transaction restored successfully",
-        res
-      );
     } catch (error) {
       next(error);
     }

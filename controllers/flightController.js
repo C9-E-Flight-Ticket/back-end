@@ -3,7 +3,7 @@ const response = require("../utils/response");
 const { AppError } = require("../middleware/errorMiddleware");
 
 class FlightController {
-    static async searchFlight(req, res, next) {
+  static async searchFlight(req, res, next) {
     try {
       const {
         arrivalContinent,
@@ -139,10 +139,12 @@ class FlightController {
         }
       }
 
+      // Hapus AND kosong
       if (query.where.AND.length === 0) {
         delete query.where.AND;
       }
 
+      // Sorting tambahan
       if (sort) {
         switch (sort) {
           case "price":
@@ -241,6 +243,7 @@ class FlightController {
         return next(new AppError("Tidak ada penerbangan yang ditemukan", 404));
       }
 
+      // Kirim response
       response(
         200,
         "success",
