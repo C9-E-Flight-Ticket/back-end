@@ -8,6 +8,7 @@ const TicketController = require("../controllers/ticketController");
 const FlightController = require("../controllers/flightController");
 const AirportController = require("../controllers/airportController");
 const airlineController = require("../controllers/airlineController");
+const PassengerController = require("../controllers/passengerController");
 
 router.use(AuthMiddleware.verifyAuthentication);
 router.use(AuthMiddleware.adminOnly);
@@ -46,6 +47,12 @@ router.post("airport/", asyncErrorHandler(AirportController.createAirport));
 router.put("airport/:id", asyncErrorHandler(AirportController.updateAirport));
 router.delete("airport/:id", asyncErrorHandler(AirportController.deleteAirport));
 
-
+// passenger
+router.get('/', PassengerController.getAllPassengers);
+router.get('/:id', PassengerController.getPassengerById);
+router.get('/createMany', PassengerController.getCreatePassengerData);
+router.post('/', PassengerController.createPassenger);
+router.put('/:id', PassengerController.updatePassenger);
+router.delete('/:id', PassengerController.deletePassenger);
 
 module.exports = router;

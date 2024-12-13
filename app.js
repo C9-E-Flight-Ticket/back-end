@@ -28,7 +28,6 @@ const flightRoute = require("./routes/flightRoutes");
 const seatRoute = require("./routes/seatRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const adminRoutes = require("./routes/adminRoutes");
-const passengerRoute = require("./routes/passengerRoutes");
 const profileRoute = require("./routes/profileRoutes");
 
 const corsOptions = {
@@ -71,7 +70,6 @@ app.use("/api/transaction", transactionRoutes);
 app.use("/api/flight", flightRoute);
 app.use("/api/seat", seatRoute);
 app.use("/api/notifications", notificationRoutes);
-app.use("/api/passenger", passengerRoute);
 app.use("/api/profile", profileRoute);
 
 // Request logging middleware
