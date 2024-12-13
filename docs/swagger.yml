@@ -1111,6 +1111,139 @@ paths:
                     type: string
                     example: Notifikasi tidak ditemukan
 
+  # Profile Endpoint
+
+  /api/profile/{id}:
+    get:
+      summary: Mendapatkan profil pengguna berdasarkan ID
+      operationId: getProfile
+      tags:
+        - User
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            example: 1
+          description: ID pengguna yang ingin diambil profilnya
+      responses:
+        '200':
+          description: Profil pengguna berhasil diambil
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: "John Doe"
+                  email:
+                    type: string
+                    example: "johndoe@example.com"
+                  phoneNumber:
+                    type: string
+                    example: "081234567890"
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: "2023-12-01T10:00:00Z"
+        '404':
+          description: Pengguna tidak ditemukan
+        '500':
+          description: Terjadi kesalahan pada server
+    put:
+      summary: Memperbarui profil pengguna berdasarkan ID
+      operationId: updateProfile
+      tags:
+        - User
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            example: 1
+          description: ID pengguna yang ingin diperbarui
+      requestBody:
+        description: Data untuk memperbarui profil pengguna
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "John Doe"
+                email:
+                  type: string
+                  example: "johndoe@example.com"
+                phoneNumber:
+                  type: string
+                  example: "081234567890"
+      responses:
+        '200':
+          description: Profil pengguna berhasil diperbarui
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Profile updated successfully"
+                  updatedUser:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      name:
+                        type: string
+                        example: "John Doe"
+                      email:
+                        type: string
+                        example: "johndoe@example.com"
+                      phoneNumber:
+                        type: string
+                        example: "081234567890"
+        '404':
+          description: Pengguna tidak ditemukan
+        '500':
+          description: Terjadi kesalahan pada server
+    delete:
+      summary: Menghapus profil pengguna berdasarkan ID
+      operationId: deleteProfile
+      tags:
+        - User
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            example: 1
+          description: ID pengguna yang ingin dihapus
+      responses:
+        '200':
+          description: Profil pengguna berhasil dihapus
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Profile deleted successfully"
+        '404':
+          description: Pengguna tidak ditemukan
+        '500':
+          description: Terjadi kesalahan pada server
+
   # Admin endpoints
 
   ## Flight
@@ -1118,7 +1251,7 @@ paths:
   /api/admin/flight:
     get:
       tags:
-        - Admin-Flight
+        - Admin - Flight
       summary: Get All Flights
       description: Retrieve a paginated list of all flights.
       parameters:
@@ -1168,7 +1301,7 @@ paths:
 
     post:
       tags:
-        - Admin-Flight
+        - Admin - Flight
       summary: Create a New Flight
       description: Create a new flight with the provided details.
       requestBody:
@@ -1200,7 +1333,7 @@ paths:
   /api/admin/flight/{id}:
     get:
       tags:
-        - Admin-Flight
+        - Admin - Flight
       summary: Get Flight Details
       description: Retrieve detailed information about a specific flight.
       parameters:
@@ -1226,7 +1359,7 @@ paths:
 
     put:
       tags:
-        - Admin-Flight
+        - Admin - Flight
       summary: Update an Existing Flight
       description: Update the details of an existing flight.
       parameters:
@@ -1264,7 +1397,7 @@ paths:
 
     delete:
       tags:
-        - Admin-Flight
+        - Admin - Flight
       summary: Delete a Flight
       description: Soft delete a flight by setting the `deleteAt` timestamp.
       parameters:
@@ -1303,10 +1436,10 @@ paths:
 
   ## Airline
 
-  /api/airline/get:
+  /api/admin/airline/get:
     get:
       tags:
-        - airline
+        - Admin - Airline
       summary: Get list of airlines
       description: Retrieve a paginated list of airlines with optional search functionality.
       parameters:
@@ -1367,10 +1500,10 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
-  /api/airline/create:
+  /api/admin/airline/create:
     post:
       tags:
-        - airline
+        - Admin - Airline
       summary: Create a new airline
       description: Add a new airline to the system.
       requestBody:
@@ -1402,10 +1535,10 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
-  /api/airline/update/{id}:
+  /api/admin/airline/update/{id}:
     put:
       tags:
-        - airline
+        - Admin - Airline
       summary: Update an existing airline
       description: Update details of an existing airline by its ID.
       parameters:
@@ -1450,10 +1583,10 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
-  /api/airline/delete/{id}:
+  /api/admin/airline/delete/{id}:
     delete:
       tags:
-        - airline
+        - Admin - Airline
       summary: Delete an airline
       description: Soft delete an airline by its ID.
       parameters:
@@ -1486,10 +1619,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
-  /api/airport:
+  ## Airport
+
+  /api/admin/airport:
     get:
       tags:
-        - airport
+        - Admin - Airport
       summary: Get all airports
       description: Retrieve a list of all airports that are not deleted.
       responses:
@@ -1519,7 +1654,7 @@ paths:
 
     post:
       tags:
-        - airport
+        - Admin - Airport
       summary: Create a new airport
       description: Add a new airport to the system.
       requestBody:
@@ -1551,10 +1686,10 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
-  /api/airport/{id}:
+  /api/admin/airport/{id}:
     get:
       tags:
-        - airport
+        - Admin - Airport
       summary: Get airport by ID
       description: Retrieve details of a specific airport by its ID.
       parameters:
@@ -1589,7 +1724,7 @@ paths:
 
     put:
       tags:
-        - airport
+        - Admin - Airport
       summary: Update an existing airport
       description: Update details of an existing airport by its ID.
       parameters:
@@ -1636,7 +1771,7 @@ paths:
 
     delete:
       tags:
-        - airport
+        - Admin - Airport
       summary: Delete an airport
       description: Soft delete an airport by its ID.
       parameters:
@@ -1670,15 +1805,135 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
-  /api/flight/createFlight:
+  ## Passenger
+
+  /api/admin/passenger:
     get:
       tags:
-        - flight
-      summary: Get data for creating a flight
-      description: Retrieve necessary data to create a new flight.
+        - Admin - Passenger
+      summary: Ambil semua data penumpang
       responses:
-        "200":
-          description: Successfully retrieved data for creating a flight.
+        200:
+          description: Berhasil mendapatkan semua data penumpang
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Passenger'
+        500:
+          description: Kesalahan server
+    post:
+      tags:
+        - Admin - Passenger
+      summary: Tambah data penumpang baru
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PassengerInput'
+      responses:
+        201:
+          description: Penumpang berhasil dibuat
+        500:
+          description: Kesalahan server
+
+  /api/admin/passenger/{id}:
+    get:
+      tags:
+        - Admin - Passenger
+      summary: Ambil data penumpang berdasarkan ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID penumpang
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Berhasil mendapatkan data penumpang
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Passenger'
+        404:
+          description: Penumpang tidak ditemukan
+        500:
+          description: Kesalahan server
+    put:
+      tags:
+        - Admin - Passenger
+      summary: Perbarui data penumpang berdasarkan ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID penumpang
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PassengerInput'
+      responses:
+        200:
+          description: Data penumpang berhasil diperbarui
+        404:
+          description: Penumpang tidak ditemukan
+        500:
+          description: Kesalahan server
+    delete:
+      tags:
+        - Admin - Passenger
+      summary: Hapus data penumpang berdasarkan ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID penumpang
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Penumpang berhasil dihapus
+        404:
+          description: Penumpang tidak ditemukan
+        500:
+          description: Kesalahan server
+
+  ## Notification
+
+  /api/admin/createNotification:
+    post:
+      summary: Create a new notification
+      tags:
+        - Admin - Notifications
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: integer
+                  example: 1
+                title:
+                  type: string
+                  example: "New Notification"
+                message:
+                  type: string
+                  example: "You have a new message."
+                read:
+                  type: boolean
+                  example: false
+      responses:
+        '201':
+          description: Notification created successfully
           content:
             application/json:
               schema:
@@ -1689,56 +1944,34 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Data untuk membuat flight berhasil diambil
+                    example: Notification created successfully
                   data:
                     type: object
-                    properties:
-                      airlines:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/Airline"
-                      departureAirports:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/Airport"
-                      arrivalAirports:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/Airport"
-        "500":
-          description: Internal server error.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                    example:
+                      id: 1
+                      userId: 1
+                      title: "New Notification"
+                      message: "You have a new message."
+                      read: false
+                      createdAt: "2024-12-10T00:00:00Z"
+                      updatedAt: "2024-12-10T00:00:00Z"
 
-  /api/flight:
+  /api/admin/:
     get:
+      summary: Get all notifications
       tags:
-        - flight
-      summary: Get all flights
-      description: Retrieve a paginated list of all flights that are not deleted.
+        - Admin - Notifications
       parameters:
-        - in: query
-          name: page
+        - name: userId
+          in: query
+          required: true
+          description: ID of the user to fetch notifications for
           schema:
             type: integer
-            default: 1
-          description: Page number for pagination.
-        - in: query
-          name: limit
-          schema:
-            type: integer
-            default: 10
-          description: Number of items per page.
-        - in: query
-          name: search
-          schema:
-            type: string
-          description: Search term to filter flights by flight number.
+            example: 1
       responses:
-        "200":
-          description: Successfully retrieved list of flights.
+        '200':
+          description: Notifications fetched successfully
           content:
             application/json:
               schema:
@@ -1749,46 +1982,36 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Berhasil menampilkan daftar penerbangan
+                    example: Notifications fetched successfully
                   data:
                     type: array
                     items:
-                      $ref: "#/components/schemas/Flight"
-                  meta:
-                    type: object
-                    properties:
-                      totalItems:
-                        type: integer
-                        example: 200
-                      currentPage:
-                        type: integer
-                        example: 1
-                      pageSize:
-                        type: integer
-                        example: 10
-                      totalPages:
-                        type: integer
-                        example: 20
-        "404":
-          description: No flights found.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-    post:
+                      type: object
+                      example:
+                        id: 1
+                        userId: 1
+                        title: "New Notification"
+                        message: "You have a new message."
+                        read: false
+                        createdAt: "2024-12-10T00:00:00Z"
+                        updatedAt: "2024-12-10T00:00:00Z"
+
+  /api/admin/{id}/read:
+    patch:
+      summary: Mark a notification as read
       tags:
-        - flight
-      summary: Create a new flight
-      description: Add a new flight to the system.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateFlightRequest"
+        - Admin - Notifications
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the notification to mark as read
+          schema:
+            type: integer
+            example: 1
       responses:
-        "201":
-          description: Flight successfully created.
+        '200':
+          description: Notification marked as read
           content:
             application/json:
               schema:
@@ -1799,132 +2022,132 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Flight berhasil dibuat
-                  data:
-                    $ref: "#/components/schemas/Flight"
-        "400":
-          description: Bad request. Missing required fields or invalid data.
+                    example: Notification marked as read
+
+  /api/admin/{id}:
+    delete:
+      summary: Delete a notification
+      tags:
+        - Admin - Notifications
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the notification to delete
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Notification deleted successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Notification deleted successfully
 
-  /api/flight/{id}:
+  ## Seat
+
+  /api/admin/seat:
     get:
       tags:
-        - flight
-      summary: Get flight by ID
-      description: Retrieve details of a specific flight by its ID.
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-          description: ID of the flight to retrieve.
+        - Admin - Seat
+      summary: Get all seats
+      description: Mengambil semua data kursi.
       responses:
-        "200":
-          description: Successfully retrieved flight details.
+        '200':
+          description: Berhasil mengambil data kursi.
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  message:
-                    type: string
-                    example: Berhasil menampilkan detail penerbangan
-                  data:
-                    $ref: "#/components/schemas/Flight"
-        "404":
-          description: Flight not found.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-    put:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SeatAdmin'
+    post:
       tags:
-        - flight
-      summary: Update an existing flight
-      description: Update details of an existing flight by its ID.
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-          description: ID of the flight to update.
+        - Admin - Seat
+      summary: Create a new seat
+      description: Membuat data kursi baru.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UpdateFlightRequest"
+              $ref: '#/components/schemas/SeatAdmin'
       responses:
-        "200":
-          description: Flight successfully updated.
+        '201':
+          description: Kursi berhasil dibuat.
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  message:
-                    type: string
-                    example: Flight berhasil diperbarui
-                  data:
-                    $ref: "#/components/schemas/Flight"
-        "400":
-          description: Bad request. Invalid data.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "404":
-          description: Flight not found.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-    delete:
+                $ref: '#/components/schemas/SeatAdmin'
+
+  /api/admin/seat/{id}:
+    get:
       tags:
-        - flight
-      summary: Delete a flight
-      description: Soft delete a flight by its ID.
+        - Admin - Seat
+      summary: Get a seat by ID
+      description: Mengambil data kursi berdasarkan ID.
       parameters:
-        - in: path
-          name: id
+        - name: id
+          in: path
           required: true
+          description: ID kursi.
           schema:
             type: integer
-          description: ID of the flight to delete.
       responses:
-        "200":
-          description: Flight successfully deleted.
+        '200':
+          description: Berhasil mengambil data kursi.
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  message:
-                    type: string
-                    example: Flight berhasil dihapus
-                  data:
-                    type: object
-                    nullable: true
-        "404":
-          description: Flight not found.
+                $ref: '#/components/schemas/SeatAdmin'
+    put:
+      tags:
+        - Admin - Seat
+      summary: Update a seat by ID
+      description: Memperbarui data kursi berdasarkan ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID kursi.
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SeatAdmin'
+      responses:
+        '200':
+          description: Kursi berhasil diperbarui.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: '#/components/schemas/SeatAdmin'
+    delete:
+      tags:
+        - Admin - Seat
+      summary: Delete a seat by ID
+      description: Menghapus data kursi berdasarkan ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID kursi.
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Kursi berhasil dihapus.
 
 components:
   schemas:
@@ -2195,6 +2418,25 @@ components:
           format: float
           example: 150.00
 
+    SeatAdmin:
+      type: object
+      properties:
+        flightId:
+          type: integer
+          example: 101
+        seatNumber:
+          type: string
+          example: "1A"
+        seatClass:
+          type: string
+          example: "Economy"
+        price:
+          type: number
+          example: 100
+        available:
+          type: boolean
+          example: true
+
     CreateFlightRequest:
       type: object
       required:
@@ -2355,6 +2597,68 @@ components:
           example: "Berhasil menampilkan detail penerbangan"
         data:
           $ref: "#/components/schemas/Flight"
+
+    Passenger:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+          example: Mr
+        name:
+          type: string
+          example: John
+        familyName:
+          type: string
+          example: Doe
+        dateOfBirth:
+          type: string
+          format: date
+          example: "1990-01-01"
+        nationality:
+          type: string
+          example: American
+        identityNumber:
+          type: string
+          example: A1234567
+        issuingCountry:
+          type: string
+          example: USA
+        validUntil:
+          type: string
+          format: date
+          example: "2030-01-01"
+
+    PassengerInput:
+      type: object
+      properties:
+        title:
+          type: string
+          example: Mr
+        name:
+          type: string
+          example: John
+        familyName:
+          type: string
+          example: Doe
+        dateOfBirth:
+          type: string
+          format: date
+          example: "1990-01-01"
+        nationality:
+          type: string
+          example: American
+        identityNumber:
+          type: string
+          example: A1234567
+        issuingCountry:
+          type: string
+          example: USA
+        validUntil:
+          type: string
+          format: date
+          example: "2030-01-01"
 
   responses:
     BadRequestError:
