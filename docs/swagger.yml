@@ -586,7 +586,7 @@ paths:
 
   /api/transaction/transactions:
     get:
-      summary: Get All Transactions
+      summary: Get All Transactions By User
       description: Retrieve transactions with optional filtering
       security:
         - BearerAuth: []
@@ -594,12 +594,18 @@ paths:
       tags:
         - Transaction
       parameters:
-        - name: bookingCode
+        - name: flightNumber
           in: query
           required: false
           schema:
             type: string
-        - name: departureDate
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: endDate
           in: query
           required: false
           schema:
@@ -619,15 +625,15 @@ paths:
                       type: object
         "400":
           $ref: "#/components/responses/BadRequestError"
-          description: Invalid departure date
+          description: Invalid date range
           content:
             application/json:
               example:
                 status: error
-                message: Invalid departure date
+                message: Invalid date range
         "500":
           $ref: "#/components/responses/ServerError"
-
+  
   /api/transaction/generate-pdf/{bookingCode}:
     get:
       summary: Generate Transaction PDF

@@ -45,7 +45,10 @@ class TransactionController {
         );
       }
 
+      const bookingCode = randomCode.generate(9, { specialChars: false });
+
       const transaction = await prisma.$transaction(async (prisma) => {
+        // Ambil kursi yang tersedia
         const availableSeats = await prisma.seat.findMany({
           where: {
             id: { in: seats },
@@ -60,14 +63,11 @@ class TransactionController {
               },
             },
           },
-          lock: { mode: "for update" }, 
         });
 
         if (availableSeats.length !== seats.length) {
           throw new AppError("Beberapa kursi tidak tersedia", 400);
         }
-
-        const bookingCode = randomCode.generate(9, { specialChars: false });
 
         // Gunakan connect untuk menghubungkan user
         const newTransaction = await prisma.transaction.create({
@@ -249,7 +249,6 @@ class TransactionController {
       }
   
       await prisma.$transaction(async (prisma) => {
-        // Transaction update
         const transaction = await prisma.transaction.update({
           where: { bookingCode: order_id },
           data: {
@@ -258,26 +257,11 @@ class TransactionController {
           },
         });
   
-        // Jika transaksi dibatalkan (expired/cancel)
         if (newStatus === "Cancelled") {
-          // Kembalikan seat menjadi available
-          await prisma.seat.updateMany({
-            where: {
-              Ticket: {
-                some: {
-                  transactionId: transaction.id,
-                },
-              },
-            },
+            await prisma.transaction.update({
+            where: { bookingCode: order_id },
             data: {
-              available: true,
-            },
-          });
-  
-          // Hapus tiket terkait
-          await prisma.ticket.deleteMany({
-            where: {
-              transactionId: transaction.id,
+              status: newStatus,
             },
           });
         }
@@ -292,6 +276,13 @@ class TransactionController {
                   available: false,
                 },
               },
+            },
+          });
+
+          await prisma.transaction.update({
+            where: { bookingCode: order_id },
+            data: {
+              status: newStatus,
             },
           });
         }
@@ -344,43 +335,60 @@ class TransactionController {
 
   static async getAllTransactionsByUser(req, res, next) {
     try {
-      const { bookingCode, departureDate } = req.query;
-
+      const { flightNumber, startDate, endDate } = req.query;
+  
       const userId = req.user?.id;
-
+  
       if (!userId) {
         return next(new AppError("User not authenticated", 401));
       }
-
+  
       const query = {
         userId: userId,
       };
-
-      if (bookingCode) {
-        query.bookingCode = bookingCode;
-      }
-
-      if (departureDate) {
-        const parsedDate = new Date(departureDate);
-        if (isNaN(parsedDate.getTime())) {
-          return next(new AppError("Invalid departure date", 400));
-        }
-
-        // Menggunakan departureTime untuk memfilter penerbangan
+  
+      if (flightNumber) {
         query.Tickets = {
           some: {
             seat: {
               flight: {
-                departureTime: {
-                  gte: parsedDate,
-                  lt: new Date(parsedDate.getTime() + 24 * 60 * 60 * 1000),
+                flightNumber: {
+                  contains: flightNumber,
+                  mode: "insensitive",
                 },
               },
             },
           },
         };
       }
-
+  
+      if (startDate && endDate) {
+        const parsedStartDate = new Date(startDate);
+        const parsedEndDate = new Date(endDate);
+  
+        if (isNaN(parsedStartDate.getTime()) || isNaN(parsedEndDate.getTime())) {
+          return next(new AppError("Invalid date range", 400));
+        }
+  
+        // Menggunakan departureTime untuk memfilter penerbangan dalam rentang tanggal
+        query.Tickets = {
+          ...query.Tickets,
+          some: {
+            ...query.Tickets?.some,
+            seat: {
+              ...query.Tickets?.some?.seat,
+              flight: {
+                ...query.Tickets?.some?.seat?.flight,
+                departureTime: {
+                  gte: parsedStartDate,
+                  lte: new Date(parsedEndDate.getTime() + 24 * 60 * 60 * 1000 - 1), // Akhir hari
+                },
+              },
+            },
+          },
+        };
+      }
+  
       const transactions = await prisma.transaction.findMany({
         where: query,
         include: {
@@ -403,13 +411,13 @@ class TransactionController {
           user: true,
         },
         orderBy: {
-          createdAt: "desc",
+          createAt: "desc",
         },
       });
-
+  
       // Hitung total transaksi
       const totalTransactions = transactions.length;
-
+  
       response(
         200,
         "success",
