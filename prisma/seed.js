@@ -1,11 +1,11 @@
 const { PrismaClient } = require("@prisma/client");
-const { userData } = require("./datas/userData");
-const { airlineData } = require("./datas/airlineData");
-const { airportData } = require("./datas/airportData");
-const { passengerData } = require("./datas/passengerData");
-const { flightData } = require("./datas/flightData");
-const { generateSeats } = require("./datas/seatData");
-const { notificationData } = require("./datas/notificationData");
+const { userData } = require("./data/userData");
+const { airlineData } = require("./data/airlineData");
+const { airportData } = require("./data/airportData");
+const { passengerData } = require("./data/passengerData");
+const { flightData } = require("./data/flightData");
+const { generateSeats } = require("./data/seatData");
+const { notificationData } = require("./data/notificationData");
 const fs = require("fs").promises;
 
 const prisma = new PrismaClient();
