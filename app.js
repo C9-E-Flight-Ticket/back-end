@@ -30,6 +30,8 @@ const notificationRoutes = require("./routes/notificationRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const profileRoute = require("./routes/profileRoutes");
 
+const updateExpiredSeats = require("./middleware/updateExpiredSeats");
+
 const corsOptions = {
   origin: [
     "https://api.eflight.web.id",
@@ -50,6 +52,8 @@ app.use(cookieParser());
 app.use(cookieMiddleware.oauthSession);
 app.use(passport.initialize());
 app.use(passport.session());
+
+app.use(updateExpiredSeats);
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
