@@ -112,6 +112,7 @@ class ForgotPasswordController {
                 return next(new AppError("User tidak ditemukan", 404));
             }
 
+            // Check for recently verified OTP
             const verifiedOtp = await prisma.oTP.findFirst({
                 where: {
                     userId: user.id,
@@ -119,6 +120,9 @@ class ForgotPasswordController {
                     revokedAt: null,
                     verifiedAt: {
                         not: null
+                    },
+                    expiresAt: {
+                        gt: new Date()
                     }
                 },
                 orderBy: {
@@ -127,7 +131,7 @@ class ForgotPasswordController {
             });
 
             if (!verifiedOtp) {
-                return next(new AppError("Silakan verifikasi OTP terlebih dahulu", 401));
+                return next(new AppError("Silakan verifikasi OTP terlebih dahulu atau OTP sudah kadaluarsa", 401));
             }
 
             const hashedPassword = await bcrypt.hash(newPassword, Number(process.env.SALT_ROUNDS));
