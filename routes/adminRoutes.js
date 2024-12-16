@@ -27,25 +27,25 @@ router.patch("/ticket/:id", asyncErrorHandler(TicketController.updateTicket));
 router.delete("/ticket/:id", asyncErrorHandler(TicketController.deleteTicket));
 
 // flight
-router.get('flight/createFlight', asyncErrorHandler(FlightController.getCreateFlight));
-router.get('flight/', asyncErrorHandler(FlightController.getFlights));
-router.get('flight/:id', asyncErrorHandler(FlightController.getFlight));
-router.post('flight/', asyncErrorHandler(FlightController.createFlight));
-router.put('flight/:id', asyncErrorHandler(FlightController.updateFlight));
-router.delete('flight/:id', asyncErrorHandler(FlightController.deleteFlight));
+router.get('/flight/createFlight', asyncErrorHandler(FlightController.getCreateFlight));
+router.get('/flight/', asyncErrorHandler(FlightController.getFlights));
+router.get('/flight/:id', asyncErrorHandler(FlightController.getFlight));
+router.post('/flight/', asyncErrorHandler(FlightController.createFlight));
+router.put('/flight/:id', asyncErrorHandler(FlightController.updateFlight));
+router.delete('/flight/:id', asyncErrorHandler(FlightController.deleteFlight));
 
 // airline
-router.get("airline/get", asyncErrorHandler(airlineController.getAirlines));
-router.post("airline/create", asyncErrorHandler(airlineController.createAirline));
-router.put("airline/update/:id", asyncErrorHandler(airlineController.updateAirline));
-router.delete("airline/delete/:id", asyncErrorHandler(airlineController.deleteAirline));
+router.get("/airline/get", asyncErrorHandler(airlineController.getAirlines));
+router.post("/airline/create", asyncErrorHandler(airlineController.createAirline));
+router.put("/airline/update/:id", asyncErrorHandler(airlineController.updateAirline));
+router.delete("/airline/delete/:id", asyncErrorHandler(airlineController.deleteAirline));
 
 // airport
-router.get("airport/", asyncErrorHandler(AirportController.getAllAirports));
-router.get("airport/:id", asyncErrorHandler(AirportController.getAirportById));
-router.post("airport/", asyncErrorHandler(AirportController.createAirport));
-router.put("airport/:id", asyncErrorHandler(AirportController.updateAirport));
-router.delete("airport/:id", asyncErrorHandler(AirportController.deleteAirport));
+router.get("/airport/", asyncErrorHandler(AirportController.getAllAirports));
+router.get("/airport/:id", asyncErrorHandler(AirportController.getAirportById));
+router.post("/airport/", asyncErrorHandler(AirportController.createAirport));
+router.put("/airport/:id", asyncErrorHandler(AirportController.updateAirport));
+router.delete("/airport/:id", asyncErrorHandler(AirportController.deleteAirport));
 
 // passenger
 router.get('/', PassengerController.getAllPassengers);
