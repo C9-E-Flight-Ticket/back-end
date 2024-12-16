@@ -1,4 +1,3 @@
-// controllers/notificationController.js
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const response = require('../utils/response');
@@ -8,7 +7,7 @@ class NotificationController {
  
   static async getNotifications(req, res, next) {
     try {
-      const userId = parseInt(req.query.userId, 10); // Mengambil userId dari query parameter
+      const userId = parseInt(req.query.userId, 10); 
       if (!userId) {
         return next (new AppError("userId diperlukan", 400));
       }
