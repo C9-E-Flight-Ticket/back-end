@@ -3,7 +3,10 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 require("./middleware/intrument");
+const http = require('http');
 const express = require("express");
+const socketIo = require('./config/socketIo');
+const helmet = require("helmet");
 const Sentry = require("@sentry/node");
 const bodyParser = require("body-parser");
 const cors = require("cors");
@@ -20,7 +23,13 @@ const path = require("path");
 const swaggerDocument = YAML.load(path.join(__dirname, "./docs/swagger.yml"));
 
 const app = express();
+const server = http.createServer(app);
+
+socketIo.init(server);
+
 const PORT = process.env.PORT || 3000;
+
+app.use(helmet());
 
 const authRoute = require("./routes/authRoutes");
 const transactionRoutes = require("./routes/transactionRoutes");
@@ -34,9 +43,6 @@ const updateExpiredSeats = require("./middleware/updateExpiredSeats");
 
 const corsOptions = {
   origin: [
-    "https://api.eflight.web.id",
-    "http://api.eflight.web.id",
-    "http://localhost:3000",
     "http://localhost:5173",
     process.env.FRONTEND_URL,
   ],

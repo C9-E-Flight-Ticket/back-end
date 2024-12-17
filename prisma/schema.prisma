@@ -26,8 +26,8 @@ model User {
   deleteAt DateTime?
   Transactions Transaction[]
   otps OTP[]
-
-  Notification Notification[]
+  Notification Notification[]       @relation("User")
+  sentNotifications Notification[]  @relation("Sender")
 }
 
 enum Title {
@@ -174,12 +174,21 @@ model OTP {
   @@index([userId])
 }
 
+enum NotificationType {
+  PAYMENT_REMINDER
+  PERSONAL
+  BROADCAST
+}
+
 model Notification {
   id        Int  @id @default(autoincrement())
-  user      User @relation(fields: [userId], references: [id])
   userId    Int
+  user      User @relation("User", fields: [userId], references: [id])
+  senderId  Int?
+  sender    User?     @relation("Sender", fields: [senderId], references: [id])
   title     String
   message   String
+  type      NotificationType @default(BROADCAST)
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
   updateAt DateTime @updatedAt
