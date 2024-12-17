@@ -7,11 +7,10 @@ const TransactionController = require("../controllers/transactionController");
 
 router.use(AuthMiddleware.verifyAuthentication);
 
-router.post("/order", asyncErrorHandler(TransactionController.createTicketTransaction));
 router.post("/midtrans-callback", asyncErrorHandler(TransactionController.handleMidtransCallback));
+router.get("/order", asyncErrorHandler(TransactionController.createTicketTransaction));
 router.get('/status/:bookingCode', asyncErrorHandler(TransactionController.getTransactionStatus));
 router.get('/transactions', asyncErrorHandler(TransactionController.getAllTransactionsByUser));
-
 router.get('/generate-pdf/:bookingCode', asyncErrorHandler(TransactionController.generateTransactionPDF));
 router.get('/download/:bookingCode.pdf', asyncErrorHandler(TransactionController.downloadPDF));
 

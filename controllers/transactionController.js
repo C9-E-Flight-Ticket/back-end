@@ -226,8 +226,12 @@ class TransactionController {
   }
 
   static async handleMidtransCallback(req, res, next) {
-    try {
-      const { order_id, transaction_status, fraud_status } = req.body;
+    try {  
+      const { order_id, transaction_status, fraud_status, payment_type } = req.body;
+  
+      if (!order_id || !transaction_status) {
+        return next(new AppError("Invalid callback data", 400));
+      }
   
       let newStatus;
       switch (transaction_status) {
@@ -246,6 +250,8 @@ class TransactionController {
         case "expire":
           newStatus = "Cancelled";
           break;
+        default:
+          return next(new AppError("Unknown transaction status", 400));
       }
   
       await prisma.$transaction(async (prisma) => {
@@ -253,12 +259,12 @@ class TransactionController {
           where: { bookingCode: order_id },
           data: {
             status: newStatus,
-            paymentMethod: req.body.payment_type,
+            paymentMethod: payment_type || "unknown",
           },
         });
   
         if (newStatus === "Cancelled") {
-            await prisma.transaction.update({
+          await prisma.transaction.update({
             where: { bookingCode: order_id },
             data: {
               status: newStatus,
@@ -266,19 +272,20 @@ class TransactionController {
           });
         }
   
-        // Jika transaksi berhasil
         if (newStatus === "Issued") {
-          await prisma.ticket.updateMany({
-            where: { transactionId: transaction.id },
-            data: {
-              seat: {
-                update: {
-                  available: false,
+          await prisma.seat.updateMany({
+            where: {
+              Ticket: {
+                some: {
+                  transactionId: transaction.id,
                 },
               },
             },
+            data: {
+              available: false,
+            },
           });
-
+  
           await prisma.transaction.update({
             where: { bookingCode: order_id },
             data: {
@@ -288,13 +295,13 @@ class TransactionController {
         }
       });
   
-      res.status(200).send("OK");
+      response(200, "success", null, "Transaction status updated successfully", res);
     } catch (error) {
       console.error("Midtrans callback error:", error);
-      res.status(500).json({ error: error.message });
+      next(new AppError(error.message, 500));
     }
   }
-
+  
   static async getTransactionStatus(req, res, next) {
     try {
       const { bookingCode } = req.params;

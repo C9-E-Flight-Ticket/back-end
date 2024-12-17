@@ -1,4 +1,4 @@
-
+const prisma = require("../../models/prismaClients");
 
 function generateDynamicPricing(flight) {
   const baseRates = {
@@ -11,11 +11,26 @@ function generateDynamicPricing(flight) {
       'JFK-LAX': { basePrice: 2800000, multiplier: 1.4 },
       'LAX-HND': { basePrice: 5000000, multiplier: 2.2 },
       'AMS-FRA': { basePrice: 1000000, multiplier: 1.1 },
-      'LHR-AMS': { basePrice: 900000, multiplier: 1.05 }
+      'LHR-AMS': { basePrice: 900000, multiplier: 1.05 },
+      'SIN-DXB': { basePrice: 3500000, multiplier: 1.6 },
+      'DXB-SIN': { basePrice: 3500000, multiplier: 1.6 },
+      'LHR-LAX': { basePrice: 6000000, multiplier: 2.3 },
+      'LAX-LHR': { basePrice: 6000000, multiplier: 2.3 },
+      'AMS-LHR': { basePrice: 900000, multiplier: 1.05 },
+      'FRA-AMS': { basePrice: 1000000, multiplier: 1.1 },
+      'AMS-LAX': { basePrice: 7000000, multiplier: 2.5 },
+      'LAX-AMS': { basePrice: 7000000, multiplier: 2.5 },
+      'HND-LAX': { basePrice: 5000000, multiplier: 2.2 },
+      'LAX-HND': { basePrice: 5000000, multiplier: 2.2 },
+      'HND-SIN': { basePrice: 4000000, multiplier: 1.8 },
+      'SIN-HND': { basePrice: 4000000, multiplier: 1.8 },
     },
     airlines: {
       1: 1.0,  // Garuda Indonesia
       2: 1.2,  // Singapore Airlines
+      3: 1.1,  // Delta Airlines
+      4: 1.15, // American Airlines
+      5: 1.1,  // United Airlines
       6: 1.3,  // British Airways
       8: 1.4,  // Emirates
       9: 1.1,  // Lufthansa
@@ -94,7 +109,36 @@ function generateSeats(flight) {
   return seats;
 }
 
+async function populateSeatsForAllFlights() {
+  try {
+    const flights = await prisma.flight.findMany();
+
+    for (const flight of flights) {
+      const existingSeats = await prisma.seat.findFirst({
+        where: { flightId: flight.id },
+      });
+
+      if (existingSeats) {
+        // console.log(`Seats already exist for flight ${flight.flightNumber}, skipping...`);
+        continue;
+      }
+
+      const seats = generateSeats(flight);
+      await prisma.seat.createMany({
+        data: seats,
+      });
+
+    //   console.log(`Seats populated for flight ${flight.flightNumber}.`);
+    }
+
+    console.log("Seats populated for all flights.");
+  } catch (error) {
+    console.error("Error populating seats for all flights:", error);
+  }
+}
+
 module.exports = {
   generateSeats,
-  generateDynamicPricing
+  generateDynamicPricing,
+  populateSeatsForAllFlights
 };
