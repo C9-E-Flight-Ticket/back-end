@@ -9,6 +9,7 @@ const FlightController = require("../controllers/flightController");
 const AirportController = require("../controllers/airportController");
 const airlineController = require("../controllers/airlineController");
 const PassengerController = require("../controllers/passengerController");
+const NotificationController = require("../controllers/notificationController");
 
 router.use(AuthMiddleware.verifyAuthentication);
 router.use(AuthMiddleware.adminOnly);
@@ -54,5 +55,13 @@ router.get('/createMany', PassengerController.getCreatePassengerData);
 router.post('/', PassengerController.createPassenger);
 router.put('/:id', PassengerController.updatePassenger);
 router.delete('/:id', PassengerController.deletePassenger);
+
+// notification
+router.get('/', asyncErrorHandler(NotificationController.getAllNotifications));
+router.post('/createNotification', asyncErrorHandler(NotificationController.createNotification));
+router.delete('/:id', asyncErrorHandler(NotificationController.deleteNotification));
+
+router.post('/send-notification', NotificationController.sendNotificationToUser);
+router.post('/broadcast-notification', NotificationController.broadcastNotificationToAllUsers);
 
 module.exports = router;
