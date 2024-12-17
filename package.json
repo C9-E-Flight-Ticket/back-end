@@ -25,6 +25,7 @@
     "express": "^4.21.1",
     "express-session": "^1.18.1",
     "fs": "^0.0.1-security",
+    "helmet": "^8.0.0",
     "imagekit": "^5.2.0",
     "jsonwebtoken": "^9.0.2",
     "midtrans-client": "^1.4.2",

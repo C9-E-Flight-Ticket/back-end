@@ -135,6 +135,41 @@ class TransactionController {
           })
         );
 
+        const expirationTime = new Date(Date.now() + 1 * 60 * 60 * 1000); // 1 jam dari sekarang
+        const formattedExpirationTime = expirationTime.toLocaleString('id-ID', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          timeZone: 'Asia/Jakarta'
+        });
+
+        const notificationMessage = `Segera bayar tiket Anda sebelum ${formattedExpirationTime} WIB. Booking Code: ${bookingCode}`;
+
+        await prisma.notification.create({
+          data: {
+            userId: userId,
+            title: 'Selesaikan Pembayaran Tiket',
+            message: notificationMessage,
+            type: 'PAYMENT_REMINDER',
+            read: false,
+          }
+        });
+
+        const socketIo = require('../config/socketIo');
+        const io = socketIo.getIO();
+        const userSocket = socketIo.getUserSocket(userId);
+
+        if (userSocket) {
+          io.to(userSocket).emit('transaction-notification', {
+            title: 'Selesaikan Pembayaran Tiket',
+            message: notificationMessage,
+            bookingCode: bookingCode,
+            expirationTime: expirationTime.toISOString()
+          });
+        } 
+
         return {
           transaction: newTransaction,
           tickets: createdTickets,
@@ -229,7 +264,7 @@ class TransactionController {
     try {  
       const { order_id, transaction_status, fraud_status, payment_type } = req.body;
   
-      if (!order_id || !transaction_status) {
+      if (!order_id || !transaction_status || !fraud_status) {
         return next(new AppError("Invalid callback data", 400));
       }
   
@@ -259,7 +294,7 @@ class TransactionController {
           where: { bookingCode: order_id },
           data: {
             status: newStatus,
-            paymentMethod: payment_type || "unknown",
+            paymentMethod: payment_type,
           },
         });
   
@@ -275,7 +310,7 @@ class TransactionController {
         if (newStatus === "Issued") {
           await prisma.seat.updateMany({
             where: {
-              Ticket: {
+              tickets: {
                 some: {
                   transactionId: transaction.id,
                 },
