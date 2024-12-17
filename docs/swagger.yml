@@ -740,18 +740,37 @@ paths:
               properties:
                 order_id:
                   type: string
+                  example: "ORDER12345"
                 transaction_status:
                   type: string
+                  example: "settlement"
                 fraud_status:
                   type: string
+                  example: "accept"
+                payment_type:
+                  type: string
+                  example: "credit_card"
       responses:
         "200":
           description: Callback processed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Transaction status updated successfully
         "400":
           $ref: "#/components/responses/BadRequestError"
+          description: Invalid callback data or unknown transaction status
         "500":
           $ref: "#/components/responses/ServerError"
-
+          description: Internal server error
+          
   # Flight endpoints
 
   /api/flight/search:
