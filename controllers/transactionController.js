@@ -226,11 +226,11 @@ class TransactionController {
   }
 
   static async handleMidtransCallback(req, res, next) {
-    try {
-      const { order_id, transaction_status, fraud_status } = req.body;
+    try {  
+      const { order_id, transaction_status, fraud_status, payment_type } = req.body;
   
       if (!order_id || !transaction_status) {
-        return next(new AppError(`Invalid callback data ${req.body}`, 400));
+        return next(new AppError("Invalid callback data", 400));
       }
   
       let newStatus;
@@ -259,7 +259,7 @@ class TransactionController {
           where: { bookingCode: order_id },
           data: {
             status: newStatus,
-            paymentMethod: req.body.payment_type,
+            paymentMethod: payment_type || "unknown",
           },
         });
   
@@ -295,13 +295,13 @@ class TransactionController {
         }
       });
   
-      res.status(200).send("OK");
+      response(200, "success", null, "Transaction status updated successfully", res);
     } catch (error) {
       console.error("Midtrans callback error:", error);
-      res.status(500).json({ error: error.message });
+      next(new AppError(error.message, 500));
     }
   }
-
+  
   static async getTransactionStatus(req, res, next) {
     try {
       const { bookingCode } = req.params;
