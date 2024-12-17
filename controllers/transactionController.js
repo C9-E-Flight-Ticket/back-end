@@ -264,7 +264,7 @@ class TransactionController {
     try {  
       const { order_id, transaction_status, fraud_status, payment_type } = req.body;
   
-      if (!order_id || !transaction_status) {
+      if (!order_id || !transaction_status || !fraud_status) {
         return next(new AppError("Invalid callback data", 400));
       }
   
@@ -294,7 +294,7 @@ class TransactionController {
           where: { bookingCode: order_id },
           data: {
             status: newStatus,
-            paymentMethod: payment_type || "unknown",
+            paymentMethod: payment_type,
           },
         });
   
@@ -310,7 +310,7 @@ class TransactionController {
         if (newStatus === "Issued") {
           await prisma.seat.updateMany({
             where: {
-              Ticket: {
+              tickets: {
                 some: {
                   transactionId: transaction.id,
                 },
