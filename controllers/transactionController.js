@@ -11,7 +11,7 @@ const { AppError } = require("../middleware/errorMiddleware");
 class TransactionController {
   static async createTicketTransaction(req, res, next) {
     try {
-      const { seats, passengerDetails, tax, total } = req.body;
+      const { seats, passengerDetails} = req.body;
 
       const userId = req.user?.id;
 
@@ -47,6 +47,8 @@ class TransactionController {
 
       const bookingCode = randomCode.generate(9, { specialChars: false });
 
+      let total;
+
       const transaction = await prisma.$transaction(async (prisma) => {
         // Ambil kursi yang tersedia
         const availableSeats = await prisma.seat.findMany({
@@ -68,6 +70,16 @@ class TransactionController {
         if (availableSeats.length !== seats.length) {
           throw new AppError("Beberapa kursi tidak tersedia", 400);
         }
+
+        // Hitung total harga tiket
+      const totalTicketPrice = availableSeats.reduce((sum, seat) => sum + seat.price, 0);
+
+      // Ambil nilai pajak dari database atau tetapkan nilai default
+      const taxRate = 0.11; // Contoh nilai pajak 11%
+      const tax = totalTicketPrice * taxRate;
+
+      // Hitung total keseluruhan
+      total = totalTicketPrice + tax;
 
         // Gunakan connect untuk menghubungkan user
         const newTransaction = await prisma.transaction.create({
@@ -103,10 +115,7 @@ class TransactionController {
         const createdTickets = await Promise.all(
           seats.map(async (seatId, index) => {
             // Tentukan index penumpang berdasarkan jumlah kursi dan penumpang
-            const passengerIndex =
-              passengerDetails.length > 1
-                ? index % passengerDetails.length
-                : index;
+            const passengerIndex = Math.floor(index / (seats.length / passengerDetails.length));
 
             const passenger = createdPassengers[passengerIndex];
 

@@ -9,52 +9,7 @@ class NotificationController {
  
   // user
 
-  static async getNotifications(req, res, next) {
-    try {
-      const userId = req.user.id; 
-      if (!userId) {
-        return next (new AppError("userId diperlukan", 400));
-      }
 
-      const notifications = await prisma.notification.findMany({
-        where: { userId },
-        orderBy: { createdAt: 'desc' },
-      });
-      return response(200, "success", notifications, "Notifikasi berhasil diambil", res);
-    } catch (error) {
-      next(error);
-    }
-  }
-
-
-  static async markAsRead(req, res, next) {
-    const notificationId = parseInt(req.params.id, 10);
-    const userId = req.user.id; 
-
-    if (!userId) {
-      return next(new AppError("userId diperlukan", 400));
-    }
-
-    try {
-      const notification = await prisma.notification.updateMany({
-        where: {
-          id: notificationId,
-          userId,
-        },
-        data: {
-          read: true,
-        },
-      });
-
-      if (notification.count === 0) {
-        return next(new AppError("Notifikasi tidak ditemukan", 404));
-      }
-
-      return response(200, "success", null, "Notifikasi berhasil ditandai sebagai sudah dibaca", res);
-    } catch (error) {
-      next(error);
-    }
-  }
 
   // admin
 
@@ -197,6 +152,75 @@ class NotificationController {
       next(error);
     }
   }
+
+  // metode untuk menampilkan sesuai id user yang login && notification broadcast, ini untuk di menu notification user
+  static async getPersonalAndBroadcastNotifications(req, res, next) {
+    const userId = req.user.id;
+
+    if (!userId) {
+      return next(new AppError("userId is required", 400));
+    }
+
+    try {
+      const notifications = await prisma.notification.findMany({
+        where: {
+          OR: [
+            { userId },
+            { type: "BROADCAST" }
+          ]
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      return response(200, "success", notifications, "Notifications fetched successfully", res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // metode untuk mengubah status notifikasi yang diklik user menjadi sudah dibaca oleh user
+  static async markAsReadByUser(req, res, next) {
+    const notificationId = parseInt(req.params.id, 10);
+    const userId = req.user.id;
+
+    if (!userId) {
+      return next(new AppError("userId is required", 400));
+    }
+
+    try {
+      const notification = await prisma.notification.updateMany({
+        where: {
+          id: notificationId,
+          userId,
+        },
+        data: {
+          read: true,
+        },
+      });
+
+      if (notification.count === 0) {
+        return next(new AppError("Notification not found", 404));
+      }
+
+      return response(200, "success", null, "Notification marked as read successfully", res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // metode untuk melihat seluruh notifikasi untuk admin
+  static async getAllNotificationsForAdmin(req, res, next) {
+    try {
+      const notifications = await prisma.notification.findMany({
+        orderBy: { createdAt: 'desc' },
+      });
+
+      return response(200, "success", notifications, "Notifications fetched successfully", res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
 
 }
 
