@@ -45,7 +45,7 @@ jobs:
                   REMOTE_HOST: ${{ secrets.HOST_DNS }}
                   REMOTE_USER: ${{ secrets.USERNAME }}
                   TARGET: ${{ secrets.TARGET_DIR }}
-                  ARGS: "-avzr --checksum --delete --chmod=755"
+                  ARGS: "-avzr --checksum --chmod=755"
                   
     followup:
        name: "Follow-up Tasks (PM2)"
