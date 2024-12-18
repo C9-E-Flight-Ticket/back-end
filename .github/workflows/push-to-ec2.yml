@@ -37,8 +37,8 @@ jobs:
                   REMOTE_HOST: ${{ secrets.HOST_DNS }}
                   REMOTE_USER: ${{ secrets.USERNAME }}
                   TARGET: ${{ secrets.TARGET_DIR }}
-                  ARGS: "-avzr --chmod=755"
-
+                  ARGS: "-avzr"
+                  
     followup:
        name: "Follow-up Tasks (PM2)"
        runs-on: ubuntu-24.04

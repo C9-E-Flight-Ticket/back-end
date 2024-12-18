@@ -57,10 +57,8 @@ router.put('/:id', PassengerController.updatePassenger);
 router.delete('/:id', PassengerController.deletePassenger);
 
 // notification
-router.get('/', asyncErrorHandler(NotificationController.getAllNotifications));
-router.post('/createNotification', asyncErrorHandler(NotificationController.createNotification));
-router.delete('/:id', asyncErrorHandler(NotificationController.deleteNotification));
-
+router.get('/', asyncErrorHandler(NotificationController.getAllNotificationsForAdmin));
+router.delete('/:id', asyncErrorHandler(NotificationController.deleteNotificationForAdmin));
 router.post('/send-notification', NotificationController.sendNotificationToUser);
 router.post('/broadcast-notification', NotificationController.broadcastNotificationToAllUsers);
 
