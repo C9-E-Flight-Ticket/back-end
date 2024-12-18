@@ -45,7 +45,7 @@ jobs:
                   REMOTE_HOST: ${{ secrets.HOST_DNS }}
                   REMOTE_USER: ${{ secrets.USERNAME }}
                   TARGET: ${{ secrets.TARGET_DIR }}
-                  ARGS: "-avzr --chmod=755 --no-times"
+                  ARGS: "-avzr --chmod=755 --no-times --no-perms --no-owner"
 
     followup:
        name: "Follow-up Tasks (PM2)"
