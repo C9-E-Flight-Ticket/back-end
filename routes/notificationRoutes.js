@@ -7,7 +7,7 @@ const AuthMiddleware = require('../middleware/authMiddleware');
 
 router.use(AuthMiddleware.verifyAuthentication);
 
-router.get('/', asyncErrorHandler(NotificationController.getNotifications));
-router.patch('/:id/read', asyncErrorHandler(NotificationController.markAsRead));
+router.get('/', asyncErrorHandler(NotificationController.getPersonalAndBroadcastNotifications));
+router.patch('/:id/read', asyncErrorHandler(NotificationController.markAsReadByUser));
 
 module.exports = router;
