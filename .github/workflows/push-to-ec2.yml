@@ -17,15 +17,7 @@ jobs:
             - name: Set up Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: "18"
-
-            - name: Cache Node.js modules
-              uses: actions/cache@v3
-              with:
-                  path: ~/.npm
-                  key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-                  restore-keys: |
-                    ${{ runner.os }}-node-                  
+                  node-version: "18"                
 
             - name: Install Dependencies
               run: npm install 
@@ -38,6 +30,7 @@ jobs:
                   REMOTE_USER: ${{ secrets.USERNAME }}
                   TARGET: ${{ secrets.TARGET_DIR }}
                   ARGS: "-avzr --chmod=755"
+                  
     followup:
        name: "Follow-up Tasks (PM2)"
        runs-on: ubuntu-latest
