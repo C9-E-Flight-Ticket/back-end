@@ -28,15 +28,7 @@ jobs:
                     ${{ runner.os }}-node-                  
 
             - name: Install Dependencies
-              run: npm install
-
-            - name: Cache Build Artifacts
-              uses: actions/cache@v3
-              with:
-                  path: build
-                  key: ${{ runner.os }}-build-${{ hashFiles('**/package-lock.json') }}
-                  restore-keys: |
-                    ${{ runner.os }}-build-              
+              run: npm install 
 
             - name: Deploy to Server 1
               uses: easingthemes/ssh-deploy@main
@@ -45,7 +37,7 @@ jobs:
                   REMOTE_HOST: ${{ secrets.HOST_DNS }}
                   REMOTE_USER: ${{ secrets.USERNAME }}
                   TARGET: ${{ secrets.TARGET_DIR }}
-                  ARGS: "-avzr --checksum --chmod=755"
+                  ARGS: "-avzr --chmod=755"
     followup:
        name: "Follow-up Tasks (PM2)"
        runs-on: ubuntu-latest
