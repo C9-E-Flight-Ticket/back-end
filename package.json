@@ -50,5 +50,13 @@
   "directories": {
     "doc": "docs"
   },
-  "description": "<<<<<<< HEAD"
+  "description": "<<<<<<< HEAD",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/C9-E-Flight-Ticket/back-end.git"
+  },
+  "bugs": {
+    "url": "https://github.com/C9-E-Flight-Ticket/back-end/issues"
+  },
+  "homepage": "https://github.com/C9-E-Flight-Ticket/back-end#readme"
 }
