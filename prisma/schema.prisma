@@ -152,6 +152,7 @@ model Transaction {
   expiredAt     DateTime
   paymentMethod String?
   status Status @default(Unpaid)
+  midtransToken String? 
   Tickets Ticket[]
   createAt DateTime @default(now())
   updateAt DateTime @updatedAt
