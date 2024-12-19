@@ -79,7 +79,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/transaction", transactionRoutes);
 app.use("/api/flight", flightRoute);
 app.use("/api/seat", seatRoute);
-app.use("/api/notifications", notificationRoutes);
+app.use("/api/notification", notificationRoutes);
 app.use("/api/profile", profileRoute);
 
 // Request logging middleware

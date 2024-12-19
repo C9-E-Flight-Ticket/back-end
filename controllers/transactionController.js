@@ -571,6 +571,8 @@ class TransactionController {
           }
           break;
         case "cancel":
+          newStatus = "Cancelled";
+          break;
         case "expire":
           newStatus = "Cancelled";
           break;
