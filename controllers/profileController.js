@@ -39,7 +39,7 @@ class ProfileController {
     }
   }
 
-  static async resetPassword(req, res, next) {
+  static async changePassword(req, res, next) {
     try {
       const { oldPassword, newPassword } = req.body;
       const userId = req.user?.id;

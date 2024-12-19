@@ -1124,14 +1124,6 @@ paths:
       operationId: getProfile
       tags:
         - Profile
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-            example: 1
-          description: ID pengguna yang ingin diambil profilnya
       responses:
         '200':
           description: Profil pengguna berhasil diambil
@@ -1168,14 +1160,6 @@ paths:
       operationId: updateProfile
       tags:
         - Profile
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-            example: 1
-          description: ID pengguna yang ingin diperbarui
       requestBody:
         description: Data untuk memperbarui profil pengguna
         required: true

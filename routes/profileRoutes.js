@@ -8,6 +8,6 @@ router.use(AuthMiddleware.verifyAuthentication);
 
 router.get("/:id", asyncErrorHandler(ProfileContoller.getProfile));
 router.put("/:id", asyncErrorHandler(ProfileContoller.updateProfile));
-router.post("/reset-password", asyncErrorHandler(ProfileContoller.resetPassword));
+router.post("/reset-password", asyncErrorHandler(ProfileContoller.changePassword));
 
 module.exports = router;
