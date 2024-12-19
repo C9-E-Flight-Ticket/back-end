@@ -453,7 +453,7 @@ paths:
               properties:
                 seats:
                   type: array
-                  example: [1, 2, 3, 4]
+                  example: [137, 138, 139, 140]
                   items:
                     type: integer
                 passengerDetails:
@@ -502,12 +502,6 @@ paths:
                       category:
                         type: string
                         enum: ["Adult", "Child", "Baby"]
-                tax:
-                  type: number
-                  example: 1320000
-                total:
-                  type: number
-                  example: 13320000
       responses:
         "201":
           description: Transaction created successfully
