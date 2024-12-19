@@ -524,6 +524,11 @@ class TransactionController {
 
       const midtransToken = await snap.createTransaction(midtransParameter);
 
+      await prisma.transaction.update({
+        where: { id: transaction.transaction.id },
+        data: { midtransToken: midtransToken.token },
+      });
+
       response(
         201,
         "success",
@@ -571,6 +576,8 @@ class TransactionController {
           }
           break;
         case "cancel":
+          newStatus = "Cancelled";
+          break;
         case "expire":
           newStatus = "Cancelled";
           break;

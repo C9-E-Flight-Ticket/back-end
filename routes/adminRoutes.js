@@ -21,17 +21,17 @@ router.patch('/transaction/:id/restore', asyncErrorHandler(TransactionController
 
 
 // ticket
-router.get("/ticket/", asyncErrorHandler(TicketController.getAllTickets));
+router.get("/ticket", asyncErrorHandler(TicketController.getAllTickets));
 router.get("/ticket/:id", asyncErrorHandler(TicketController.getTicketById));
-router.post("/ticket/", asyncErrorHandler(TicketController.createTicket));
+router.post("/ticket", asyncErrorHandler(TicketController.createTicket));
 router.patch("/ticket/:id", asyncErrorHandler(TicketController.updateTicket));
 router.delete("/ticket/:id", asyncErrorHandler(TicketController.deleteTicket));
 
 // flight
 router.get('/flight/createFlight', asyncErrorHandler(FlightController.getCreateFlight));
-router.get('/flight/', asyncErrorHandler(FlightController.getFlights));
+router.get('/flight', asyncErrorHandler(FlightController.getFlights));
 router.get('/flight/:id', asyncErrorHandler(FlightController.getFlight));
-router.post('/flight/', asyncErrorHandler(FlightController.createFlight));
+router.post('/flight', asyncErrorHandler(FlightController.createFlight));
 router.put('/flight/:id', asyncErrorHandler(FlightController.updateFlight));
 router.delete('/flight/:id', asyncErrorHandler(FlightController.deleteFlight));
 
@@ -42,24 +42,24 @@ router.put("/airline/update/:id", asyncErrorHandler(airlineController.updateAirl
 router.delete("/airline/delete/:id", asyncErrorHandler(airlineController.deleteAirline));
 
 // airport
-router.get("/airport/", asyncErrorHandler(AirportController.getAllAirports));
+router.get("/airport", asyncErrorHandler(AirportController.getAllAirports));
 router.get("/airport/:id", asyncErrorHandler(AirportController.getAirportById));
 router.post("/airport/", asyncErrorHandler(AirportController.createAirport));
 router.put("/airport/:id", asyncErrorHandler(AirportController.updateAirport));
 router.delete("/airport/:id", asyncErrorHandler(AirportController.deleteAirport));
 
 // passenger
-router.get('/', PassengerController.getAllPassengers);
-router.get('/:id', PassengerController.getPassengerById);
-router.get('/createMany', PassengerController.getCreatePassengerData);
-router.post('/', PassengerController.createPassenger);
-router.put('/:id', PassengerController.updatePassenger);
-router.delete('/:id', PassengerController.deletePassenger);
+router.get('/passenger', PassengerController.getAllPassengers);
+router.get('/passenger/:id', PassengerController.getPassengerById);
+router.get('/passenger/createMany', PassengerController.getCreatePassengerData);
+router.post('/passenger', PassengerController.createPassenger);
+router.put('/passenger/:id', PassengerController.updatePassenger);
+router.delete('/passenger/:id', PassengerController.deletePassenger);
 
 // notification
-router.get('/', asyncErrorHandler(NotificationController.getAllNotificationsForAdmin));
-router.delete('/:id', asyncErrorHandler(NotificationController.deleteNotificationForAdmin));
-router.post('/send-notification', NotificationController.sendNotificationToUser);
-router.post('/broadcast-notification', NotificationController.broadcastNotificationToAllUsers);
+router.get('/notification', asyncErrorHandler(NotificationController.getAllNotificationsForAdmin));
+router.delete('/notification/:id', asyncErrorHandler(NotificationController.deleteNotificationForAdmin));
+router.post('/notification/send-notification', NotificationController.sendNotificationToUser);
+router.post('/notification/broadcast-notification', NotificationController.broadcastNotificationToAllUsers);
 
 module.exports = router;
