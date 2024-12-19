@@ -25,6 +25,7 @@
     "express": "^4.21.1",
     "express-session": "^1.18.1",
     "fs": "^0.0.1-security",
+    "helmet": "^8.0.0",
     "imagekit": "^5.2.0",
     "jsonwebtoken": "^9.0.2",
     "midtrans-client": "^1.4.2",
@@ -38,6 +39,7 @@
     "pdf-lib": "^1.17.1",
     "pdfkit": "^0.15.1",
     "qrcode": "^1.5.4",
+    "socket.io": "^4.8.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "yamljs": "^0.3.0"
@@ -48,5 +50,13 @@
   "directories": {
     "doc": "docs"
   },
-  "description": "<<<<<<< HEAD"
+  "description": "<<<<<<< HEAD",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/C9-E-Flight-Ticket/back-end.git"
+  },
+  "bugs": {
+    "url": "https://github.com/C9-E-Flight-Ticket/back-end/issues"
+  },
+  "homepage": "https://github.com/C9-E-Flight-Ticket/back-end#readme"
 }

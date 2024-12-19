@@ -4,6 +4,7 @@ info:
   version: "1.0"
 servers:
   - url: https://api.eflight.web.id
+  - url: http://localhost:3000
 paths:
   /api/auth/login:
     post:
@@ -586,7 +587,7 @@ paths:
 
   /api/transaction/transactions:
     get:
-      summary: Get All Transactions
+      summary: Get All Transactions By User
       description: Retrieve transactions with optional filtering
       security:
         - BearerAuth: []
@@ -594,12 +595,18 @@ paths:
       tags:
         - Transaction
       parameters:
-        - name: bookingCode
+        - name: flightNumber
           in: query
           required: false
           schema:
             type: string
-        - name: departureDate
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: endDate
           in: query
           required: false
           schema:
@@ -619,15 +626,15 @@ paths:
                       type: object
         "400":
           $ref: "#/components/responses/BadRequestError"
-          description: Invalid departure date
+          description: Invalid date range
           content:
             application/json:
               example:
                 status: error
-                message: Invalid departure date
+                message: Invalid date range
         "500":
           $ref: "#/components/responses/ServerError"
-
+  
   /api/transaction/generate-pdf/{bookingCode}:
     get:
       summary: Generate Transaction PDF
@@ -734,18 +741,37 @@ paths:
               properties:
                 order_id:
                   type: string
+                  example: "ORDER12345"
                 transaction_status:
                   type: string
+                  example: "settlement"
                 fraud_status:
                   type: string
+                  example: "accept"
+                payment_type:
+                  type: string
+                  example: "credit_card"
       responses:
         "200":
           description: Callback processed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Transaction status updated successfully
         "400":
           $ref: "#/components/responses/BadRequestError"
+          description: Invalid callback data or unknown transaction status
         "500":
           $ref: "#/components/responses/ServerError"
-
+          description: Internal server error
+          
   # Flight endpoints
 
   /api/flight/search:
@@ -919,6 +945,9 @@ paths:
     get:
       summary: Get Flight and Seat Details
       description: Retrieve detailed seat information for specific flights
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       tags:
         - Seat
       parameters:
@@ -1006,22 +1035,18 @@ paths:
 
   # Notification endpoints
 
-  /api/notifications:
+  /api/notification:
     get:
+      summary: USER - Get Personal and Broadcast Notifications
+      description: Retrieve personal and broadcast notifications for the logged-in user.
       tags:
-        - notification
-      summary: Mendapatkan Notifikasi Pengguna
-      description: Mengambil daftar notifikasi untuk pengguna tertentu.
-      parameters:
-        - in: query
-          name: userId
-          required: true
-          schema:
-            type: integer
-          description: ID pengguna yang notifikasinya akan diambil.
+        - Notification
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       responses:
-        "200":
-          description: Notifikasi berhasil diambil
+        '200':
+          description: Notifications fetched successfully
           content:
             application/json:
               schema:
@@ -1032,47 +1057,44 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Notifikasi berhasil diambil
+                    example: Notifications fetched successfully
                   data:
                     type: array
                     items:
                       $ref: "#/components/schemas/Notification"
-        "400":
-          description: userId diperlukan
+        '400':
+          description: Invalid input
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: userId diperlukan
+                $ref: "#/components/schemas/ErrorResponse"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
-  /api/notifications/{id}/read:
+  /api/notification/{id}/read:
     patch:
+      summary: USER - Mark Notification as Read
+      description: Mark a specific notification as read by the logged-in user.
       tags:
-        - notification
-      summary: Menandai Notifikasi sebagai Sudah Dibaca
-      description: Menandai notifikasi tertentu sebagai sudah dibaca untuk pengguna tertentu.
+        - Notification
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       parameters:
         - in: path
           name: id
           required: true
           schema:
             type: integer
-          description: ID notifikasi yang akan ditandai sebagai dibaca.
-        - in: query
-          name: userId
-          required: true
-          schema:
-            type: integer
-          description: ID pengguna yang notifikasinya akan ditandai.
+            example: 1
+          description: ID of the notification to mark as read.
       responses:
-        "200":
-          description: Notifikasi berhasil ditandai sebagai sudah dibaca
+        '200':
+          description: Notification marked as read successfully
           content:
             application/json:
               schema:
@@ -1083,42 +1105,31 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Notifikasi berhasil ditandai sebagai sudah dibaca
-        "400":
-          description: userId diperlukan
+                    example: Notification marked as read successfully
+        '404':
+          description: Notification not found
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: userId diperlukan
-        "404":
-          description: Notifikasi tidak ditemukan
+                $ref: "#/components/schemas/ErrorResponse"
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: error
-                  message:
-                    type: string
-                    example: Notifikasi tidak ditemukan
+                $ref: "#/components/schemas/ErrorResponse"
 
   # Profile Endpoint
 
   /api/profile/{id}:
     get:
       summary: Mendapatkan profil pengguna berdasarkan ID
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       operationId: getProfile
       tags:
-        - User
+        - Profile
       parameters:
         - in: path
           name: id
@@ -1157,9 +1168,12 @@ paths:
           description: Terjadi kesalahan pada server
     put:
       summary: Memperbarui profil pengguna berdasarkan ID
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       operationId: updateProfile
       tags:
-        - User
+        - Profile
       parameters:
         - in: path
           name: id
@@ -1215,34 +1229,87 @@ paths:
           description: Pengguna tidak ditemukan
         '500':
           description: Terjadi kesalahan pada server
-    delete:
-      summary: Menghapus profil pengguna berdasarkan ID
-      operationId: deleteProfile
+          
+  /api/profile/reset-password:
+    post:
+      summary: Reset user password
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      description: Allows a user to reset their password by providing the old password and a new password.
       tags:
-        - User
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-            example: 1
-          description: ID pengguna yang ingin dihapus
+        - Profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                oldPassword:
+                  type: string
+                  description: The user's current password.
+                  example: oldpassword123
+                newPassword:
+                  type: string
+                  description: The new password to be set.
+                  example: newpassword123
+              required:
+                - oldPassword
+                - newPassword
       responses:
         '200':
-          description: Profil pengguna berhasil dihapus
+          description: Password berhasil diubah
           content:
             application/json:
               schema:
                 type: object
                 properties:
+                  status:
+                    type: string
+                    example: success
                   message:
                     type: string
-                    example: "Profile deleted successfully"
+                    example: Password berhasil diubah
+        '400':
+          description: Invalid input or old password is incorrect
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Old password and new password are required
         '404':
-          description: Pengguna tidak ditemukan
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: User not found
         '500':
-          description: Terjadi kesalahan pada server
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: An error occurred while resetting the password
 
   # Admin endpoints
 
@@ -1250,8 +1317,11 @@ paths:
 
   /api/admin/flight:
     get:
-      tags:
+      tags: 
         - Admin - Flight
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Get All Flights
       description: Retrieve a paginated list of all flights.
       parameters:
@@ -1302,6 +1372,9 @@ paths:
     post:
       tags:
         - Admin - Flight
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Create a New Flight
       description: Create a new flight with the provided details.
       requestBody:
@@ -1334,6 +1407,9 @@ paths:
     get:
       tags:
         - Admin - Flight
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Get Flight Details
       description: Retrieve detailed information about a specific flight.
       parameters:
@@ -1360,6 +1436,9 @@ paths:
     put:
       tags:
         - Admin - Flight
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Update an Existing Flight
       description: Update the details of an existing flight.
       parameters:
@@ -1398,6 +1477,9 @@ paths:
     delete:
       tags:
         - Admin - Flight
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Delete a Flight
       description: Soft delete a flight by setting the `deleteAt` timestamp.
       parameters:
@@ -1440,6 +1522,9 @@ paths:
     get:
       tags:
         - Admin - Airline
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Get list of airlines
       description: Retrieve a paginated list of airlines with optional search functionality.
       parameters:
@@ -1504,6 +1589,9 @@ paths:
     post:
       tags:
         - Admin - Airline
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Create a new airline
       description: Add a new airline to the system.
       requestBody:
@@ -1539,6 +1627,9 @@ paths:
     put:
       tags:
         - Admin - Airline
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Update an existing airline
       description: Update details of an existing airline by its ID.
       parameters:
@@ -1587,6 +1678,9 @@ paths:
     delete:
       tags:
         - Admin - Airline
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Delete an airline
       description: Soft delete an airline by its ID.
       parameters:
@@ -1625,6 +1719,9 @@ paths:
     get:
       tags:
         - Admin - Airport
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Get all airports
       description: Retrieve a list of all airports that are not deleted.
       responses:
@@ -1655,6 +1752,9 @@ paths:
     post:
       tags:
         - Admin - Airport
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Create a new airport
       description: Add a new airport to the system.
       requestBody:
@@ -1690,6 +1790,9 @@ paths:
     get:
       tags:
         - Admin - Airport
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Get airport by ID
       description: Retrieve details of a specific airport by its ID.
       parameters:
@@ -1725,6 +1828,9 @@ paths:
     put:
       tags:
         - Admin - Airport
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Update an existing airport
       description: Update details of an existing airport by its ID.
       parameters:
@@ -1772,6 +1878,9 @@ paths:
     delete:
       tags:
         - Admin - Airport
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Delete an airport
       description: Soft delete an airport by its ID.
       parameters:
@@ -1811,6 +1920,9 @@ paths:
     get:
       tags:
         - Admin - Passenger
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Ambil semua data penumpang
       responses:
         200:
@@ -1826,6 +1938,9 @@ paths:
     post:
       tags:
         - Admin - Passenger
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Tambah data penumpang baru
       requestBody:
         required: true
@@ -1843,6 +1958,9 @@ paths:
     get:
       tags:
         - Admin - Passenger
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Ambil data penumpang berdasarkan ID
       parameters:
         - name: id
@@ -1865,6 +1983,9 @@ paths:
     put:
       tags:
         - Admin - Passenger
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Perbarui data penumpang berdasarkan ID
       parameters:
         - name: id
@@ -1889,6 +2010,9 @@ paths:
     delete:
       tags:
         - Admin - Passenger
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Hapus data penumpang berdasarkan ID
       parameters:
         - name: id
@@ -1907,11 +2031,15 @@ paths:
 
   ## Notification
 
-  /api/admin/createNotification:
+  /api/admin/notification/send-notification:
     post:
-      summary: Create a new notification
+      summary: Send Notification to a Specific User
+      description: Send a personal notification to a specific user.
       tags:
-        - Admin - Notifications
+        - Admin - Notification
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       requestBody:
         required: true
         content:
@@ -1921,19 +2049,23 @@ paths:
               properties:
                 userId:
                   type: integer
+                  description: ID of the user to send the notification to.
                   example: 1
                 title:
                   type: string
-                  example: "New Notification"
+                  description: Title of the notification.
+                  example: "New Message"
                 message:
                   type: string
+                  description: Message content of the notification.
                   example: "You have a new message."
-                read:
-                  type: boolean
-                  example: false
+              required:
+                - userId
+                - title
+                - message
       responses:
         '201':
-          description: Notification created successfully
+          description: Notification sent successfully
           content:
             application/json:
               schema:
@@ -1944,31 +2076,89 @@ paths:
                     example: success
                   message:
                     type: string
-                    example: Notification created successfully
+                    example: Notification sent successfully
                   data:
-                    type: object
-                    example:
-                      id: 1
-                      userId: 1
-                      title: "New Notification"
-                      message: "You have a new message."
-                      read: false
-                      createdAt: "2024-12-10T00:00:00Z"
-                      updatedAt: "2024-12-10T00:00:00Z"
+                    $ref: "#/components/schemas/Notification"
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
-  /api/admin/:
-    get:
-      summary: Get all notifications
+  /api/admin/notification/broadcast-notification:
+    post:
+      summary: Broadcast Notification to All Users
+      description: Send a broadcast notification to all users.
       tags:
-        - Admin - Notifications
-      parameters:
-        - name: userId
-          in: query
-          required: true
-          description: ID of the user to fetch notifications for
-          schema:
-            type: integer
-            example: 1
+        - Admin - Notification
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: Title of the notification.
+                  example: "System Maintenance"
+                message:
+                  type: string
+                  description: Message content of the notification.
+                  example: "The system will be down for maintenance at midnight."
+              required:
+                - title
+                - message
+      responses:
+        '201':
+          description: Broadcast notification sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Broadcast notification sent successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Notification"
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/admin/notification:
+    get:
+      summary: Get All Notifications for Admin
+      description: Retrieve all notifications for admin.
+      tags:
+        - Admin - Notification
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       responses:
         '200':
           description: Notifications fetched successfully
@@ -1986,57 +2176,31 @@ paths:
                   data:
                     type: array
                     items:
-                      type: object
-                      example:
-                        id: 1
-                        userId: 1
-                        title: "New Notification"
-                        message: "You have a new message."
-                        read: false
-                        createdAt: "2024-12-10T00:00:00Z"
-                        updatedAt: "2024-12-10T00:00:00Z"
-
-  /api/admin/{id}/read:
-    patch:
-      summary: Mark a notification as read
-      tags:
-        - Admin - Notifications
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: ID of the notification to mark as read
-          schema:
-            type: integer
-            example: 1
-      responses:
-        '200':
-          description: Notification marked as read
+                      $ref: "#/components/schemas/Notification"
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  message:
-                    type: string
-                    example: Notification marked as read
+                $ref: "#/components/schemas/ErrorResponse"
 
-  /api/admin/{id}:
+  /api/admin/notification/{id}:
     delete:
-      summary: Delete a notification
+      summary: Delete Notification for Admin
+      description: Delete a specific notification by ID for admin.
       tags:
-        - Admin - Notifications
+        - Admin - Notification
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       parameters:
-        - name: id
-          in: path
+        - in: path
+          name: id
           required: true
-          description: ID of the notification to delete
           schema:
             type: integer
             example: 1
+          description: ID of the notification to delete.
       responses:
         '200':
           description: Notification deleted successfully
@@ -2051,6 +2215,18 @@ paths:
                   message:
                     type: string
                     example: Notification deleted successfully
+        '404':
+          description: Notification not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   ## Seat
 
@@ -2058,6 +2234,9 @@ paths:
     get:
       tags:
         - Admin - Seat
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Get all seats
       description: Mengambil semua data kursi.
       responses:
@@ -2072,6 +2251,9 @@ paths:
     post:
       tags:
         - Admin - Seat
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Create a new seat
       description: Membuat data kursi baru.
       requestBody:
@@ -2092,6 +2274,9 @@ paths:
     get:
       tags:
         - Admin - Seat
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Get a seat by ID
       description: Mengambil data kursi berdasarkan ID.
       parameters:
@@ -2111,6 +2296,9 @@ paths:
     put:
       tags:
         - Admin - Seat
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Update a seat by ID
       description: Memperbarui data kursi berdasarkan ID.
       parameters:
@@ -2136,6 +2324,9 @@ paths:
     delete:
       tags:
         - Admin - Seat
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
       summary: Delete a seat by ID
       description: Menghapus data kursi berdasarkan ID.
       parameters:
@@ -2501,16 +2692,33 @@ components:
         userId:
           type: integer
           example: 123
+        senderId:
+          type: integer
+          example: 456
+        title:
+          type: string
+          example: "New Message"
         message:
           type: string
-          example: "Your flight GA123 has been booked successfully."
+          example: "You have a new message."
+        type:
+          type: string
+          enum:
+            - PERSONAL
+            - BROADCAST
+            - PAYMENT_REMINDER
+          example: PERSONAL
         read:
           type: boolean
           example: false
         createdAt:
           type: string
           format: date-time
-          example: "2024-12-10T14:48:00.000Z"
+          example: "2024-04-01T10:00:00Z"
+        updateAt:
+          type: string
+          format: date-time
+          example: "2024-04-01T10:00:00Z"
 
     Pagination:
       type: object
