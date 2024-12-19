@@ -151,6 +151,13 @@ class SeatController {
 
   static async getAllSeats(req, res) {
     try {
+      const { page = 1, limit = 20 } = req.query;
+
+      const pageNumber = parseInt(page);
+      const limitNumber = parseInt(limit);
+
+      const skip = (pageNumber - 1) * limitNumber;
+
       const seats = await prisma.seat.findMany({
         where: { deleteAt: null },
         include: {
@@ -162,14 +169,27 @@ class SeatController {
             },
           },
         },
+        skip,
+        take: limitNumber,
       });
 
-      response(200, "success", seats, "Berhasil mengambil semua seat.", res);
+      const totalSeats = await prisma.seat.count({ where: { deleteAt: null } });
+      const totalPages = Math.ceil(totalSeats / limitNumber);
+  
+      const pagination = {
+        currentPage: pageNumber,
+        totalPages,
+        totalSeats,
+        limit: limitNumber,
+      };
+  
+      response(200, "success", { seats, pagination }, "Berhasil mengambil data kursi dengan paginasi.", res);
     } catch (error) {
       console.error(error);
-      response(500, "error", null, "Terjadi kesalahan saat mengambil data seat.", res);
+      response(500, "error", null, "Terjadi kesalahan saat mengambil data kursi.", res);
     }
   }
+  
 
   // READ Seat by ID
   static async getSeatById(req, res) {

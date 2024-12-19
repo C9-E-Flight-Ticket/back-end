@@ -6,6 +6,7 @@ const AuthMiddleware = require('../middleware/authMiddleware');
 const TransactionController = require("../controllers/transactionController");
 const TicketController = require("../controllers/ticketController");
 const FlightController = require("../controllers/flightController");
+const SeatController = require("../controllers/seatController");
 const AirportController = require("../controllers/airportController");
 const airlineController = require("../controllers/airlineController");
 const PassengerController = require("../controllers/passengerController");
@@ -34,6 +35,13 @@ router.get('/flight/:id', asyncErrorHandler(FlightController.getFlight));
 router.post('/flight', asyncErrorHandler(FlightController.createFlight));
 router.put('/flight/:id', asyncErrorHandler(FlightController.updateFlight));
 router.delete('/flight/:id', asyncErrorHandler(FlightController.deleteFlight));
+
+// seat
+router.get("/seat/", SeatController.getAllSeats);
+router.get("/seat/:id", SeatController.getSeatById);
+router.post("/seat/", SeatController.createSeat);
+router.put("/seat/:id", SeatController.updateSeat);
+router.delete("/seat/:id", SeatController.deleteSeat);
 
 // airline
 router.get("/airline/get", asyncErrorHandler(airlineController.getAirlines));
