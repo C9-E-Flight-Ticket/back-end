@@ -1109,7 +1109,7 @@ class TransactionController {
       response(
         200,
         "success",
-        { qrCode: qrCodeDataUrl, pdfPath: pdfFilePath },
+        { qrCode: qrCodeDataUrl, downloadUrl, pdfPath: pdfFilePath },
         "PDF generated successfully",
         res
       );
