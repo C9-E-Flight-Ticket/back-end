@@ -1132,6 +1132,9 @@ class TransactionController {
         return next(new AppError("PDF not found", 404));
       }
 
+      res.setHeader('Content-Disposition', `attachment; filename="${bookingCode}.pdf"`);
+      res.setHeader('Content-Type', 'application/pdf');
+
       res.download(pdfFilePath, `${bookingCode}.pdf`, (err) => {
         if (err) {
           console.error("Error serving PDF file:", err);
