@@ -1099,9 +1099,9 @@ class TransactionController {
       const pdfFilePath = path.join(tmpDir, `${transaction.bookingCode}.pdf`);
       fs.writeFileSync(pdfFilePath, pdfBytes);
 
-      const downloadUrl = `${req.protocol}://${req.get(
-        "host"
-      )}/api/transaction/download/${transaction.bookingCode}.pdf`;
+      const host = req.get("host");
+      const protocol = host.includes("localhost") ? "http" : "https";
+      const downloadUrl = `${protocol}://${host}/api/transaction/download/${transaction.bookingCode}.pdf`;
 
       const qrCodeOptions = { width: 300, margin: 1 };
       const qrCodeDataUrl = await QRCode.toDataURL(downloadUrl, qrCodeOptions);
