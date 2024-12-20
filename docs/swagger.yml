@@ -1115,7 +1115,7 @@ paths:
 
   # Profile Endpoint
 
-  /api/profile/{id}:
+  /api/profile:
     get:
       summary: Mendapatkan profil pengguna berdasarkan ID
       security:
