@@ -1,4 +1,5 @@
 const { Server } = require('socket.io');
+const prisma = require('../models/prismaClients'); 
 let io;
 const userSockets = new Map();
 
@@ -14,13 +15,31 @@ module.exports = {
       }
     });
 
-    io.on('connection', (socket) => {
+    io.on('connection', async (socket) => {
       console.log('Client terhubung');
 
       // Registrasi socket untuk pengguna
-      socket.on('register', (userId) => {
+      socket.on('register', async (userId) => {
         userSockets.set(userId, socket.id);
         console.log(`User ${userId} terdaftar dengan socket ${socket.id}`);
+
+        // Kirim notifikasi broadcast yang belum diterima ke pengguna baru
+        const broadcasts = await prisma.notification.findMany({
+          where: {
+            type: 'BROADCAST'
+          },
+          orderBy: {
+            createdAt: 'desc'
+          }
+        });
+
+        broadcasts.forEach((notification) => {
+          io.to(socket.id).emit('broadcast-notification', {
+            title: notification.title,
+            message: notification.message,
+            createdAt: notification.createdAt,
+          });
+        });
       });
 
       socket.on('disconnect', () => {

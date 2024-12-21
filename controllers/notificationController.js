@@ -65,20 +65,15 @@ class NotificationController {
       // Ambil semua user
       const users = await prisma.user.findMany();
 
-      // Buat batch notifikasi
-      const notifications = await Promise.all(
-        users.map((user) =>
-          prisma.notification.create({
-            data: {
-              userId: user.id,
-              title,
-              message,
-              senderId,
-              type: "BROADCAST",
-            },
-          })
-        )
-      );
+      // Buat notifikasi broadcast
+      const notification = await prisma.notification.create({
+        data: {
+          title,
+          message,
+          senderId,
+          type: "BROADCAST",
+        },
+      });
 
       // Kirim notifikasi real-time ke semua pengguna yang online
       const io = socketIoInstance.getIO();
