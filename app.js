@@ -3,7 +3,7 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 require("./middleware/intrument");
-const http = require('http');
+// const http = require('http');
 const express = require("express");
 const socketIo = require('./config/socketIo');
 const helmet = require("helmet");
@@ -23,9 +23,9 @@ const path = require("path");
 const swaggerDocument = YAML.load(path.join(__dirname, "./docs/swagger.yml"));
 
 const app = express();
-const server = http.createServer(app);
+// const server = http.createServer(app);
 
-socketIo.init(server);
+// socketIo.init(server);
 
 const PORT = process.env.PORT || 3000;
 
@@ -91,6 +91,10 @@ app.use((req, res, next) => {
 app.use(errorHandler);
 Sentry.setupExpressErrorHandler(app);
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}`);
 });
+
+socketIo.init(server);
+
+module.exports = { app, server };
