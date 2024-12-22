@@ -62,12 +62,10 @@ class NotificationController {
     }
 
     try {
-      // Ambil semua user
-      const users = await prisma.user.findMany();
-
-      // Buat notifikasi broadcast
-      const notification = await prisma.notification.create({
+      // Buat batch notifikasi
+      prisma.notification.create({
         data: {
+          userId: user.id,
           title,
           message,
           senderId,

@@ -2,12 +2,15 @@ if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
 }
 
-require("./middleware/intrument");
+if (process.env.NODE_ENV !== 'test') {
+  require("./middleware/intrument");
+  const Sentry = require("@sentry/node");
+}
+
 // const http = require('http');
 const express = require("express");
 const socketIo = require('./config/socketIo');
 const helmet = require("helmet");
-const Sentry = require("@sentry/node");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
@@ -89,7 +92,10 @@ app.use((req, res, next) => {
 });
 
 app.use(errorHandler);
-Sentry.setupExpressErrorHandler(app);
+
+if (process.env.NODE_ENV !== 'test') {
+  Sentry.setupExpressErrorHandler(app);
+}
 
 const server = app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}`);
