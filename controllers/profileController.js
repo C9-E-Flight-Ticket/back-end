@@ -27,7 +27,7 @@ class ProfileController {
     try {
       const { name, email, phoneNumber } = req.body;
       const userId = req.user?.id;
-
+      
       const updatedUser = await prisma.user.update({
         where: { id: parseInt(userId) },
         data: { name, email, phoneNumber },

@@ -2,11 +2,6 @@ if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
 }
 
-if (process.env.NODE_ENV !== 'test') {
-  require("./middleware/intrument");
-  const Sentry = require("@sentry/node");
-}
-
 // const http = require('http');
 const express = require("express");
 const socketIo = require('./config/socketIo');
@@ -92,10 +87,6 @@ app.use((req, res, next) => {
 });
 
 app.use(errorHandler);
-
-if (process.env.NODE_ENV !== 'test') {
-  Sentry.setupExpressErrorHandler(app);
-}
 
 const server = app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}`);
