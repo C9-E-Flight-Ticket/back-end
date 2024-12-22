@@ -304,29 +304,32 @@ class TransactionController {
 
   static async handleMidtransCallback(req, res, next) {
     try {
-      const { order_id, transaction_status, fraud_status, payment_type } =
-        req.body;
+      const notificationJson = req.body;
 
-      if (!order_id || !transaction_status || !fraud_status) {
-        return next(new AppError("Invalid callback data", 400));
-      }
+      // Proses notifikasi dari Midtrans
+      const statusResponse = await snap.transaction.notification(notificationJson);
+
+      let orderId = statusResponse.order_id;
+      let transactionStatus = statusResponse.transaction_status;
+      let fraudStatus = statusResponse.fraud_status;
+
+      console.log(`Transaction notification received. Order ID: ${orderId}. Transaction status: ${transactionStatus}. Fraud status: ${fraudStatus}`);
 
       let newStatus;
-      switch (transaction_status) {
+      switch (transactionStatus) {
         case "pending":
           newStatus = "Unpaid";
           break;
         case "capture":
         case "settlement":
-          if (fraud_status === "accept" || !fraud_status) {
+          if (fraudStatus === "accept" || !fraudStatus) {
             newStatus = "Issued";
           } else {
             newStatus = "Cancelled";
           }
           break;
         case "cancel":
-          newStatus = "Cancelled";
-          break;
+        case "deny":
         case "expire":
           newStatus = "Cancelled";
           break;
@@ -336,16 +339,16 @@ class TransactionController {
 
       await prisma.$transaction(async (prisma) => {
         const transaction = await prisma.transaction.update({
-          where: { bookingCode: order_id },
+          where: { bookingCode: orderId },
           data: {
             status: newStatus,
-            paymentMethod: payment_type,
+            paymentMethod: statusResponse.payment_type,
           },
         });
 
         if (newStatus === "Cancelled") {
           await prisma.transaction.update({
-            where: { bookingCode: order_id },
+            where: { bookingCode: orderId },
             data: {
               status: newStatus,
             },
@@ -367,7 +370,7 @@ class TransactionController {
           });
 
           await prisma.transaction.update({
-            where: { bookingCode: order_id },
+            where: { bookingCode: orderId },
             data: {
               status: newStatus,
             },
@@ -387,6 +390,7 @@ class TransactionController {
       next(new AppError(error.message, 500));
     }
   }
+
 
   static async getTransactionStatus(req, res, next) {
     try {
@@ -413,6 +417,10 @@ class TransactionController {
           user: true,
         },
       });
+
+      if (!transaction) {
+        return next(new AppError("Transaction not found", 404));
+      }
 
       response(
         200,
@@ -524,135 +532,6 @@ class TransactionController {
         res,
         {
           totalTransactions,
-        }
-      );
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  static async getAllTransactionsAdmin(req, res, next) {
-    try {
-      const {
-        page = 1,
-        limit = 10,
-        search = "",
-        startDate,
-        endDate,
-        status,
-        minAmount,
-        maxAmount,
-        sortBy = "createdAt",
-        sortOrder = "desc",
-      } = req.query;
-
-      const pageNumber = parseInt(page);
-      const limitNumber = parseInt(limit);
-      const skip = (pageNumber - 1) * limitNumber;
-
-      const query = {
-        AND: [
-          // Filter pencarian global
-          search
-            ? {
-                OR: [
-                  { bookingCode: { contains: search, mode: "insensitive" } },
-                  { user: { name: { contains: search, mode: "insensitive" } } },
-                  {
-                    user: { email: { contains: search, mode: "insensitive" } },
-                  },
-                ],
-              }
-            : {},
-
-          // Filter status transaksi
-          status ? { status: status } : {},
-
-          // Filter rentang tanggal
-          startDate && endDate
-            ? {
-                createdAt: {
-                  gte: new Date(startDate),
-                  lte: new Date(endDate),
-                },
-              }
-            : {},
-
-          // Filter rentang nominal
-          minAmount && maxAmount
-            ? {
-                totalPrice: {
-                  gte: parseFloat(minAmount),
-                  lte: parseFloat(maxAmount),
-                },
-              }
-            : {},
-        ],
-      };
-
-      const totalTransactions = await prisma.transaction.count({
-        where: query,
-      });
-
-      const transactions = await prisma.transaction.findMany({
-        where: query,
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              phoneNumber: true,
-            },
-          },
-          Tickets: {
-            include: {
-              seat: {
-                include: {
-                  flight: {
-                    include: {
-                      departureAirport: true,
-                      arrivalAirport: true,
-                      airline: true,
-                    },
-                  },
-                },
-              },
-              passenger: true,
-            },
-          },
-          deletedAt: true,
-        },
-        orderBy: {
-          [sortBy]: sortOrder,
-        },
-        skip: skip,
-        take: limitNumber,
-      });
-
-      const statistics = await prisma.transaction.aggregate({
-        _count: { id: true },
-        _sum: { totalPrice: true },
-        where: query,
-      });
-
-      response(
-        200,
-        "success",
-        transactions,
-        "Transactions retrieved successfully",
-        res,
-        {
-          pagination: {
-            totalTransactions,
-            totalPages: Math.ceil(totalTransactions / limitNumber),
-            currentPage: pageNumber,
-            itemsPerPage: limitNumber,
-          },
-          statistics: {
-            totalTransactionCount: statistics._count.id,
-            totalTransactionValue: statistics._sum.totalPrice || 0,
-          },
         }
       );
     } catch (error) {
@@ -896,13 +775,142 @@ class TransactionController {
     }
   }
 
+  static async getAllTransactionsAdmin(req, res, next) {
+    try {
+      const {
+        page = 1,
+        limit = 10,
+        search = "",
+        startDate,
+        endDate,
+        status,
+        minAmount,
+        maxAmount,
+        sortBy = "createAt",
+        sortOrder = "desc",
+      } = req.query;
+
+      const pageNumber = parseInt(page);
+      const limitNumber = parseInt(limit);
+      const skip = (pageNumber - 1) * limitNumber;
+
+      const query = {
+        AND: [
+          // Filter pencarian global
+          search
+            ? {
+                OR: [
+                  { bookingCode: { contains: search, mode: "insensitive" } },
+                  { user: { name: { contains: search, mode: "insensitive" } } },
+                  {
+                    user: { email: { contains: search, mode: "insensitive" } },
+                  },
+                ],
+              }
+            : {},
+
+          // Filter status transaksi
+          status ? { status: status } : {},
+
+          // Filter rentang tanggal
+          startDate && endDate
+            ? {
+                createAt: {
+                  gte: new Date(startDate),
+                  lte: new Date(endDate),
+                },
+              }
+            : {},
+
+          // Filter rentang nominal
+          minAmount && maxAmount
+            ? {
+                totalPrice: {
+                  gte: parseFloat(minAmount),
+                  lte: parseFloat(maxAmount),
+                },
+              }
+            : {},
+        ],
+      };
+
+      const totalTransactions = await prisma.transaction.count({
+        where: query,
+      });
+
+      const transactions = await prisma.transaction.findMany({
+        where: query,
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              phoneNumber: true,
+            },
+          },
+          Tickets: {
+            include: {
+              seat: {
+                include: {
+                  flight: {
+                    include: {
+                      departureAirport: true,
+                      arrivalAirport: true,
+                      airline: true,
+                    },
+                  },
+                },
+              },
+              passenger: true,
+            },
+          },
+        },
+        orderBy: {
+          [sortBy]: sortOrder,
+        },
+        skip: skip,
+        take: limitNumber,
+      });
+
+      const statistics = await prisma.transaction.aggregate({
+        _count: { id: true },
+        _sum: { totalAmmount: true },
+        where: query,
+      });
+
+      response(
+        200,
+        "success",
+        transactions,
+        "Transactions retrieved successfully",
+        res,
+        {
+          pagination: {
+            totalTransactions,
+            totalPages: Math.ceil(totalTransactions / limitNumber),
+            currentPage: pageNumber,
+            itemsPerPage: limitNumber,
+          },
+          statistics: {
+            totalTransactionCount: statistics._count.id,
+            totalTransactionValue: statistics._sum.totalPrice || 0,
+          },
+        }
+      );
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async softDeleteTransaction(req, res, next) {
     try {
       const { id } = req.params;
+      const transactionId = parseInt(id, 10);
 
       await prisma.$transaction(async (prisma) => {
         const existingTransaction = await prisma.transaction.findUnique({
-          where: { id },
+          where: { id: transactionId },
         });
 
         if (!existingTransaction) {
@@ -910,9 +918,9 @@ class TransactionController {
         }
 
         const deletedTransaction = await prisma.transaction.update({
-          where: { id },
+          where: { id: transactionId },
           data: {
-            deletedAt: new Date(),
+            deleteAt: new Date(),
           },
         });
 
@@ -932,36 +940,33 @@ class TransactionController {
   static async restoreTransaction(req, res, next) {
     try {
       const { id } = req.params;
+      const transactionId = parseInt(id, 10);
 
-      await prisma.$transaction(async (prisma) => {
-        // Cari transaksi yang sudah di-soft delete
-        const deletedTransaction = await prisma.transaction.findUnique({
-          where: {
-            id,
-            deletedAt: { not: null },
-          },
-        });
-
-        if (!deletedTransaction) {
-          throw new AppError("Deleted transaction not found", 404);
-        }
-
-        // Kembalikan transaksi
-        const restoredTransaction = await prisma.transaction.update({
-          where: { id },
-          data: {
-            deletedAt: null,
-          },
-        });
-
-        response(
-          200,
-          "success",
-          restoredTransaction,
-          "Transaction restored successfully",
-          res
-        );
+      const deletedTransaction = await prisma.transaction.findUnique({
+        where: {
+          id: transactionId,
+          deleteAt: { not: null },
+        },
       });
+
+      if (!deletedTransaction) {
+        return next(new AppError("Deleted transaction not found", 404));
+      }
+
+      const restoredTransaction = await prisma.transaction.update({
+        where: { id: transactionId },
+        data: {
+          deleteAt: null,
+        },
+      });
+
+      response(
+        200,
+        "success",
+        restoredTransaction,
+        "Transaction restored successfully",
+        res
+      );
     } catch (error) {
       next(error);
     }
