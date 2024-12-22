@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">11.27% </span>
+                <span class="strong">10.67% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>23/204</span>
+                <span class='fraction'>22/206</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>0/3</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">11.27% </span>
+                <span class="strong">10.67% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>23/204</span>
+                <span class='fraction'>22/206</span>
             </div>
         
             
@@ -266,7 +266,9 @@
 <a name='L201'></a><a href='#L201'>201</a>
 <a name='L202'></a><a href='#L202'>202</a>
 <a name='L203'></a><a href='#L203'>203</a>
-<a name='L204'></a><a href='#L204'>204</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L204'></a><a href='#L204'>204</a>
+<a name='L205'></a><a href='#L205'>205</a>
+<a name='L206'></a><a href='#L206'>206</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -467,7 +469,9 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span></td><td class="text"><pre class="prettyprint lang-js">const otpGenerator = require("otp-generator");
 const transporter = require("../libs/nodemailer");
@@ -651,26 +655,28 @@ const verifyOtp = <span class="fstat-no" title="function not covered" >async (em
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" >};</span>
 &nbsp;
-cron.schedule('0 * * * *', async () =&gt; {
-<span class="cstat-no" title="statement not covered" >    try {</span>
-<span class="cstat-no" title="statement not covered" >        const now = new Date();</span>
-<span class="cstat-no" title="statement not covered" >        const result = await prisma.oTP.updateMany({</span>
-<span class="cstat-no" title="statement not covered" >            where: {</span>
-<span class="cstat-no" title="statement not covered" >                expiresAt: {</span>
-<span class="cstat-no" title="statement not covered" >                    lt: now</span>
+if (process.env.NODE_ENV !== 'test') <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >    cron.schedule('0 * * * *', async () =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >        try {</span>
+<span class="cstat-no" title="statement not covered" >            const now = new Date();</span>
+<span class="cstat-no" title="statement not covered" >            const result = await prisma.oTP.updateMany({</span>
+<span class="cstat-no" title="statement not covered" >                where: {</span>
+<span class="cstat-no" title="statement not covered" >                    expiresAt: {</span>
+<span class="cstat-no" title="statement not covered" >                        lt: now</span>
+<span class="cstat-no" title="statement not covered" >                    },</span>
+<span class="cstat-no" title="statement not covered" >                    revokedAt: null,</span>
+<span class="cstat-no" title="statement not covered" >                    verifiedAt: null</span>
 <span class="cstat-no" title="statement not covered" >                },</span>
-<span class="cstat-no" title="statement not covered" >                revokedAt: null,</span>
-<span class="cstat-no" title="statement not covered" >                verifiedAt: null</span>
-<span class="cstat-no" title="statement not covered" >            },</span>
-<span class="cstat-no" title="statement not covered" >            data: {</span>
-<span class="cstat-no" title="statement not covered" >                revokedAt: now</span>
-<span class="cstat-no" title="statement not covered" >            }</span>
-<span class="cstat-no" title="statement not covered" >        });</span>
-<span class="cstat-no" title="statement not covered" >        console.log(`Cleaned up ${result.count} expired OTPs`);</span>
-<span class="cstat-no" title="statement not covered" >    } catch (error) {</span>
-<span class="cstat-no" title="statement not covered" >        console.error('Error cleaning up expired OTPs:', error);</span>
-<span class="cstat-no" title="statement not covered" >    }</span>
-});
+<span class="cstat-no" title="statement not covered" >                data: {</span>
+<span class="cstat-no" title="statement not covered" >                    revokedAt: now</span>
+<span class="cstat-no" title="statement not covered" >                }</span>
+<span class="cstat-no" title="statement not covered" >            });</span>
+<span class="cstat-no" title="statement not covered" >            console.log(`Cleaned up ${result.count} expired OTPs`);</span>
+<span class="cstat-no" title="statement not covered" >        } catch (error) {</span>
+<span class="cstat-no" title="statement not covered" >            console.error('Error cleaning up expired OTPs:', error);</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >    });</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
 &nbsp;
 module.exports = { sendOtp, verifyOtp, OTP_TYPES }; </pre></td></tr></table></pre>
 
@@ -679,7 +685,7 @@ module.exports = { sendOtp, verifyOtp, OTP_TYPES }; </pre></td></tr></table></pr
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2024-12-21T03:08:37.799Z
+                at 2024-12-22T05:52:03.650Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

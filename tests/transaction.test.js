@@ -1,5 +1,5 @@
 const request = require("supertest");
-const { app, serverInstance } = require("../app");
+const { app, server } = require("../app");
 const prisma = require("../models/prismaClients");
 
 describe("TransactionController", () => {
@@ -15,11 +15,13 @@ describe("TransactionController", () => {
 
     if (response.status === 200 && response.body.payload.status === "success") {
       token = response.body.payload.data; // Ambil token langsung dari data respons
-      if (response.headers['set-cookie']) {
-        const cookies = response.headers['set-cookie'];
-        const tokenCookie = cookies.find(cookie => cookie.startsWith('token='));
+      if (response.headers["set-cookie"]) {
+        const cookies = response.headers["set-cookie"];
+        const tokenCookie = cookies.find((cookie) =>
+          cookie.startsWith("token=")
+        );
         if (tokenCookie) {
-          token = tokenCookie.split(';')[0].split('=')[1]; // Ambil nilai token dari cookie
+          token = tokenCookie.split(";")[0].split("=")[1]; // Ambil nilai token dari cookie
         }
       }
       const userResponse = await request(app)
@@ -34,7 +36,7 @@ describe("TransactionController", () => {
 
   afterAll(async () => {
     await prisma.$disconnect();
-    serverInstance.close();
+    server.close();
   });
 
   describe("POST /api/transaction/order", () => {
@@ -101,8 +103,38 @@ describe("TransactionController", () => {
         .set("Authorization", `Bearer ${token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.status).toBe("success");
-      expect(response.body.data).toHaveProperty("bookingCode", bookingCode);
+      expect(response.body.payload.status).toBe("success");
+      expect(response.body.payload.data).toHaveProperty("bookingCode", bookingCode);
+      expect(response.body.payload.data).toHaveProperty("Tickets");
+      expect(response.body.payload.data.Tickets[0]).toHaveProperty("seat");
+      expect(response.body.payload.data.Tickets[0].seat).toHaveProperty("flight");
+      expect(response.body.payload.data.Tickets[0].seat.flight).toHaveProperty("departureAirport");
+      expect(response.body.payload.data.Tickets[0].seat.flight).toHaveProperty("arrivalAirport");
+      expect(response.body.payload.data.Tickets[0].seat.flight).toHaveProperty("airline");
+      expect(response.body.payload.data.Tickets[0]).toHaveProperty("passenger");
+      expect(response.body.payload.data).toHaveProperty("user");
+    }, 10000); // Tingkatkan timeout menjadi 10 detik
+  });
+
+  describe("GET /api/transaction/transactions", () => {
+    it("should get all transactions by user", async () => {
+      const response = await request(app)
+        .get("/api/transaction/transactions")
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.payload.status).toBe("success");
+      expect(response.body.payload.data).toBeInstanceOf(Array);
+      expect(response.body.payload.data.length).toBeGreaterThan(0);
+      expect(response.body.payload.data[0]).toHaveProperty("userId", userId);
+      expect(response.body.payload.data[0]).toHaveProperty("Tickets");
+      expect(response.body.payload.data[0].Tickets[0]).toHaveProperty("seat");
+      expect(response.body.payload.data[0].Tickets[0].seat).toHaveProperty("flight");
+      expect(response.body.payload.data[0].Tickets[0].seat.flight).toHaveProperty("departureAirport");
+      expect(response.body.payload.data[0].Tickets[0].seat.flight).toHaveProperty("arrivalAirport");
+      expect(response.body.payload.data[0].Tickets[0].seat.flight).toHaveProperty("airline");
+      expect(response.body.payload.data[0].Tickets[0]).toHaveProperty("passenger");
+      expect(response.body.payload.data[0]).toHaveProperty("user");
     }, 10000); // Tingkatkan timeout menjadi 10 detik
   });
 
@@ -113,9 +145,22 @@ describe("TransactionController", () => {
         .set("Authorization", `Bearer ${token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.status).toBe("success");
-      expect(response.body.data).toHaveProperty("qrCode");
-      expect(response.body.data).toHaveProperty("downloadUrl");
+      expect(response.body.payload.status).toBe("success");
+      expect(response.body.payload.data).toHaveProperty("qrCode");
+      expect(response.body.payload.data).toHaveProperty("downloadUrl");
+      expect(response.body.payload.data).toHaveProperty("pdfPath");
+    }, 20000); // Tingkatkan timeout menjadi 20 detik
+  });
+
+  describe("GET /api/transaction/download/:bookingCode", () => {
+    it("should download transaction PDF", async () => {
+      const response = await request(app)
+        .get(`/api/transaction/download/${bookingCode}.pdf`)
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(response.status).toBe(200);
+      expect(response.headers['content-type']).toBe('application/pdf');
+      expect(response.headers['content-disposition']).toContain(`${bookingCode}.pdf`);
     }, 10000); // Tingkatkan timeout menjadi 10 detik
   });
 });

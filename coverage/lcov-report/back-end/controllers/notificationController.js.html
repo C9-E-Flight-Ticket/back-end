@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">13.63% </span>
+                <span class="strong">14.08% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>30/220</span>
+                <span class='fraction'>30/213</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">13.63% </span>
+                <span class="strong">14.08% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>30/220</span>
+                <span class='fraction'>30/213</span>
             </div>
         
             
@@ -276,14 +276,7 @@
 <a name='L211'></a><a href='#L211'>211</a>
 <a name='L212'></a><a href='#L212'>212</a>
 <a name='L213'></a><a href='#L213'>213</a>
-<a name='L214'></a><a href='#L214'>214</a>
-<a name='L215'></a><a href='#L215'>215</a>
-<a name='L216'></a><a href='#L216'>216</a>
-<a name='L217'></a><a href='#L217'>217</a>
-<a name='L218'></a><a href='#L218'>218</a>
-<a name='L219'></a><a href='#L219'>219</a>
-<a name='L220'></a><a href='#L220'>220</a>
-<a name='L221'></a><a href='#L221'>221</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L214'></a><a href='#L214'>214</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -339,13 +332,6 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -567,23 +553,16 @@ class NotificationController {
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    try {</span>
-<span class="cstat-no" title="statement not covered" >      // Ambil semua user</span>
-<span class="cstat-no" title="statement not covered" >      const users = await prisma.user.findMany();</span>
-<span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >      // Buat batch notifikasi</span>
-<span class="cstat-no" title="statement not covered" >      const notifications = await Promise.all(</span>
-<span class="cstat-no" title="statement not covered" >        users.map((user) =&gt;</span>
-<span class="cstat-no" title="statement not covered" >          prisma.notification.create({</span>
-<span class="cstat-no" title="statement not covered" >            data: {</span>
-<span class="cstat-no" title="statement not covered" >              userId: user.id,</span>
-<span class="cstat-no" title="statement not covered" >              title,</span>
-<span class="cstat-no" title="statement not covered" >              message,</span>
-<span class="cstat-no" title="statement not covered" >              senderId,</span>
-<span class="cstat-no" title="statement not covered" >              type: "BROADCAST",</span>
-<span class="cstat-no" title="statement not covered" >            },</span>
-<span class="cstat-no" title="statement not covered" >          })</span>
-<span class="cstat-no" title="statement not covered" >        )</span>
-<span class="cstat-no" title="statement not covered" >      );</span>
+<span class="cstat-no" title="statement not covered" >      prisma.notification.create({</span>
+<span class="cstat-no" title="statement not covered" >        data: {</span>
+<span class="cstat-no" title="statement not covered" >          userId: user.id,</span>
+<span class="cstat-no" title="statement not covered" >          title,</span>
+<span class="cstat-no" title="statement not covered" >          message,</span>
+<span class="cstat-no" title="statement not covered" >          senderId,</span>
+<span class="cstat-no" title="statement not covered" >          type: "BROADCAST",</span>
+<span class="cstat-no" title="statement not covered" >        },</span>
+<span class="cstat-no" title="statement not covered" >      });</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >      // Kirim notifikasi real-time ke semua pengguna yang online</span>
 <span class="cstat-no" title="statement not covered" >      const io = socketIoInstance.getIO();</span>
@@ -730,7 +709,7 @@ module.exports = NotificationController;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2024-12-21T03:08:37.799Z
+                at 2024-12-22T05:52:03.650Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

@@ -180,25 +180,27 @@ const verifyOtp = async (email, otp, type = OTP_TYPES.EMAIL_VERIFICATION) => {
     }
 };
 
-cron.schedule('0 * * * *', async () => {
-    try {
-        const now = new Date();
-        const result = await prisma.oTP.updateMany({
-            where: {
-                expiresAt: {
-                    lt: now
+if (process.env.NODE_ENV !== 'test') {
+    cron.schedule('0 * * * *', async () => {
+        try {
+            const now = new Date();
+            const result = await prisma.oTP.updateMany({
+                where: {
+                    expiresAt: {
+                        lt: now
+                    },
+                    revokedAt: null,
+                    verifiedAt: null
                 },
-                revokedAt: null,
-                verifiedAt: null
-            },
-            data: {
-                revokedAt: now
-            }
-        });
-        console.log(`Cleaned up ${result.count} expired OTPs`);
-    } catch (error) {
-        console.error('Error cleaning up expired OTPs:', error);
-    }
-});
+                data: {
+                    revokedAt: now
+                }
+            });
+            console.log(`Cleaned up ${result.count} expired OTPs`);
+        } catch (error) {
+            console.error('Error cleaning up expired OTPs:', error);
+        }
+    });
+  }
 
 module.exports = { sendOtp, verifyOtp, OTP_TYPES }; 
