@@ -90,7 +90,7 @@ EMAIL_PASS="your_email_password"
 OTP_EXPIRY_MINUTES=1
 MAX_OTP_ATTEMPTS=3
 
-# Google OAuth4
+# Google OAuth
 GOOGLE_CLIENT_ID="your_client_id"
 GOOGLE_CLIENT_SECRET="your_client_secret"
 GOOGLE_CALLBACK_URL="your_callback_url"
