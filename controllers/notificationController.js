@@ -63,9 +63,8 @@ class NotificationController {
 
     try {
       // Buat batch notifikasi
-      prisma.notification.create({
+      const notifications = prisma.notification.create({
         data: {
-          userId: user.id,
           title,
           message,
           senderId,
@@ -79,6 +78,7 @@ class NotificationController {
 
       onlineUserSockets.forEach((socketId) => {
         io.to(socketId).emit("broadcast-notification", {
+          id,
           title,
           message,
           createdAt: new Date(),

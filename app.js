@@ -1,8 +1,7 @@
 if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
 }
-
-// const http = require('http');
+require("dotenv").config();
 const express = require("express");
 const socketIo = require('./config/socketIo');
 const helmet = require("helmet");
@@ -21,9 +20,6 @@ const path = require("path");
 const swaggerDocument = YAML.load(path.join(__dirname, "./docs/swagger.yml"));
 
 const app = express();
-// const server = http.createServer(app);
-
-// socketIo.init(server);
 
 const PORT = process.env.PORT || 3000;
 
