@@ -1,14 +1,2891 @@
-openapi: '3.0.3'
+openapi: "3.0.3"
 info:
-  title: API Title
-  version: '1.0'
+  title: E-Flight Ticket Team IX
+  version: "1.0"
 servers:
-  - url: https://api.server.test/v1
-tags:
-  - name: flight
-  - name: ticket
-  - name: seat
+  - url: https://api.eflight.web.id
+  - url: http://localhost:3000
 paths:
-  /api/flight/search:
-    
+  /api/auth/login:
+    post:
+      tags:
+        - auth
+      summary: Login user
+      description: Authenticate user with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  format: password
+                  example: "yourpassword123"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Berhasil login
+        "401":
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Alamat email tidak terdaftar!
 
+  /api/auth/register:
+    post:
+      tags:
+        - auth
+      summary: Register new user
+      description: Create new user account and send verification email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - password
+                - phoneNumber
+              properties:
+                name:
+                  type: string
+                  example: John Doe
+                email:
+                  type: string
+                  format: email
+                  example: john@example.com
+                password:
+                  type: string
+                  format: password
+                  example: "password123"
+                phoneNumber:
+                  type: string
+                  example: "081234567890"
+      responses:
+        "200":
+          description: Registration successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegisterResponse"
+        "400":
+          description: Invalid input or email already registered
+
+  /api/auth/verify-email/{id}:
+    post:
+      tags:
+        - auth
+      summary: Verify email with OTP
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: User ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - otp
+              properties:
+                otp:
+                  type: string
+                  example: "123456"
+      responses:
+        "200":
+          description: Email verified successfully
+        "400":
+          description: Invalid OTP
+        "404":
+          description: User not found
+
+  /api/auth/resend-otp/{id}:
+    post:
+      tags:
+        - auth
+      summary: Resend verification OTP
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: User ID
+      responses:
+        "200":
+          description: OTP resent successfully
+        "404":
+          description: User not found
+
+  /api/auth/forgot-password:
+    post:
+      tags:
+        - auth
+      summary: Request password reset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+      responses:
+        "200":
+          description: Password reset OTP sent
+        "404":
+          description: Email not found
+
+  /api/auth/verify-otp/{id}:
+    post:
+      tags:
+        - auth
+      summary: Verify password reset OTP
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: User ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - otp
+              properties:
+                otp:
+                  type: string
+                  example: "123456"
+      responses:
+        "200":
+          description: OTP verified successfully
+        "400":
+          description: Invalid OTP
+        "404":
+          description: User not found
+
+  /api/auth/reset-password/{id}:
+    post:
+      tags:
+        - auth
+      summary: Reset password
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: User ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - newPassword
+                - retypePassword
+              properties:
+                newPassword:
+                  type: string
+                  format: password
+                  example: "newpassword123"
+                retypePassword:
+                  type: string
+                  format: password
+                  example: "newpassword123"
+      responses:
+        "200":
+          description: Password reset successful
+        "400":
+          description: Passwords don't match or invalid password
+        "404":
+          description: User not found
+
+  /api/auth/resend-password-otp/{id}:
+    post:
+      tags:
+        - auth
+      summary: Resend password reset OTP
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: User ID
+      responses:
+        "200":
+          description: Password reset OTP resent successfully
+        "404":
+          description: User not found
+
+  /api/auth/google:
+    get:
+      tags:
+        - auth
+      summary: Initiate Google OAuth login
+      description: Redirects to Google login page for OAuth authentication
+      responses:
+        "302":
+          description: Redirect to Google login page
+          headers:
+            Location:
+              schema:
+                type: string
+                description: Google OAuth URL
+
+  /api/auth/google/callback:
+    get:
+      tags:
+        - auth
+      summary: Google OAuth callback
+      description: Handles the response from Google OAuth
+      responses:
+        "200":
+          description: OAuth login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Login berhasil
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                          name:
+                            type: string
+                          email:
+                            type: string
+                          accessToken:
+                            type: string
+        "401":
+          description: OAuth authentication failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Gagal login dengan Google
+
+  /api/auth/google/failure:
+    get:
+      tags:
+        - auth
+      summary: Google OAuth failure handler
+      description: Endpoint for handling failed Google OAuth attempts
+      responses:
+        "401":
+          description: OAuth authentication failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Gagal login dengan Google
+
+  /api/auth/logout:
+    get:
+      tags:
+        - auth
+      summary: Logout user
+      description: Clear user session and authentication tokens
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      responses:
+        "200":
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Berhasil logout
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Authentication required
+
+  /api/auth/profile:
+    get:
+      tags:
+        - auth
+      summary: Get user profile
+      description: Retrieve authenticated user's profile information
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      responses:
+        "200":
+          description: Profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      name:
+                        type: string
+                      email:
+                        type: string
+                      phoneNumber:
+                        type: string
+                      role:
+                        type: string
+                        enum: [USER, ADMIN]
+                      is_verified:
+                        type: boolean
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Authentication required
+
+  # Transaction endpoints
+
+  /api/transaction/order:
+    post:
+      summary: Create Ticket Transaction
+      description: Create a new ticket transaction with passenger and seat details
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      tags:
+        - Transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                seats:
+                  type: array
+                  example: [137, 138, 139, 140]
+                  items:
+                    type: integer
+                passengerDetails:
+                  type: array
+                  example:
+                    [
+                      {
+                        "title": "Mr",
+                        "name": "Sung",
+                        "familyName": "Jinwoo",
+                        "dateOfBirth": "2001-01-01",
+                        "nationality": "Indonesia",
+                        "identityNumber": "1234567890",
+                        "issuingCountry": "Indonesia",
+                        "category": "Adult",
+                      },
+                      {
+                        "title": "Mrs",
+                        "name": "Sylvia",
+                        "familyName": "Atlante",
+                        "dateOfBirth": "2003-03-03",
+                        "nationality": "Indonesia",
+                        "identityNumber": "0987654321",
+                        "issuingCountry": "Indonesia",
+                        "category": "Adult",
+                      },
+                    ]
+                  items:
+                    type: object
+                    properties:
+                      title:
+                        type: string
+                      name:
+                        type: string
+                      familyName:
+                        type: string
+                      dateOfBirth:
+                        type: string
+                        format: date
+                      nationality:
+                        type: string
+                      identityNumber:
+                        type: string
+                      issuingCountry:
+                        type: string
+                      category:
+                        type: string
+                        enum: ["Adult", "Child", "Baby"]
+      responses:
+        "201":
+          description: Transaction created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transaction:
+                    type: object
+                  tickets:
+                    type: array
+                  passengers:
+                    type: array
+                  bookingCode:
+                    type: string
+                  midtransToken:
+                    type: string
+                  redirectUrl:
+                    type: string
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+          description: Invalid input or seat availability issues
+          content:
+            application/json:
+              examples:
+                invalidInput:
+                  value:
+                    status: error
+                    message: Invalid input
+                seatUnavailable:
+                  value:
+                    status: error
+                    message: Beberapa kursi tidak tersedia
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/transaction/status/{bookingCode}:
+    get:
+      summary: Get Transaction Status
+      description: Retrieve detailed status of a transaction by booking code
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      tags:
+        - Transaction
+      parameters:
+        - name: bookingCode
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Transaction status retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transaction:
+                    type: object
+                  tickets:
+                    type: array
+                  user:
+                    type: object
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+          description: Transaction not found
+          content:
+            application/json:
+              example:
+                status: error
+                message: Transaction not found
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/transaction/transactions:
+    get:
+      summary: Get All Transactions By User
+      description: Retrieve transactions with optional filtering
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      tags:
+        - Transaction
+      parameters:
+        - name: flightNumber
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Transactions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transactions:
+                    type: array
+                    items:
+                      type: object
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+          description: Invalid date range
+          content:
+            application/json:
+              example:
+                status: error
+                message: Invalid date range
+        "500":
+          $ref: "#/components/responses/ServerError"
+  
+  /api/transaction/generate-pdf/{bookingCode}:
+    get:
+      summary: Generate Transaction PDF
+      description: Generate a PDF ticket for a specific transaction
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      tags:
+        - Transaction
+      parameters:
+        - name: bookingCode
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: PDF generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  qrCode:
+                    type: string
+                    description: Base64 encoded QR code
+                  pdfPath:
+                    type: string
+                    description: Path to generated PDF
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+          description: Invalid transaction status
+          content:
+            application/json:
+              example:
+                status: error
+                message: Tickets can only be printed if the transaction status is 'Issued'
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+          description: Transaction or tickets not found
+          content:
+            application/json:
+              examples:
+                transactionNotFound:
+                  value:
+                    status: error
+                    message: Transaction not found
+                noTicketsFound:
+                  value:
+                    status: error
+                    message: No tickets found for this transaction
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/transaction/download/{bookingCode}.pdf:
+    get:
+      summary: Download Transaction PDF
+      description: Download PDF ticket for a specific transaction
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      tags:
+        - Transaction
+      parameters:
+        - name: bookingCode
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: PDF downloaded successfully
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+          description: PDF not found
+          content:
+            application/json:
+              example:
+                status: error
+                message: PDF not found
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/transaction/midtrans-callback:
+    post:
+      summary: Midtrans Payment Callback
+      description: Webhook endpoint for Midtrans payment status updates
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      tags:
+        - Transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                order_id:
+                  type: string
+                  example: "ORDER12345"
+                transaction_status:
+                  type: string
+                  example: "settlement"
+                fraud_status:
+                  type: string
+                  example: "accept"
+                payment_type:
+                  type: string
+                  example: "credit_card"
+      responses:
+        "200":
+          description: Callback processed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Transaction status updated successfully
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+          description: Invalid callback data or unknown transaction status
+        "500":
+          $ref: "#/components/responses/ServerError"
+          description: Internal server error
+          
+  # Flight endpoints
+
+  /api/flight/search:
+    get:
+      summary: Search Flights
+      description: Search for flights with various filter options
+      tags:
+        - Flight
+      parameters:
+        - name: arrivalContinent
+          in: query
+          example: Asia
+          required: false
+          schema:
+            type: string
+        - name: departureCity
+          in: query
+          example: Jakarta
+          required: false
+          schema:
+            type: string
+        - name: arrivalCity
+          in: query
+          example: Singapore
+          required: false
+          schema:
+            type: string
+        - name: departureDate
+          in: query
+          example: 2024-12-20
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: seatClass
+          in: query
+          example: Economy
+          required: false
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - price
+              - duration
+              - earlierDeparture
+              - latestDeparture
+              - earlierArrival
+              - latestArrival
+              - views
+        - name: homepage
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful flight search
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/FlightMain"
+                  pagination:
+                    $ref: "#/components/schemas/PaginationInfo"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/flight/search-return:
+    get:
+      summary: Search Return Flights
+      description: Search for return flights with various filter options
+      tags:
+        - Flight
+      parameters:
+        - name: departureCity
+          in: query
+          example: Singapore
+          required: false
+          schema:
+            type: string
+        - name: arrivalCity
+          in: query
+          example: Jakarta
+          required: false
+          schema:
+            type: string
+        - name: returnDate
+          in: query
+          example: 2024-12-27
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: seatClass
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - price
+              - duration
+              - earlierDeparture
+              - latestDeparture
+              - earlierArrival
+              - latestArrival
+      responses:
+        "200":
+          description: Successful return flight search
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/FlightMain"
+                  pagination:
+                    $ref: "#/components/schemas/PaginationInfo"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  # Seat endpoints
+
+  /api/seat/detail-flight:
+    get:
+      summary: Get Flight and Seat Details
+      description: Retrieve detailed seat information for specific flights
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      tags:
+        - Seat
+      parameters:
+        - name: flightId
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              type: integer
+        - name: seatClass
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: adult
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: child
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: baby
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: Successful retrieval of flight and seat details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                      flights:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            flightId:
+                              type: integer
+                            seats:
+                              type: array
+                              items:
+                                $ref: "#/components/schemas/SeatMain"
+                      pricesByFlight:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            flightId:
+                              type: integer
+                            subTotalPrice:
+                              type: object
+                            tax:
+                              type: number
+                            total:
+                              type: number
+                      passengerCounts:
+                        type: object
+                      prices:
+                        type: object
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  # Notification endpoints
+
+  /api/notification:
+    get:
+      summary: USER - Get Personal and Broadcast Notifications
+      description: Retrieve personal and broadcast notifications for the logged-in user.
+      tags:
+        - Notification
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      responses:
+        '200':
+          description: Notifications fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Notifications fetched successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Notification"
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/notification/{id}/read:
+    patch:
+      summary: USER - Mark Notification as Read
+      description: Mark a specific notification as read by the logged-in user.
+      tags:
+        - Notification
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            example: 1
+          description: ID of the notification to mark as read.
+      responses:
+        '200':
+          description: Notification marked as read successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Notification marked as read successfully
+        '404':
+          description: Notification not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # Profile Endpoint
+
+  /api/profile:
+    get:
+      summary: Mendapatkan profil pengguna berdasarkan ID
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      operationId: getProfile
+      tags:
+        - Profile
+      responses:
+        '200':
+          description: Profil pengguna berhasil diambil
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: "John Doe"
+                  email:
+                    type: string
+                    example: "johndoe@example.com"
+                  phoneNumber:
+                    type: string
+                    example: "081234567890"
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: "2023-12-01T10:00:00Z"
+        '404':
+          description: Pengguna tidak ditemukan
+        '500':
+          description: Terjadi kesalahan pada server
+    put:
+      summary: Memperbarui profil pengguna berdasarkan ID
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      operationId: updateProfile
+      tags:
+        - Profile
+      requestBody:
+        description: Data untuk memperbarui profil pengguna
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "John Doe"
+                email:
+                  type: string
+                  example: "johndoe@example.com"
+                phoneNumber:
+                  type: string
+                  example: "081234567890"
+      responses:
+        '200':
+          description: Profil pengguna berhasil diperbarui
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Profile updated successfully"
+                  updatedUser:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      name:
+                        type: string
+                        example: "John Doe"
+                      email:
+                        type: string
+                        example: "johndoe@example.com"
+                      phoneNumber:
+                        type: string
+                        example: "081234567890"
+        '404':
+          description: Pengguna tidak ditemukan
+        '500':
+          description: Terjadi kesalahan pada server
+          
+  /api/profile/reset-password:
+    post:
+      summary: Reset user password
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      description: Allows a user to reset their password by providing the old password and a new password.
+      tags:
+        - Profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                oldPassword:
+                  type: string
+                  description: The user's current password.
+                  example: oldpassword123
+                newPassword:
+                  type: string
+                  description: The new password to be set.
+                  example: newpassword123
+              required:
+                - oldPassword
+                - newPassword
+      responses:
+        '200':
+          description: Password berhasil diubah
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Password berhasil diubah
+        '400':
+          description: Invalid input or old password is incorrect
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: Old password and new password are required
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: User not found
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: An error occurred while resetting the password
+
+  # Admin endpoints
+
+  ## Flight
+
+  /api/admin/flight:
+    get:
+      tags: 
+        - Admin - Flight
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      summary: Get All Flights
+      description: Retrieve a paginated list of all flights.
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number.
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Number of records per page.
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Search term for flight number.
+      responses:
+        "200":
+          description: Successful retrieval of flights
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Berhasil menampilkan daftar penerbangan
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Flight"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    post:
+      tags:
+        - Admin - Flight
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      summary: Create a New Flight
+      description: Create a new flight with the provided details.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFlightRequest"
+      responses:
+        "201":
+          description: Flight created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FlightResponse"
+        "400":
+          description: Validation error or missing fields
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/admin/flight/{id}:
+    get:
+      tags:
+        - Admin - Flight
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      summary: Get Flight Details
+      description: Retrieve detailed information about a specific flight.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the flight.
+      responses:
+        "200":
+          description: Successful retrieval of flight details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FlightResponse"
+        "404":
+          description: Flight not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    put:
+      tags:
+        - Admin - Flight
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      summary: Update an Existing Flight
+      description: Update the details of an existing flight.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the flight to update.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateFlightRequest"
+      responses:
+        "200":
+          description: Flight updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FlightResponse"
+        "404":
+          description: Flight not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    delete:
+      tags:
+        - Admin - Flight
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      summary: Delete a Flight
+      description: Soft delete a flight by setting the `deleteAt` timestamp.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the flight to delete.
+      responses:
+        "200":
+          description: Flight deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Flight berhasil dihapus
+        "404":
+          description: Flight not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  ## Airline
+
+  /api/admin/airline/get:
+    get:
+      tags:
+        - Admin - Airline
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      summary: Get list of airlines
+      description: Retrieve a paginated list of airlines with optional search functionality.
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Number of items to return per page.
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            default: 0
+          description: Number of items to skip for pagination.
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Search term to filter airlines by code.
+      responses:
+        "200":
+          description: Successfully retrieved list of airlines.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Berhasil menampilkan daftar airline
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Airline"
+                  meta:
+                    type: object
+                    properties:
+                      totalItems:
+                        type: integer
+                        example: 50
+                      currentPage:
+                        type: integer
+                        example: 1
+                      pageSize:
+                        type: integer
+                        example: 10
+                      totalPages:
+                        type: integer
+                        example: 5
+        "404":
+          description: No airlines found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/admin/airline/create:
+    post:
+      tags:
+        - Admin - Airline
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      summary: Create a new airline
+      description: Add a new airline to the system.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAirlineRequest"
+      responses:
+        "201":
+          description: Airline successfully created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Airline berhasil ditambahkan
+                  data:
+                    $ref: "#/components/schemas/Airline"
+        "400":
+          description: Bad request. Missing required fields or invalid data.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/admin/airline/update/{id}:
+    put:
+      tags:
+        - Admin - Airline
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      summary: Update an existing airline
+      description: Update details of an existing airline by its ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the airline to update.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAirlineRequest"
+      responses:
+        "200":
+          description: Airline successfully updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Airline berhasil diperbarui
+                  data:
+                    $ref: "#/components/schemas/Airline"
+        "400":
+          description: Bad request. Invalid data.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Airline not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/admin/airline/delete/{id}:
+    delete:
+      tags:
+        - Admin - Airline
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      summary: Delete an airline
+      description: Soft delete an airline by its ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the airline to delete.
+      responses:
+        "200":
+          description: Airline successfully deleted.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Airline berhasil dihapus
+                  data:
+                    $ref: "#/components/schemas/Airline"
+        "404":
+          description: Airline not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  ## Airport
+
+  /api/admin/airport:
+    get:
+      tags:
+        - Admin - Airport
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      summary: Get all airports
+      description: Retrieve a list of all airports that are not deleted.
+      responses:
+        "200":
+          description: Successfully retrieved list of airports.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Berhasil mengambil semua bandara.
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Airport"
+        "404":
+          description: No airports found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    post:
+      tags:
+        - Admin - Airport
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      summary: Create a new airport
+      description: Add a new airport to the system.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAirportRequest"
+      responses:
+        "201":
+          description: Airport successfully created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Bandara berhasil dibuat.
+                  data:
+                    $ref: "#/components/schemas/Airport"
+        "400":
+          description: Bad request. Missing required fields or invalid data.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/admin/airport/{id}:
+    get:
+      tags:
+        - Admin - Airport
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      summary: Get airport by ID
+      description: Retrieve details of a specific airport by its ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the airport to retrieve.
+      responses:
+        "200":
+          description: Successfully retrieved airport details.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Berhasil mengambil data bandara.
+                  data:
+                    $ref: "#/components/schemas/Airport"
+        "404":
+          description: Airport not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    put:
+      tags:
+        - Admin - Airport
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      summary: Update an existing airport
+      description: Update details of an existing airport by its ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the airport to update.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAirportRequest"
+      responses:
+        "200":
+          description: Airport successfully updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Bandara berhasil diperbarui.
+                  data:
+                    $ref: "#/components/schemas/Airport"
+        "400":
+          description: Bad request. Invalid data.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Airport not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    delete:
+      tags:
+        - Admin - Airport
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      summary: Delete an airport
+      description: Soft delete an airport by its ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the airport to delete.
+      responses:
+        "200":
+          description: Airport successfully deleted.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Bandara berhasil dihapus.
+                  data:
+                    type: object
+                    nullable: true
+        "404":
+          description: Airport not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  ## Passenger
+
+  /api/admin/passenger:
+    get:
+      tags:
+        - Admin - Passenger
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      summary: Ambil semua data penumpang
+      responses:
+        200:
+          description: Berhasil mendapatkan semua data penumpang
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Passenger'
+        500:
+          description: Kesalahan server
+    post:
+      tags:
+        - Admin - Passenger
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      summary: Tambah data penumpang baru
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PassengerInput'
+      responses:
+        201:
+          description: Penumpang berhasil dibuat
+        500:
+          description: Kesalahan server
+
+  /api/admin/passenger/{id}:
+    get:
+      tags:
+        - Admin - Passenger
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      summary: Ambil data penumpang berdasarkan ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID penumpang
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Berhasil mendapatkan data penumpang
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Passenger'
+        404:
+          description: Penumpang tidak ditemukan
+        500:
+          description: Kesalahan server
+    put:
+      tags:
+        - Admin - Passenger
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      summary: Perbarui data penumpang berdasarkan ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID penumpang
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PassengerInput'
+      responses:
+        200:
+          description: Data penumpang berhasil diperbarui
+        404:
+          description: Penumpang tidak ditemukan
+        500:
+          description: Kesalahan server
+    delete:
+      tags:
+        - Admin - Passenger
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      summary: Hapus data penumpang berdasarkan ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID penumpang
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Penumpang berhasil dihapus
+        404:
+          description: Penumpang tidak ditemukan
+        500:
+          description: Kesalahan server
+
+  ## Notification
+
+  /api/admin/notification/send-notification:
+    post:
+      summary: Send Notification to a Specific User
+      description: Send a personal notification to a specific user.
+      tags:
+        - Admin - Notification
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: integer
+                  description: ID of the user to send the notification to.
+                  example: 1
+                title:
+                  type: string
+                  description: Title of the notification.
+                  example: "New Message"
+                message:
+                  type: string
+                  description: Message content of the notification.
+                  example: "You have a new message."
+              required:
+                - userId
+                - title
+                - message
+      responses:
+        '201':
+          description: Notification sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Notification sent successfully
+                  data:
+                    $ref: "#/components/schemas/Notification"
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/admin/notification/broadcast-notification:
+    post:
+      summary: Broadcast Notification to All Users
+      description: Send a broadcast notification to all users.
+      tags:
+        - Admin - Notification
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: Title of the notification.
+                  example: "System Maintenance"
+                message:
+                  type: string
+                  description: Message content of the notification.
+                  example: "The system will be down for maintenance at midnight."
+              required:
+                - title
+                - message
+      responses:
+        '201':
+          description: Broadcast notification sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Broadcast notification sent successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Notification"
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/admin/notification:
+    get:
+      summary: Get All Notifications for Admin
+      description: Retrieve all notifications for admin.
+      tags:
+        - Admin - Notification
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      responses:
+        '200':
+          description: Notifications fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Notifications fetched successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Notification"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/admin/notification/{id}:
+    delete:
+      summary: Delete Notification for Admin
+      description: Delete a specific notification by ID for admin.
+      tags:
+        - Admin - Notification
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            example: 1
+          description: ID of the notification to delete.
+      responses:
+        '200':
+          description: Notification deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Notification deleted successfully
+        '404':
+          description: Notification not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  ## Seat
+
+  /api/admin/seat:
+    get:
+      tags:
+        - Admin - Seat
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      summary: Get all seats
+      description: Mengambil semua data kursi.
+      responses:
+        '200':
+          description: Berhasil mengambil data kursi.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SeatAdmin'
+    post:
+      tags:
+        - Admin - Seat
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      summary: Create a new seat
+      description: Membuat data kursi baru.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SeatAdmin'
+      responses:
+        '201':
+          description: Kursi berhasil dibuat.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SeatAdmin'
+
+  /api/admin/seat/{id}:
+    get:
+      tags:
+        - Admin - Seat
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      summary: Get a seat by ID
+      description: Mengambil data kursi berdasarkan ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID kursi.
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Berhasil mengambil data kursi.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SeatAdmin'
+    put:
+      tags:
+        - Admin - Seat
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      summary: Update a seat by ID
+      description: Memperbarui data kursi berdasarkan ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID kursi.
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SeatAdmin'
+      responses:
+        '200':
+          description: Kursi berhasil diperbarui.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SeatAdmin'
+    delete:
+      tags:
+        - Admin - Seat
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      summary: Delete a seat by ID
+      description: Menghapus data kursi berdasarkan ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID kursi.
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Kursi berhasil dihapus.
+
+components:
+  schemas:
+    RegisterResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        message:
+          type: string
+          example: Berhasil register, silahkan cek email untuk verifikasi
+        data:
+          type: object
+          properties:
+            user:
+              type: object
+              properties:
+                id:
+                  type: integer
+                name:
+                  type: string
+                email:
+                  type: string
+                phoneNumber:
+                  type: string
+
+    Flight:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        airline:
+          $ref: "#/components/schemas/Airline"
+        departureAirport:
+          $ref: "#/components/schemas/Airport"
+        arrivalAirport:
+          $ref: "#/components/schemas/Airport"
+        flightNumber:
+          type: string
+          example: "GA123"
+        departureTime:
+          type: string
+          format: date-time
+          example: "2024-12-25T08:00:00Z"
+        arrivalTime:
+          type: string
+          format: date-time
+          example: "2024-12-25T12:00:00Z"
+        seats:
+          type: array
+          items:
+            $ref: "#/components/schemas/Seat"
+        views:
+          type: integer
+          example: 150
+        deleteAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: null
+
+    Airline:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Garuda Indonesia"
+        code:
+          type: string
+          example: "GA"
+        baggage:
+          type: integer
+          example: 20
+        cabinBaggage:
+          type: integer
+          example: 7
+        entertainment:
+          type: string
+          example: "In Flight Entertainment"
+        urlImage:
+          type: string
+          format: uri
+          example: "https://example.com/images/garuda.png"
+        fileId:
+          type: string
+          example: "file_123456"
+        deleteAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: null
+
+    CreateAirlineRequest:
+      type: object
+      required:
+        - name
+        - code
+      properties:
+        name:
+          type: string
+          example: "Garuda Indonesia"
+        code:
+          type: string
+          example: "GA"
+        baggage:
+          type: integer
+          example: 20
+        cabinBaggage:
+          type: integer
+          example: 7
+        entertainment:
+          type: string
+          example: "In Flight Entertainment"
+        urlImage:
+          type: string
+          format: uri
+          example: "https://example.com/images/garuda.png"
+        fileId:
+          type: string
+          example: "file_123456"
+
+    UpdateAirlineRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Garuda Indonesia"
+        code:
+          type: string
+          example: "GA"
+        baggage:
+          type: integer
+          example: 25
+        cabinBaggage:
+          type: integer
+          example: 8
+        entertainment:
+          type: string
+          example: "Enhanced In Flight Entertainment"
+        urlImage:
+          type: string
+          format: uri
+          example: "https://example.com/images/garuda_updated.png"
+        fileId:
+          type: string
+          example: "file_654321" 
+
+    Airport:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Soekarno-Hatta International Airport"
+        code:
+          type: string
+          example: "CGK"
+        city:
+          type: string
+          example: "Jakarta"
+        terminalName:
+          type: string
+          example: "Terminal 1A"
+        terminalCategory:
+          type: string
+          example: "Domestic"
+        continent:
+          type: string
+          example: "Asia"
+        urlImage:
+          type: string
+          format: uri
+          example: "https://example.com/images/cgk.png"
+        fileId:
+          type: string
+          example: "file_789012"
+        deleteAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: null
+
+    CreateAirportRequest:
+      type: object
+      required:
+        - name
+        - code
+        - city
+        - continent
+      properties:
+        name:
+          type: string
+          example: "Soekarno-Hatta International Airport"
+        code:
+          type: string
+          example: "CGK"
+        city:
+          type: string
+          example: "Jakarta"
+        terminalName:
+          type: string
+          example: "Terminal 1A"
+        terminalCategory:
+          type: string
+          example: "Domestic"
+        continent:
+          type: string
+          example: "Asia"
+        urlImage:
+          type: string
+          format: uri
+          example: "https://example.com/images/cgk.png"
+        fileId:
+          type: string
+          example: "file_789012"
+
+    UpdateAirportRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Soekarno-Hatta International Airport"
+        code:
+          type: string
+          example: "CGK"
+        city:
+          type: string
+          example: "Jakarta"
+        terminalName:
+          type: string
+          example: "Terminal 2B"
+        terminalCategory:
+          type: string
+          example: "International"
+        continent:
+          type: string
+          example: "Asia"
+        urlImage:
+          type: string
+          format: uri
+          example: "https://example.com/images/cgk_updated.png"
+        fileId:
+          type: string
+          example: "file_345678"
+
+    Seat:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        seatClass:
+          type: string
+          enum: [Economy, Business, First]
+          example: "Economy"
+        available:
+          type: boolean
+          example: true
+        price:
+          type: number
+          format: float
+          example: 150.00
+
+    SeatAdmin:
+      type: object
+      properties:
+        flightId:
+          type: integer
+          example: 101
+        seatNumber:
+          type: string
+          example: "1A"
+        seatClass:
+          type: string
+          example: "Economy"
+        price:
+          type: number
+          example: 100
+        available:
+          type: boolean
+          example: true
+
+    CreateFlightRequest:
+      type: object
+      required:
+        - airlineId
+        - departureAirportId
+        - arrivalAirportId
+        - flightNumber
+        - departureTime
+        - arrivalTime
+      properties:
+        airlineId:
+          type: integer
+          example: 1
+        departureAirportId:
+          type: integer
+          example: 1
+        arrivalAirportId:
+          type: integer
+          example: 2
+        flightNumber:
+          type: string
+          example: "GA123"
+        departureTime:
+          type: string
+          format: date-time
+          example: "2024-12-25T08:00:00Z"
+        arrivalTime:
+          type: string
+          format: date-time
+          example: "2024-12-25T12:00:00Z"
+
+    UpdateFlightRequest:
+      type: object
+      properties:
+        airlineId:
+          type: integer
+          example: 1
+        departureAirportId:
+          type: integer
+          example: 1
+        arrivalAirportId:
+          type: integer
+          example: 2
+        flightNumber:
+          type: string
+          example: "GA124"
+        departureTime:
+          type: string
+          format: date-time
+          example: "2024-12-26T09:00:00Z"
+        arrivalTime:
+          type: string
+          format: date-time
+          example: "2024-12-26T13:00:00Z"
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        userId:
+          type: integer
+          example: 123
+        senderId:
+          type: integer
+          example: 456
+        title:
+          type: string
+          example: "New Message"
+        message:
+          type: string
+          example: "You have a new message."
+        type:
+          type: string
+          enum:
+            - PERSONAL
+            - BROADCAST
+            - PAYMENT_REMINDER
+          example: PERSONAL
+        read:
+          type: boolean
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-04-01T10:00:00Z"
+        updateAt:
+          type: string
+          format: date-time
+          example: "2024-04-01T10:00:00Z"
+
+    Pagination:
+      type: object
+      properties:
+        totalItems:
+          type: integer
+          example: 100
+        currentPage:
+          type: integer
+          example: 1
+        pageSize:
+          type: integer
+          example: 10
+        totalPages:
+          type: integer
+          example: 10
+
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: error
+        message:
+          type: string
+          example: "Flight tidak ditemukan"
+
+    FlightMain:
+      type: object
+      properties:
+        id:
+          type: integer
+        airline:
+          type: object
+        departureAirport:
+          type: object
+        arrivalAirport:
+          type: object
+        departureTime:
+          type: string
+          format: date-time
+        arrivalTime:
+          type: string
+          format: date-time
+        price:
+          type: number
+        duration:
+          type: number
+
+    SeatMain:
+      type: object
+      properties:
+        id:
+          type: integer
+        seatNumber:
+          type: string
+        seatClass:
+          type: string
+        price:
+          type: number
+        available:
+          type: boolean
+
+    PaginationInfo:
+      type: object
+      properties:
+        totalItems:
+          type: integer
+        currentPage:
+          type: integer
+        pageSize:
+          type: integer
+        totalPages:
+          type: integer
+
+    FlightResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        message:
+          type: string
+          example: "Berhasil menampilkan detail penerbangan"
+        data:
+          $ref: "#/components/schemas/Flight"
+
+    Passenger:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+          example: Mr
+        name:
+          type: string
+          example: John
+        familyName:
+          type: string
+          example: Doe
+        dateOfBirth:
+          type: string
+          format: date
+          example: "1990-01-01"
+        nationality:
+          type: string
+          example: American
+        identityNumber:
+          type: string
+          example: A1234567
+        issuingCountry:
+          type: string
+          example: USA
+        validUntil:
+          type: string
+          format: date
+          example: "2030-01-01"
+
+    PassengerInput:
+      type: object
+      properties:
+        title:
+          type: string
+          example: Mr
+        name:
+          type: string
+          example: John
+        familyName:
+          type: string
+          example: Doe
+        dateOfBirth:
+          type: string
+          format: date
+          example: "1990-01-01"
+        nationality:
+          type: string
+          example: American
+        identityNumber:
+          type: string
+          example: A1234567
+        issuingCountry:
+          type: string
+          example: USA
+        validUntil:
+          type: string
+          format: date
+          example: "2030-01-01"
+
+  responses:
+    BadRequestError:
+      description: Bad Request - Invalid input
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    UnauthorizedError:
+      description: Unauthorized - Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    ForbiddenError:
+      description: Forbidden - Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFoundError:
+      description: Not Found - Resource does not exist
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    ServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token for authentication
+    CookieAuth:
+      type: apiKey
+      in: cookie
+      name: access_token or connect.sid
+      description: Session cookie for authentication

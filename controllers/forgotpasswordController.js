@@ -100,8 +100,8 @@ class ForgotPasswordController {
                 return next(new AppError("Password dan konfirmasi password tidak cocok", 400));
             }
 
-            if (newPassword.length < 8) {
-                return next(new AppError("Password minimal 8 karakter", 400));
+            if (newPassword.length < 6) {
+                return next(new AppError("Password minimal 6 karakter", 400));
             }
 
             const user = await prisma.user.findUnique({
@@ -112,7 +112,6 @@ class ForgotPasswordController {
                 return next(new AppError("User tidak ditemukan", 404));
             }
 
-            // Check for recently verified OTP
             const verifiedOtp = await prisma.oTP.findFirst({
                 where: {
                     userId: user.id,
@@ -120,9 +119,6 @@ class ForgotPasswordController {
                     revokedAt: null,
                     verifiedAt: {
                         not: null
-                    },
-                    expiresAt: {
-                        gt: new Date()
                     }
                 },
                 orderBy: {
@@ -131,7 +127,7 @@ class ForgotPasswordController {
             });
 
             if (!verifiedOtp) {
-                return next(new AppError("Silakan verifikasi OTP terlebih dahulu atau OTP sudah kadaluarsa", 401));
+                return next(new AppError("Silakan verifikasi OTP terlebih dahulu", 401));
             }
 
             const hashedPassword = await bcrypt.hash(newPassword, Number(process.env.SALT_ROUNDS));

@@ -1,0 +1,53 @@
+name: Push-to-EC2
+
+on:
+    push:
+        branches:
+            - development
+
+jobs:
+    deploy:
+        name: Deploy to EC2 on main branch push
+        runs-on: ubuntu-24.04
+
+        steps:
+            - name: Checkout the files
+              uses: actions/checkout@v4
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "18"
+
+            - name: Cache Node.js modules
+              uses: actions/cache@v3
+              with:
+                  path: ~/.npm
+                  key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+                  restore-keys: |
+                    ${{ runner.os }}-node-                  
+
+            - name: Install Dependencies
+              run: npm install
+
+            - name: Deploy to Server 1
+              uses: easingthemes/ssh-deploy@main
+              env:
+                  SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+                  REMOTE_HOST: ${{ secrets.HOST_DNS }}
+                  REMOTE_USER: ${{ secrets.USERNAME }}
+                  TARGET: ${{ secrets.TARGET_DIR }}
+                  ARGS: "-avzr"
+                  
+    followup:
+       name: "Follow-up Tasks (PM2)"
+       runs-on: ubuntu-24.04
+       needs: [deploy]
+       steps:
+       - name: "Restart PM2 task"
+         uses: appleboy/ssh-action@v0.1.7
+         with:
+             host: ${{ secrets.HOST_DNS }}
+             username: ${{ secrets.USERNAME }}
+             key: ${{ secrets.SSH_PRIVATE_KEY }}
+             script: "sudo pm2 restart all --update-env"

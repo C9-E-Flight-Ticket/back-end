@@ -11,52 +11,111 @@ const { AppError } = require("../middleware/errorMiddleware");
 class TransactionController {
   static async createTicketTransaction(req, res, next) {
     try {
-      const { userId, seats, passengerDetails, tax, total } = req.body;
+      const { seats, passengerDetails } = req.body;
 
+      const userId = req.user?.id;
+
+      const currentUser = await prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!currentUser) {
+        return next(new AppError("User not found", 404));
+      }
+
+      // Validasi input lainnya
       if (
-        !userId ||
         !seats ||
         !passengerDetails ||
         seats.length === 0 ||
         passengerDetails.length === 0
-      )
-      {
+      ) {
         return next(new AppError("Invalid input", 400));
       }
 
-      if (seats.length < passengerDetails.length || seats.length > passengerDetails.length * 2) {
-        return next(new AppError("Invalid input: Jumlah kursi tidak sesuai dengan jumlah penumpang", 400));
-    }
-
-      const availableSeats = await prisma.seat.findMany({
-        where: {
-          id: { in: seats },
-          available: true,
-        },
-        include: {
-          flight: {
-            include: {
-              airline: true,
-              departureAirport: true,
-              arrivalAirport: true,
-            },
-          },
-        },
-      });
-
-      if (availableSeats.length !== seats.length) {
-        return next(new AppError("Beberapa kursi tidak tersedia", 400));
+      if (
+        seats.length < passengerDetails.length ||
+        seats.length > passengerDetails.length * 2
+      ) {
+        return next(
+          new AppError(
+            "Invalid input: Jumlah kursi tidak sesuai dengan jumlah penumpang",
+            400
+          )
+        );
       }
 
       const bookingCode = randomCode.generate(9, { specialChars: false });
 
+      let total;
+
       const transaction = await prisma.$transaction(async (prisma) => {
+        // Ambil kursi yang tersedia
+        const availableSeats = await prisma.seat.findMany({
+          where: {
+            id: { in: seats },
+            available: true,
+          },
+          include: {
+            flight: {
+              include: {
+                airline: true,
+                departureAirport: true,
+                arrivalAirport: true,
+              },
+            },
+          },
+        });
+
+        if (availableSeats.length !== seats.length) {
+          throw new AppError("Beberapa kursi tidak tersedia", 400);
+        }
+
+        // Hitung total harga tiket
+        const totalTicketPrice = availableSeats.reduce((sum, seat) => {
+          const price = parseFloat(seat.price);
+          if (isNaN(price)) {
+            throw new AppError(
+              `Harga kursi tidak valid untuk Seat ID: ${seat.id}`,
+              400
+            );
+          }
+          return sum + price;
+        }, 0);
+
+        // Ambil nilai pajak dari database atau tetapkan nilai default
+        const taxRate = 0.11; // Contoh nilai pajak 11%
+        const tax = totalTicketPrice * taxRate;
+
+        // Hitung total keseluruhan
+        total = totalTicketPrice + tax;
+
+        // Pastikan total dan tax adalah angka dan tidak terlalu besar
+        if (
+          isNaN(total) ||
+          isNaN(tax) ||
+          total > 10 ** 35 - 1 ||
+          tax > 10 ** 35 - 1
+        ) {
+          throw new AppError(
+            "Perhitungan total atau pajak tidak valid atau terlalu besar",
+            400
+          );
+        }
+
+        // Membulatkan nilai total dan pajak untuk memastikan tidak melebihi batas
+        const roundedTotal = parseFloat(total.toFixed(2));
+        const roundedTax = parseFloat(tax.toFixed(2));
+
+        // Gunakan connect untuk menghubungkan user
         const newTransaction = await prisma.transaction.create({
           data: {
-            userId,
+            user: {
+              connect: { id: userId },
+            },
             bookingCode,
-            tax: tax,
-            totalAmmount: total,
+            tax: roundedTax,
+            totalAmmount: roundedTotal,
             expiredAt: new Date(Date.now() + 1 * 60 * 60 * 1000),
             status: "Unpaid",
           },
@@ -82,10 +141,9 @@ class TransactionController {
         const createdTickets = await Promise.all(
           seats.map(async (seatId, index) => {
             // Tentukan index penumpang berdasarkan jumlah kursi dan penumpang
-            const passengerIndex =
-              passengerDetails.length > 1
-                ? index % passengerDetails.length
-                : index;
+            const passengerIndex = Math.floor(
+              index / (seats.length / passengerDetails.length)
+            );
 
             const passenger = createdPassengers[passengerIndex];
 
@@ -113,6 +171,41 @@ class TransactionController {
             });
           })
         );
+
+        const expirationTime = new Date(Date.now() + 1 * 60 * 60 * 1000); // 1 jam dari sekarang
+        const formattedExpirationTime = expirationTime.toLocaleString("id-ID", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          timeZone: "Asia/Jakarta",
+        });
+
+        const notificationMessage = `Segera bayar tiket Anda sebelum ${formattedExpirationTime} WIB. Booking Code: ${bookingCode}`;
+
+        await prisma.notification.create({
+          data: {
+            userId: userId,
+            title: "Selesaikan Pembayaran Tiket",
+            message: notificationMessage,
+            type: "PAYMENT_REMINDER",
+            read: false,
+          },
+        });
+
+        const socketIo = require("../config/socketIo");
+        const io = socketIo.getIO();
+        const userSocket = socketIo.getUserSocket(userId);
+
+        if (userSocket) {
+          io.to(userSocket).emit("transaction-notification", {
+            title: "Selesaikan Pembayaran Tiket",
+            message: notificationMessage,
+            bookingCode: bookingCode,
+            expirationTime: expirationTime.toISOString(),
+          });
+        }
 
         return {
           transaction: newTransaction,
@@ -176,14 +269,14 @@ class TransactionController {
           phone: user.phoneNumber || "",
         },
         item_details: itemDetails,
-        expiry: {
-          start_time: new Date().toISOString(),
-          unit: "hour",
-          duration: 1 
-        }
       };
 
       const midtransToken = await snap.createTransaction(midtransParameter);
+
+      await prisma.transaction.update({
+        where: { id: transaction.transaction.id },
+        data: { midtransToken: midtransToken.token },
+      });
 
       response(
         201,
@@ -211,80 +304,93 @@ class TransactionController {
 
   static async handleMidtransCallback(req, res, next) {
     try {
-      const { order_id, transaction_status, fraud_status } = req.body;
-  
+      const notificationJson = req.body;
+
+      // Proses notifikasi dari Midtrans
+      const statusResponse = await snap.transaction.notification(notificationJson);
+
+      let orderId = statusResponse.order_id;
+      let transactionStatus = statusResponse.transaction_status;
+      let fraudStatus = statusResponse.fraud_status;
+
+      console.log(`Transaction notification received. Order ID: ${orderId}. Transaction status: ${transactionStatus}. Fraud status: ${fraudStatus}`);
+
       let newStatus;
-      switch (transaction_status) {
+      switch (transactionStatus) {
         case "pending":
           newStatus = "Unpaid";
           break;
         case "capture":
         case "settlement":
-          if (fraud_status === "accept" || !fraud_status) {
+          if (fraudStatus === "accept" || !fraudStatus) {
             newStatus = "Issued";
           } else {
             newStatus = "Cancelled";
           }
           break;
         case "cancel":
+        case "deny":
         case "expire":
           newStatus = "Cancelled";
           break;
+        default:
+          return next(new AppError("Unknown transaction status", 400));
       }
-  
-      // Transaction update
-      const transaction = await prisma.transaction.update({
-        where: { bookingCode: order_id },
-        data: {
-          status: newStatus,
-          paymentMethod: req.body.payment_type,
-        },
-      });
-  
-      // Jika transaksi dibatalkan (expired/cancel)
-      if (newStatus === "Cancelled") {
-        // Kembalikan seat menjadi available
-        await prisma.seat.updateMany({
-          where: { 
-            Ticket: {
-              some: {
-                transactionId: transaction.id
-              }
-            }
-          },
-          data: { 
-            available: true 
-          }
-        });
-  
-        // Hapus tiket terkait
-        await prisma.ticket.deleteMany({
-          where: { 
-            transactionId: transaction.id 
-          }
-        });
-      }
-  
-      // Jika transaksi berhasil
-      if (newStatus === "Issued") {
-        await prisma.ticket.updateMany({
-          where: { transactionId: transaction.id },
+
+      await prisma.$transaction(async (prisma) => {
+        const transaction = await prisma.transaction.update({
+          where: { bookingCode: orderId },
           data: {
-            seat: {
-              update: {
-                available: false,
+            status: newStatus,
+            paymentMethod: statusResponse.payment_type,
+          },
+        });
+
+        if (newStatus === "Cancelled") {
+          await prisma.transaction.update({
+            where: { bookingCode: orderId },
+            data: {
+              status: newStatus,
+            },
+          });
+        }
+
+        if (newStatus === "Issued") {
+          await prisma.seat.updateMany({
+            where: {
+              tickets: {
+                some: {
+                  transactionId: transaction.id,
+                },
               },
             },
-          },
-        });
-      }
-  
-      res.status(200).send("OK");
+            data: {
+              available: false,
+            },
+          });
+
+          await prisma.transaction.update({
+            where: { bookingCode: orderId },
+            data: {
+              status: newStatus,
+            },
+          });
+        }
+      });
+
+      response(
+        200,
+        "success",
+        null,
+        "Transaction status updated successfully",
+        res
+      );
     } catch (error) {
       console.error("Midtrans callback error:", error);
-      res.status(500).json({ error: error.message });
+      next(new AppError(error.message, 500));
     }
   }
+
 
   static async getTransactionStatus(req, res, next) {
     try {
@@ -312,6 +418,10 @@ class TransactionController {
         },
       });
 
+      if (!transaction) {
+        return next(new AppError("Transaction not found", 404));
+      }
+
       response(
         200,
         "success",
@@ -324,27 +434,60 @@ class TransactionController {
     }
   }
 
-  static async getAllTransactions(req, res, next) {
+  static async getAllTransactionsByUser(req, res, next) {
     try {
-      const { bookingCode, departureDate } = req.query;
+      const { flightNumber, startDate, endDate } = req.query;
 
-      const query = {};
-      if (bookingCode) {
-        query.bookingCode = bookingCode;
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return next(new AppError("User not authenticated", 401));
       }
 
-      if (departureDate) {
-        const parsedDate = new Date(departureDate);
-        if (isNaN(parsedDate.getTime())) {
-          return next(new AppError("Invalid departure date", 400));
-        }
+      const query = {
+        userId: userId,
+      };
 
+      if (flightNumber) {
         query.Tickets = {
           some: {
             seat: {
               flight: {
-                departureDate: {
-                  gte: parsedDate,
+                flightNumber: {
+                  contains: flightNumber,
+                  mode: "insensitive",
+                },
+              },
+            },
+          },
+        };
+      }
+
+      if (startDate && endDate) {
+        const parsedStartDate = new Date(startDate);
+        const parsedEndDate = new Date(endDate);
+
+        if (
+          isNaN(parsedStartDate.getTime()) ||
+          isNaN(parsedEndDate.getTime())
+        ) {
+          return next(new AppError("Invalid date range", 400));
+        }
+
+        // Menggunakan departureTime untuk memfilter penerbangan dalam rentang tanggal
+        query.Tickets = {
+          ...query.Tickets,
+          some: {
+            ...query.Tickets?.some,
+            seat: {
+              ...query.Tickets?.some?.seat,
+              flight: {
+                ...query.Tickets?.some?.seat?.flight,
+                departureTime: {
+                  gte: parsedStartDate,
+                  lte: new Date(
+                    parsedEndDate.getTime() + 24 * 60 * 60 * 1000 - 1
+                  ), // Akhir hari
                 },
               },
             },
@@ -371,16 +514,25 @@ class TransactionController {
               passenger: true,
             },
           },
-          // user: true,
+          user: true,
+        },
+        orderBy: {
+          createAt: "desc",
         },
       });
+
+      // Hitung total transaksi
+      const totalTransactions = transactions.length;
 
       response(
         200,
         "success",
         transactions,
-        "Transactions retrieved successfully",
-        res
+        `${totalTransactions} transactions retrieved successfully`,
+        res,
+        {
+          totalTransactions,
+        }
       );
     } catch (error) {
       next(error);
@@ -390,10 +542,17 @@ class TransactionController {
   static async generateTransactionPDF(req, res, next) {
     try {
       const { bookingCode } = req.params;
+      const userId = req.user?.id;
 
-      // Fetch transaction details
+      if (!userId) {
+        return next(new AppError("Unauthorized: User not authenticated", 401));
+      }
+
       const transaction = await prisma.transaction.findUnique({
-        where: { bookingCode },
+        where: {
+          bookingCode,
+          userId,
+        },
         include: {
           Tickets: {
             include: {
@@ -411,16 +570,35 @@ class TransactionController {
               passenger: true,
             },
           },
+          user: true,
         },
       });
 
       if (!transaction) {
-        return next(new AppError("Transaction not found", 404));
+        return next(
+          new AppError("Transaction not found or unauthorized access", 404)
+        );
+      }
+
+      // console.log(`User ${userId} accessing transaction ${bookingCode}`);
+
+      if (transaction.userId !== userId) {
+        return next(
+          new AppError(
+            "Unauthorized: You do not have access to this transaction",
+            403
+          )
+        );
       }
 
       if (transaction.status !== "Issued") {
-        return next(new AppError("Tickets can only be printed if the transaction status is 'Issued'", 400));
-    }
+        return next(
+          new AppError(
+            "Tickets can only be printed if the transaction status is 'Issued'",
+            400
+          )
+        );
+      }
 
       const tickets = transaction.Tickets || [];
       if (tickets.length === 0) {
@@ -549,9 +727,9 @@ class TransactionController {
       const pdfFilePath = path.join(tmpDir, `${transaction.bookingCode}.pdf`);
       fs.writeFileSync(pdfFilePath, pdfBytes);
 
-      const downloadUrl = `${req.protocol}://${req.get(
-        "host"
-      )}/api/transaction/download/${transaction.bookingCode}.pdf`;
+      const host = req.get("host");
+      const protocol = host.includes("localhost") ? "http" : "https";
+      const downloadUrl = `${protocol}://${host}/api/transaction/download/${transaction.bookingCode}.pdf`;
 
       const qrCodeOptions = { width: 300, margin: 1 };
       const qrCodeDataUrl = await QRCode.toDataURL(downloadUrl, qrCodeOptions);
@@ -559,11 +737,15 @@ class TransactionController {
       response(
         200,
         "success",
-        { qrCode: qrCodeDataUrl, pdfPath: pdfFilePath },
+        { qrCode: qrCodeDataUrl, downloadUrl, pdfPath: pdfFilePath },
         "PDF generated successfully",
         res
       );
     } catch (error) {
+      console.error(
+        `Error generating PDF for transaction ${bookingCode}:`,
+        error
+      );
       next(error);
     }
   }
@@ -571,11 +753,15 @@ class TransactionController {
   static async downloadPDF(req, res, next) {
     try {
       const { bookingCode } = req.params;
+
       const pdfFilePath = path.join(__dirname, `../tmp/${bookingCode}.pdf`);
 
       if (!fs.existsSync(pdfFilePath)) {
         return next(new AppError("PDF not found", 404));
       }
+
+      res.setHeader('Content-Disposition', `attachment; filename="${bookingCode}.pdf"`);
+      res.setHeader('Content-Type', 'application/pdf');
 
       res.download(pdfFilePath, `${bookingCode}.pdf`, (err) => {
         if (err) {
@@ -585,6 +771,203 @@ class TransactionController {
       });
     } catch (error) {
       console.error("Error downloading PDF:", error);
+      next(error);
+    }
+  }
+
+  static async getAllTransactionsAdmin(req, res, next) {
+    try {
+      const {
+        page = 1,
+        limit = 10,
+        search = "",
+        startDate,
+        endDate,
+        status,
+        minAmount,
+        maxAmount,
+        sortBy = "createAt",
+        sortOrder = "desc",
+      } = req.query;
+
+      const pageNumber = parseInt(page);
+      const limitNumber = parseInt(limit);
+      const skip = (pageNumber - 1) * limitNumber;
+
+      const query = {
+        AND: [
+          // Filter pencarian global
+          search
+            ? {
+                OR: [
+                  { bookingCode: { contains: search, mode: "insensitive" } },
+                  { user: { name: { contains: search, mode: "insensitive" } } },
+                  {
+                    user: { email: { contains: search, mode: "insensitive" } },
+                  },
+                ],
+              }
+            : {},
+
+          // Filter status transaksi
+          status ? { status: status } : {},
+
+          // Filter rentang tanggal
+          startDate && endDate
+            ? {
+                createAt: {
+                  gte: new Date(startDate),
+                  lte: new Date(endDate),
+                },
+              }
+            : {},
+
+          // Filter rentang nominal
+          minAmount && maxAmount
+            ? {
+                totalPrice: {
+                  gte: parseFloat(minAmount),
+                  lte: parseFloat(maxAmount),
+                },
+              }
+            : {},
+        ],
+      };
+
+      const totalTransactions = await prisma.transaction.count({
+        where: query,
+      });
+
+      const transactions = await prisma.transaction.findMany({
+        where: query,
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              phoneNumber: true,
+            },
+          },
+          Tickets: {
+            include: {
+              seat: {
+                include: {
+                  flight: {
+                    include: {
+                      departureAirport: true,
+                      arrivalAirport: true,
+                      airline: true,
+                    },
+                  },
+                },
+              },
+              passenger: true,
+            },
+          },
+        },
+        orderBy: {
+          [sortBy]: sortOrder,
+        },
+        skip: skip,
+        take: limitNumber,
+      });
+
+      const statistics = await prisma.transaction.aggregate({
+        _count: { id: true },
+        _sum: { totalAmmount: true },
+        where: query,
+      });
+
+      response(
+        200,
+        "success",
+        transactions,
+        "Transactions retrieved successfully",
+        res,
+        {
+          pagination: {
+            totalTransactions,
+            totalPages: Math.ceil(totalTransactions / limitNumber),
+            currentPage: pageNumber,
+            itemsPerPage: limitNumber,
+          },
+          statistics: {
+            totalTransactionCount: statistics._count.id,
+            totalTransactionValue: statistics._sum.totalPrice || 0,
+          },
+        }
+      );
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async softDeleteTransaction(req, res, next) {
+    try {
+      const { id } = req.params;
+      const transactionId = parseInt(id, 10);
+
+      await prisma.$transaction(async (prisma) => {
+        const existingTransaction = await prisma.transaction.findUnique({
+          where: { id: transactionId },
+        });
+
+        if (!existingTransaction) {
+          throw new AppError("Transaction not found", 404);
+        }
+
+        const deletedTransaction = await prisma.transaction.update({
+          where: { id: transactionId },
+          data: {
+            deleteAt: new Date(),
+          },
+        });
+
+        response(
+          200,
+          "success",
+          deletedTransaction,
+          "Transaction soft deleted successfully",
+          res
+        );
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async restoreTransaction(req, res, next) {
+    try {
+      const { id } = req.params;
+      const transactionId = parseInt(id, 10);
+
+      const deletedTransaction = await prisma.transaction.findUnique({
+        where: {
+          id: transactionId,
+          deleteAt: { not: null },
+        },
+      });
+
+      if (!deletedTransaction) {
+        return next(new AppError("Deleted transaction not found", 404));
+      }
+
+      const restoredTransaction = await prisma.transaction.update({
+        where: { id: transactionId },
+        data: {
+          deleteAt: null,
+        },
+      });
+
+      response(
+        200,
+        "success",
+        restoredTransaction,
+        "Transaction restored successfully",
+        res
+      );
+    } catch (error) {
       next(error);
     }
   }

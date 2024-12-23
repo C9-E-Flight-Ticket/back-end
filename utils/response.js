@@ -1,22 +1,23 @@
 const response = (statusCode, status, data, message, res, pagination = null) => {
-  // contoh response(200, "success", ticket, "Berhasil menampilkan ticket", res)
-  res.status(statusCode).json({
+  const responsePayload = {
     payload: {
       status_code: statusCode,
-      status: status, // "success" / "failed"
+      status: status,
       message: message,
-      datas: data,
-    },
-    pagination: pagination
-      ? {
-          totalItems: pagination.totalItems || 0, // jumlah semua data no limit
-          currentPage: pagination.currentPage || 1, // page data yang lagi di buka user
-          pageSize: pagination.pageSize || 0, // limit / data yg ditampilkan
-          totalPages: pagination.totalPages || 1, // seluruh page = seluruh data / limit
-        }
-      : null,
-  });
+      data: data,
+    }
+  };
+
+  if (pagination && Object.keys(pagination).length > 0) {
+    responsePayload.pagination = {
+      totalItems: pagination.totalItems || 0,
+      currentPage: pagination.currentPage || 1,
+      pageSize: pagination.pageSize || 0,
+      totalPages: pagination.totalPages || 1,
+    };
+  }
+
+  res.status(statusCode).json(responsePayload);
 };
 
 module.exports = response;
-

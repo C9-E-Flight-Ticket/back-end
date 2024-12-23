@@ -5,8 +5,8 @@ const prisma = require("../models/prismaClients");
 const cron = require('node-cron');
 const { getEmailSubject, getEmailTemplate } = require("../templates/emailTemplates");
 
-const MAX_OTP_ATTEMPTS = process.env.MAX_OTP_ATTEMPTS || 5;
-const OTP_EXPIRY_MINUTES = process.env.OTP_EXPIRY_MINUTES || 5;
+const MAX_OTP_ATTEMPTS = process.env.MAX_OTP_ATTEMPTS || 3;
+const OTP_EXPIRY_MINUTES = process.env.OTP_EXPIRY_MINUTES || 1;
 
 const OTP_TYPES = {
     EMAIL_VERIFICATION: 'EMAIL_VERIFICATION',
@@ -42,15 +42,13 @@ const sendOtp = async (email, type = OTP_TYPES.EMAIL_VERIFICATION) => {
         const activeOtp = user.otps[0];
         if (activeOtp) {
             if (activeOtp.attempts >= MAX_OTP_ATTEMPTS) {
-                throw new Error("Terlalu banyak percobaan. Silakan coba lagi dalam 30 menit");
+                throw new Error(`OTP telah diblokir. Silakan tunggu ${OTP_EXPIRY_MINUTES} menit untuk mencoba lagi`);
             }
-
+            
             await prisma.oTP.update({
                 where: { id: activeOtp.id },
                 data: {
-                    attempts: {
-                        increment: 1
-                    }
+                    revokedAt: new Date()
                 }
             });
         }
@@ -63,7 +61,7 @@ const sendOtp = async (email, type = OTP_TYPES.EMAIL_VERIFICATION) => {
         });
 
         const hashedOtp = await bcrypt.hash(otp, Number(process.env.SALT_ROUNDS));
-        const expiryTime = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60000);
+        const expiryTime = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60000); // milisecond (60 seconds x 1000 milisecond)
 
         if (activeOtp) {
             await prisma.oTP.updateMany({
@@ -84,7 +82,7 @@ const sendOtp = async (email, type = OTP_TYPES.EMAIL_VERIFICATION) => {
                 type,
                 userId: user.id,
                 expiresAt: expiryTime,
-                attempts: 1
+                attempts: 0
             }
         });
 
@@ -103,7 +101,7 @@ const sendOtp = async (email, type = OTP_TYPES.EMAIL_VERIFICATION) => {
         };
 
     } catch (error) {
-        console.error("Failed to send OTP:", error);
+        // console.error("Failed to send OTP:", error);
         throw error;
     }
 };
@@ -141,26 +139,27 @@ const verifyOtp = async (email, otp, type = OTP_TYPES.EMAIL_VERIFICATION) => {
 
         const isValidOtp = await bcrypt.compare(otp, activeOtp.code);
         if (!isValidOtp) {
-            await prisma.oTP.update({
-                where: { id: activeOtp.id },
-                data: {
-                    attempts: {
-                        increment: 1
-                    }
-                }
-            });
-
-            if (activeOtp.attempts >= MAX_OTP_ATTEMPTS - 1) {
+            const newAttemptCount = activeOtp.attempts + 1;
+            const attemptsLeft = MAX_OTP_ATTEMPTS - newAttemptCount;
+            
+            if (newAttemptCount >= MAX_OTP_ATTEMPTS) {
                 await prisma.oTP.update({
                     where: { id: activeOtp.id },
                     data: {
+                        attempts: newAttemptCount,
                         revokedAt: new Date()
                     }
                 });
                 throw new Error("Maksimum percobaan tercapai. Silakan minta OTP baru");
+            } else {
+                await prisma.oTP.update({
+                    where: { id: activeOtp.id },
+                    data: {
+                        attempts: newAttemptCount
+                    }
+                });
+                throw new Error(`OTP tidak valid. Sisa ${attemptsLeft} percobaan lagi`);
             }
-
-            throw new Error("OTP tidak valid");
         }
 
         await prisma.oTP.update({
@@ -176,30 +175,32 @@ const verifyOtp = async (email, otp, type = OTP_TYPES.EMAIL_VERIFICATION) => {
             message: "OTP berhasil diverifikasi"
         };
     } catch (error) {
-        console.error("OTP verification error:", error);
+        // console.error("OTP verification error:", error);
         throw error;
     }
 };
 
-cron.schedule('0 * * * *', async () => {
-    try {
-        const now = new Date();
-        const result = await prisma.oTP.updateMany({
-            where: {
-                expiresAt: {
-                    lt: now
+if (process.env.NODE_ENV !== 'test') {
+    cron.schedule('0 * * * *', async () => {
+        try {
+            const now = new Date();
+            const result = await prisma.oTP.updateMany({
+                where: {
+                    expiresAt: {
+                        lt: now
+                    },
+                    revokedAt: null,
+                    verifiedAt: null
                 },
-                revokedAt: null,
-                verifiedAt: null
-            },
-            data: {
-                revokedAt: now
-            }
-        });
-        console.log(`Cleaned up ${result.count} expired OTPs`);
-    } catch (error) {
-        console.error('Error cleaning up expired OTPs:', error);
-    }
-});
+                data: {
+                    revokedAt: now
+                }
+            });
+            console.log(`Cleaned up ${result.count} expired OTPs`);
+        } catch (error) {
+            console.error('Error cleaning up expired OTPs:', error);
+        }
+    });
+  }
 
 module.exports = { sendOtp, verifyOtp, OTP_TYPES }; 
