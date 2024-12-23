@@ -45,7 +45,7 @@ A robust backend system for managing flight bookings, user management, and trave
 - npm or yarn
 - ImageKit account
 - Midtrans account
-- Google OAuth credentials (optional)
+- Google OAuth credentials
 - Email service credentials
 
 ## Environment Setup
