@@ -38,6 +38,7 @@ A robust backend system for managing flight bookings, user management, and trave
 - ImageKit
 - Passport.js
 - Nodemailer
+- Socket.io
 - Jest
 - PM2
 
