@@ -63,9 +63,8 @@ class NotificationController {
 
     try {
       // Buat batch notifikasi
-      prisma.notification.create({
+      const notifications = prisma.notification.create({
         data: {
-          userId: user.id,
           title,
           message,
           senderId,
