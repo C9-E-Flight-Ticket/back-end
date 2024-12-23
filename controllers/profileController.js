@@ -27,7 +27,7 @@ class ProfileController {
     try {
       const { name, email, phoneNumber } = req.body;
       const userId = req.user?.id;
-
+      
       const updatedUser = await prisma.user.update({
         where: { id: parseInt(userId) },
         data: { name, email, phoneNumber },
@@ -39,7 +39,7 @@ class ProfileController {
     }
   }
 
-  static async resetPassword(req, res, next) {
+  static async changePassword(req, res, next) {
     try {
       const { oldPassword, newPassword } = req.body;
       const userId = req.user?.id;

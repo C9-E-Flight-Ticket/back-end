@@ -100,8 +100,8 @@ class ForgotPasswordController {
                 return next(new AppError("Password dan konfirmasi password tidak cocok", 400));
             }
 
-            if (newPassword.length < 8) {
-                return next(new AppError("Password minimal 8 karakter", 400));
+            if (newPassword.length < 6) {
+                return next(new AppError("Password minimal 6 karakter", 400));
             }
 
             const user = await prisma.user.findUnique({

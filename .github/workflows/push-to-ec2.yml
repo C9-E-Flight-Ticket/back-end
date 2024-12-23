@@ -3,7 +3,7 @@ name: Push-to-EC2
 on:
     push:
         branches:
-            - main
+            - development
 
 jobs:
     deploy:
@@ -51,3 +51,4 @@ jobs:
              username: ${{ secrets.USERNAME }}
              key: ${{ secrets.SSH_PRIVATE_KEY }}
              script: "sudo pm2 restart all --update-env"
+             

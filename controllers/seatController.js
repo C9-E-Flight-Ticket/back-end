@@ -11,8 +11,26 @@ class SeatController {
         ? flightId.map((id) => parseInt(id))
         : [parseInt(flightId)];
 
-      if (!flightIdsArray || flightIdsArray.length === 0) {
+      if (
+        !flightIdsArray ||
+        flightIdsArray.length === 0 ||
+        isNaN(flightIdsArray[0])
+      ) {
         throw new AppError("flightId harus berisi minimal satu flightId", 400);
+      }
+
+      // Check if flights exist
+      const flightsExist = await Promise.all(
+        flightIdsArray.map(async (flightId) => {
+          const flight = await prisma.flight.findUnique({
+            where: { id: flightId },
+          });
+          return flight !== null;
+        })
+      );
+
+      if (flightsExist.includes(false)) {
+        throw new AppError("Flight tidak ditemukan", 404);
       }
 
       // add jumlah views di flight
@@ -71,7 +89,13 @@ class SeatController {
         ({ flightId, seats }) => ({
           flightId,
           seats: seatClass
-            ? seats.filter((seat) => seat.seatClass.toLocaleLowerCase() === seatClass.toLocaleLowerCase()).sort((a, b) => a.seatNumber - b.seatNumber)
+            ? seats
+                .filter(
+                  (seat) =>
+                    seat.seatClass.toLocaleLowerCase() ===
+                    seatClass.toLocaleLowerCase()
+                )
+                .sort((a, b) => a.seatNumber - b.seatNumber)
             : seats.sort((a, b) => a.seatNumber - b.seatNumber),
         })
       );
@@ -80,7 +104,12 @@ class SeatController {
       if (
         filteredSeatsByFlight.every(({ seats }) => !seats || seats.length === 0)
       ) {
-        throw new AppError("Tidak ada kursi yang tersedia untuk penerbangan ini", 404);
+        return next(
+          new AppError(
+            "Tidak ada kursi yang tersedia untuk penerbangan ini",
+            404
+          )
+        );
       }
 
       const passengerCounts = {
@@ -175,21 +204,32 @@ class SeatController {
 
       const totalSeats = await prisma.seat.count({ where: { deleteAt: null } });
       const totalPages = Math.ceil(totalSeats / limitNumber);
-  
+
       const pagination = {
         currentPage: pageNumber,
         totalPages,
         totalSeats,
         limit: limitNumber,
       };
-  
-      response(200, "success", { seats, pagination }, "Berhasil mengambil data kursi dengan paginasi.", res);
+
+      response(
+        200,
+        "success",
+        { seats, pagination },
+        "Berhasil mengambil data kursi dengan paginasi.",
+        res
+      );
     } catch (error) {
       console.error(error);
-      response(500, "error", null, "Terjadi kesalahan saat mengambil data kursi.", res);
+      response(
+        500,
+        "error",
+        null,
+        "Terjadi kesalahan saat mengambil data kursi.",
+        res
+      );
     }
   }
-  
 
   // READ Seat by ID
   static async getSeatById(req, res) {
@@ -216,7 +256,13 @@ class SeatController {
       }
     } catch (error) {
       console.error(error);
-      response(500, "error", null, "Terjadi kesalahan saat mengambil data seat.", res);
+      response(
+        500,
+        "error",
+        null,
+        "Terjadi kesalahan saat mengambil data seat.",
+        res
+      );
     }
   }
 
@@ -270,7 +316,13 @@ class SeatController {
       response(200, "success", updatedSeat, "Seat berhasil diperbarui.", res);
     } catch (error) {
       console.error(error);
-      response(500, "error", null, "Terjadi kesalahan saat memperbarui seat.", res);
+      response(
+        500,
+        "error",
+        null,
+        "Terjadi kesalahan saat memperbarui seat.",
+        res
+      );
     }
   }
 
@@ -287,7 +339,13 @@ class SeatController {
       response(200, "success", null, "Seat berhasil dihapus.", res);
     } catch (error) {
       console.error(error);
-      response(500, "error", null, "Terjadi kesalahan saat menghapus seat.", res);
+      response(
+        500,
+        "error",
+        null,
+        "Terjadi kesalahan saat menghapus seat.",
+        res
+      );
     }
   }
 }

@@ -1,7 +1,11 @@
 openapi: "3.0.3"
 info:
-  title: E-Flight Ticket Team IX
+  title: Flaizy (E-Flight Ticket) - Team IX
   version: "1.0"
+  description: This is the API documentation for the Flaizy E-Flight Ticket project by Team IX. For more details, visit our [GitHub repository](https://github.com/C9-E-Flight-Ticket/back-end).
+  contact:
+    name: GitHub Team IX
+    url: https://github.com/C9-E-Flight-Ticket/back-end
 servers:
   - url: https://api.eflight.web.id
   - url: http://localhost:3000
@@ -453,7 +457,7 @@ paths:
               properties:
                 seats:
                   type: array
-                  example: [1, 2, 3, 4]
+                  example: [137, 138, 139, 140]
                   items:
                     type: integer
                 passengerDetails:
@@ -502,12 +506,6 @@ paths:
                       category:
                         type: string
                         enum: ["Adult", "Child", "Baby"]
-                tax:
-                  type: number
-                  example: 1320000
-                total:
-                  type: number
-                  example: 13320000
       responses:
         "201":
           description: Transaction created successfully
@@ -722,56 +720,7 @@ paths:
                 message: PDF not found
         "500":
           $ref: "#/components/responses/ServerError"
-
-  /api/transaction/midtrans-callback:
-    post:
-      summary: Midtrans Payment Callback
-      description: Webhook endpoint for Midtrans payment status updates
-      security:
-        - BearerAuth: []
-        - CookieAuth: []
-      tags:
-        - Transaction
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                order_id:
-                  type: string
-                  example: "ORDER12345"
-                transaction_status:
-                  type: string
-                  example: "settlement"
-                fraud_status:
-                  type: string
-                  example: "accept"
-                payment_type:
-                  type: string
-                  example: "credit_card"
-      responses:
-        "200":
-          description: Callback processed successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  message:
-                    type: string
-                    example: Transaction status updated successfully
-        "400":
-          $ref: "#/components/responses/BadRequestError"
-          description: Invalid callback data or unknown transaction status
-        "500":
-          $ref: "#/components/responses/ServerError"
-          description: Internal server error
-          
+   
   # Flight endpoints
 
   /api/flight/search:
@@ -1121,7 +1070,7 @@ paths:
 
   # Profile Endpoint
 
-  /api/profile/{id}:
+  /api/profile:
     get:
       summary: Mendapatkan profil pengguna berdasarkan ID
       security:
@@ -1130,14 +1079,6 @@ paths:
       operationId: getProfile
       tags:
         - Profile
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-            example: 1
-          description: ID pengguna yang ingin diambil profilnya
       responses:
         '200':
           description: Profil pengguna berhasil diambil
@@ -1174,14 +1115,6 @@ paths:
       operationId: updateProfile
       tags:
         - Profile
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-            example: 1
-          description: ID pengguna yang ingin diperbarui
       requestBody:
         description: Data untuk memperbarui profil pengguna
         required: true
@@ -2228,117 +2161,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
-  ## Seat
-
-  /api/admin/seat:
-    get:
-      tags:
-        - Admin - Seat
-      security:
-        - BearerAuth: []
-        - CookieAuth: []
-      summary: Get all seats
-      description: Mengambil semua data kursi.
-      responses:
-        '200':
-          description: Berhasil mengambil data kursi.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/SeatAdmin'
-    post:
-      tags:
-        - Admin - Seat
-      security:
-        - BearerAuth: []
-        - CookieAuth: []
-      summary: Create a new seat
-      description: Membuat data kursi baru.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SeatAdmin'
-      responses:
-        '201':
-          description: Kursi berhasil dibuat.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SeatAdmin'
-
-  /api/admin/seat/{id}:
-    get:
-      tags:
-        - Admin - Seat
-      security:
-        - BearerAuth: []
-        - CookieAuth: []
-      summary: Get a seat by ID
-      description: Mengambil data kursi berdasarkan ID.
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: ID kursi.
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Berhasil mengambil data kursi.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SeatAdmin'
-    put:
-      tags:
-        - Admin - Seat
-      security:
-        - BearerAuth: []
-        - CookieAuth: []
-      summary: Update a seat by ID
-      description: Memperbarui data kursi berdasarkan ID.
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: ID kursi.
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SeatAdmin'
-      responses:
-        '200':
-          description: Kursi berhasil diperbarui.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SeatAdmin'
-    delete:
-      tags:
-        - Admin - Seat
-      security:
-        - BearerAuth: []
-        - CookieAuth: []
-      summary: Delete a seat by ID
-      description: Menghapus data kursi berdasarkan ID.
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: ID kursi.
-          schema:
-            type: integer
-      responses:
-        '204':
-          description: Kursi berhasil dihapus.
 
 components:
   schemas:
