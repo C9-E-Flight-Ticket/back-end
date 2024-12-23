@@ -78,6 +78,7 @@ class NotificationController {
 
       onlineUserSockets.forEach((socketId) => {
         io.to(socketId).emit("broadcast-notification", {
+          id,
           title,
           message,
           createdAt: new Date(),
