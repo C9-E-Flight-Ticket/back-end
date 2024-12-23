@@ -1,12 +1,13 @@
 {
-  "name": "draft",
+  "name": "e-flight-back-end",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
     "test": "cross-env NODE_ENV=test jest --detectOpenHandles",
     "seed": "node ./prisma/seed.js",
     "deleteSeed": "node ./prisma/deleteSeed.js",
-    "start": "nodemon app.js"
+    "start": "pm2 start app.js",
+    "dev": "nodemon app.js"
   },
   "keywords": [],
   "author": "",

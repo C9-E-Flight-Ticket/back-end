@@ -8,6 +8,8 @@ A robust backend system for managing flight bookings, user management, and trave
 - [Prerequisites](#prerequisites)
 - [Environment Setup](#environment-setup)
 - [Installation](#installation)
+- [Running the Server](#running-the-server)
+- [Other Commands](#other-commands)
 - [Database Schema](#database-schema)
 - [API Documentation](#api-documentation)
 - [Testing](#testing)
@@ -37,6 +39,7 @@ A robust backend system for managing flight bookings, user management, and trave
 - Passport.js
 - Nodemailer
 - Jest
+- PM2
 
 ## Prerequisites
 
@@ -121,6 +124,13 @@ npm run dev
 
 # Start the server as production
 npm run start
+```
+
+## Other Commands
+
+```bash
+# Delete all data in database
+npm run deleteSeed
 ```
 
 ## Database Schema
