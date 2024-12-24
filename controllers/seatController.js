@@ -57,10 +57,6 @@ class SeatController {
         });
       }
 
-      if (userId && !user) {
-        return next(new AppError("User tidak ditemukan", 404));
-      }
-
       const seatsByFlight = await Promise.all(
         flightIdsArray.map(async (flightId) => {
           const seats = await prisma.seat.findMany({

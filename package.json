@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "cross-env NODE_ENV=test jest --detectOpenHandles",
+    "test": "cross-env NODE_ENV=test jest --detectOpenHandles --silent",
     "seed": "node ./prisma/seed.js",
     "deleteSeed": "node ./prisma/deleteSeed.js",
     "start": "nodemon app.js"
@@ -62,4 +62,5 @@
     "url": "https://github.com/C9-E-Flight-Ticket/back-end/issues"
   },
   "homepage": "https://github.com/C9-E-Flight-Ticket/back-end#readme"
+
 }

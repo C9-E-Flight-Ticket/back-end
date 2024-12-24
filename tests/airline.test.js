@@ -133,6 +133,22 @@ describe("AirlineController", () => {
       expect(response.body.pagination.pageSize).toBe("10");
       expect(response.body.pagination.totalPages).toBe(1);
     });
+
+    it("should return 500 if there is a server error", async () => {
+        // Simulasi kesalahan server pada getAirlines
+        jest.spyOn(prisma.airline, "findMany").mockImplementationOnce(() => {
+          throw new Error("Database error");
+        });
+    
+        const response = await request(app)
+          .get("/api/admin/airline/get")
+          .set("Authorization", `Bearer ${adminToken}`)
+          .query({ limit: 10, offset: 0 });
+    
+        expect(response.status).toBe(500);
+        expect(response.body.payload.status).toBe("error");
+        expect(response.body.payload.message).toBe("Database error");
+      });
   });
 
   describe("POST /api/admin/airline/create", () => {
@@ -167,6 +183,48 @@ describe("AirlineController", () => {
       expect(response.body.payload.status).toBe("success");
       expect(response.body.payload.data).toEqual(newAirline);
     });
+
+    it("should return 400 if name or code is missing", async () => {
+      const response = await request(app)
+        .post("/api/admin/airline/create")
+        .send({
+          name: "",
+          code: "",
+          baggage: 20,
+          cabinBaggage: 7,
+          entertainment: "In Flight Entertainment",
+          urlImage: "http://example.com/image3.jpg",
+          fileId: "file3",
+        })
+        .set("Authorization", `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(400);
+      expect(response.body.payload.status).toBe("error");
+      expect(response.body.payload.message).toBe("Nama dan kode airline wajib diisi");
+    });
+
+    it("should return 500 if there is a server error", async () => {
+      jest.spyOn(prisma.airline, "create").mockImplementationOnce(() => {
+        throw new Error("Database error");
+      });
+
+      const response = await request(app)
+        .post("/api/admin/airline/create")
+        .send({
+          name: "Airline 3",
+          code: "A3",
+          baggage: 20,
+          cabinBaggage: 7,
+          entertainment: "In Flight Entertainment",
+          urlImage: "http://example.com/image3.jpg",
+          fileId: "file3",
+        })
+        .set("Authorization", `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(500);
+      expect(response.body.payload.status).toBe("error");
+      expect(response.body.payload.message).toBe("Database error");
+    });
   });
 
   describe("PUT /api/admin/airline/update/:id", () => {
@@ -181,10 +239,10 @@ describe("AirlineController", () => {
         urlImage: "http://example.com/updated_image.jpg",
         fileId: "updated_file",
       };
-
+  
       prisma.airline.findUnique.mockResolvedValue(updatedAirline);
       prisma.airline.update.mockResolvedValue(updatedAirline);
-
+  
       const response = await request(app)
         .put("/api/admin/airline/update/1")
         .send({
@@ -197,11 +255,67 @@ describe("AirlineController", () => {
           fileId: "updated_file",
         })
         .set("Authorization", `Bearer ${adminToken}`);
-
+  
       expect(response.status).toBe(200);
       expect(response.body.payload.status).toBe("success");
       expect(response.body.payload.data).toEqual(updatedAirline);
     });
+  
+    it("should return 404 if airline not found", async () => {
+      prisma.airline.findUnique.mockResolvedValue(null);
+  
+      const response = await request(app)
+        .put("/api/admin/airline/update/999")
+        .send({
+          name: "Updated Airline",
+          code: "UA",
+          baggage: 25,
+          cabinBaggage: 10,
+          entertainment: "Updated Entertainment",
+          urlImage: "http://example.com/updated_image.jpg",
+          fileId: "updated_file",
+        })
+        .set("Authorization", `Bearer ${adminToken}`);
+  
+      expect(response.status).toBe(404);
+      expect(response.body.payload.status).toBe("error");
+      expect(response.body.payload.message).toBe("Airline tidak ditemukan");
+    });
+  
+    it("should return 500 if there is a server error", async () => {
+        // Simulasi kesalahan server pada update
+        prisma.airline.findUnique.mockResolvedValue({
+          id: 1,
+          name: "Airline 1",
+          code: "A1",
+          baggage: 20,
+          cabinBaggage: 7,
+          entertainment: "In Flight Entertainment",
+          urlImage: "http://example.com/image1.jpg",
+          fileId: "file1",
+        });
+    
+        jest.spyOn(prisma.airline, "update").mockImplementationOnce(() => {
+          throw new Error("Database error");
+        });
+    
+        const response = await request(app)
+          .put("/api/admin/airline/update/1")
+          .send({
+            name: "Updated Airline",
+            code: "UA",
+            baggage: 25,
+            cabinBaggage: 10,
+            entertainment: "Updated Entertainment",
+            urlImage: "http://example.com/updated_image.jpg",
+            fileId: "updated_file",
+          })
+          .set("Authorization", `Bearer ${adminToken}`);
+    
+        expect(response.status).toBe(500);
+        expect(response.body.payload.status).toBe("error");
+        expect(response.body.payload.message).toBe("Database error");
+      });
   });
 
   describe("DELETE /api/admin/airline/delete/:id", () => {
@@ -217,24 +331,62 @@ describe("AirlineController", () => {
         fileId: "deleted_file",
         deleteAt: new Date(),
       };
-  
+
       prisma.airline.findUnique.mockResolvedValue(deletedAirline);
       prisma.airline.update.mockResolvedValue(deletedAirline);
-  
+
       const response = await request(app)
         .delete("/api/admin/airline/delete/1")
         .set("Authorization", `Bearer ${adminToken}`);
-  
+
       expect(response.status).toBe(200);
       expect(response.body.payload.status).toBe("success");
-  
+
       // Convert deleteAt to string for comparison
       const expectedResponse = {
         ...deletedAirline,
         deleteAt: deletedAirline.deleteAt.toISOString(),
       };
-  
+
       expect(response.body.payload.data).toEqual(expectedResponse);
     });
+
+    it("should return 404 if airline not found", async () => {
+      prisma.airline.findUnique.mockResolvedValue(null);
+
+      const response = await request(app)
+        .delete("/api/admin/airline/delete/999")
+        .set("Authorization", `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(404);
+      expect(response.body.payload.status).toBe("error");
+      expect(response.body.payload.message).toBe("Airline tidak ditemukan");
+    });
+
+    it("should return 500 if there is a server error", async () => {
+        // Simulasi kesalahan server pada delete
+        prisma.airline.findUnique.mockResolvedValue({
+          id: 1,
+          name: "Airline 1",
+          code: "A1",
+          baggage: 20,
+          cabinBaggage: 7,
+          entertainment: "In Flight Entertainment",
+          urlImage: "http://example.com/image1.jpg",
+          fileId: "file1",
+        });
+    
+        jest.spyOn(prisma.airline, "update").mockImplementationOnce(() => {
+          throw new Error("Database error");
+        });
+    
+        const response = await request(app)
+          .delete("/api/admin/airline/delete/1")
+          .set("Authorization", `Bearer ${adminToken}`);
+    
+        expect(response.status).toBe(500);
+        expect(response.body.payload.status).toBe("error");
+        expect(response.body.payload.message).toBe("Database error");
+      });
   });
 });

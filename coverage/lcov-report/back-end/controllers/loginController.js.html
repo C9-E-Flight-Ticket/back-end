@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">83.33% </span>
+                <span class="strong">29.62% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>45/54</span>
+                <span class='fraction'>16/54</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">85.71% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>6/7</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">50% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/2</span>
+                <span class='fraction'>0/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">83.33% </span>
+                <span class="strong">29.62% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>45/54</span>
+                <span class='fraction'>16/54</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -127,37 +127,37 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -180,38 +180,38 @@ const { AppError } = require("../middleware/errorMiddleware");
 &nbsp;
 class LoginController {
     // Login user
-    static async login(req, res, next) {
-        const { email, password } = req.body;
-&nbsp;
-        try {
-            const user = await prisma.user.findUnique({
-                where: { email },
-            });
-&nbsp;
-            if (!user) {
-                return next(new AppError("Email tidak terdaftar", 404));
-            }
-&nbsp;
-            const isPasswordValid = await bcrypt.compare(password, user.password);
-&nbsp;
-            if (!isPasswordValid) {
-                return next(new AppError("Maaf, kata sandi salah", 401));
-            }
-&nbsp;
-            if (!user.is_verified) {
-                return next(new AppError("Akun belum terverifikasi. Silakan verifikasi email Anda.", 401));
-            }
-&nbsp;
-            const token = AuthMiddleware.generateToken(user);
-            CookieMiddleware.setTokenCookie(res, token);
-&nbsp;
-            // console.log("Cookie set:", token);
-&nbsp;
-            response(200, "success", token, "Berhasil login", res);
-        } <span class="branch-0 cbranch-no" title="branch not covered" >catch (error) {</span>
+<span class="fstat-no" title="function not covered" >    static async login(req, res, next) {</span>
+<span class="cstat-no" title="statement not covered" >        const { email, password } = req.body;</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >        try {</span>
+<span class="cstat-no" title="statement not covered" >            const user = await prisma.user.findUnique({</span>
+<span class="cstat-no" title="statement not covered" >                where: { email },</span>
+<span class="cstat-no" title="statement not covered" >            });</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >            if (!user) {</span>
+<span class="cstat-no" title="statement not covered" >                return next(new AppError("Email tidak terdaftar", 404));</span>
+<span class="cstat-no" title="statement not covered" >            }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >            const isPasswordValid = await bcrypt.compare(password, user.password);</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >            if (!isPasswordValid) {</span>
+<span class="cstat-no" title="statement not covered" >                return next(new AppError("Maaf, kata sandi salah", 401));</span>
+<span class="cstat-no" title="statement not covered" >            }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >            if (!user.is_verified) {</span>
+<span class="cstat-no" title="statement not covered" >                return next(new AppError("Akun belum terverifikasi. Silakan verifikasi email Anda.", 401));</span>
+<span class="cstat-no" title="statement not covered" >            }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >            const token = AuthMiddleware.generateToken(user);</span>
+<span class="cstat-no" title="statement not covered" >            CookieMiddleware.setTokenCookie(res, token);</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >            // console.log("Cookie set:", token);</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >            response(200, "success", token, "Berhasil login", res);</span>
+<span class="cstat-no" title="statement not covered" >        } catch (error) {</span>
 <span class="cstat-no" title="statement not covered" >            next(error);</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
-    }
+<span class="cstat-no" title="statement not covered" >    }</span>
 &nbsp;
     // Logout
 <span class="fstat-no" title="function not covered" >    static async logout(req, res, next) {</span>
@@ -232,7 +232,7 @@ module.exports = LoginController;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2024-12-23T15:23:12.172Z
+                at 2024-12-24T07:03:41.503Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

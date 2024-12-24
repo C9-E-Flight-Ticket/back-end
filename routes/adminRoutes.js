@@ -4,9 +4,7 @@ const { asyncErrorHandler } = require("../middleware/errorMiddleware");
 const AuthMiddleware = require('../middleware/authMiddleware');
 
 const TransactionController = require("../controllers/transactionController");
-const TicketController = require("../controllers/ticketController");
 const FlightController = require("../controllers/flightController");
-const SeatController = require("../controllers/seatController");
 const AirportController = require("../controllers/airportController");
 const airlineController = require("../controllers/airlineController");
 const PassengerController = require("../controllers/passengerController");
@@ -20,13 +18,6 @@ router.get("/transaction/history", asyncErrorHandler(TransactionController.getAl
 router.delete('/transaction/:id/soft-delete', asyncErrorHandler(TransactionController.softDeleteTransaction));
 router.patch('/transaction/:id/restore', asyncErrorHandler(TransactionController.restoreTransaction));
 
-
-// ticket
-router.get("/ticket", asyncErrorHandler(TicketController.getAllTickets));
-router.get("/ticket/:id", asyncErrorHandler(TicketController.getTicketById));
-router.post("/ticket", asyncErrorHandler(TicketController.createTicket));
-router.patch("/ticket/:id", asyncErrorHandler(TicketController.updateTicket));
-router.delete("/ticket/:id", asyncErrorHandler(TicketController.deleteTicket));
 
 // flight
 router.get('/flight/createFlight', asyncErrorHandler(FlightController.getCreateFlight));
