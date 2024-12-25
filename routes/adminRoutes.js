@@ -7,7 +7,6 @@ const TransactionController = require("../controllers/transactionController");
 const FlightController = require("../controllers/flightController");
 const AirportController = require("../controllers/airportController");
 const airlineController = require("../controllers/airlineController");
-const PassengerController = require("../controllers/passengerController");
 const NotificationController = require("../controllers/notificationController");
 
 router.use(AuthMiddleware.verifyAuthentication);
@@ -39,14 +38,6 @@ router.get("/airport/:id", asyncErrorHandler(AirportController.getAirportById));
 router.post("/airport/", asyncErrorHandler(AirportController.createAirport));
 router.put("/airport/:id", asyncErrorHandler(AirportController.updateAirport));
 router.delete("/airport/:id", asyncErrorHandler(AirportController.deleteAirport));
-
-// passenger
-router.get('/passenger', PassengerController.getAllPassengers);
-router.get('/passenger/:id', PassengerController.getPassengerById);
-router.get('/passenger/createMany', PassengerController.getCreatePassengerData);
-router.post('/passenger', PassengerController.createPassenger);
-router.put('/passenger/:id', PassengerController.updatePassenger);
-router.delete('/passenger/:id', PassengerController.deletePassenger);
 
 // notification
 router.get('/notification', asyncErrorHandler(NotificationController.getAllNotificationsForAdmin));

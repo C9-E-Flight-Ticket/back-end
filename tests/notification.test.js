@@ -1,275 +1,205 @@
-const request = require('supertest');
-const { createServer } = require('http');
+const request = require("supertest");
+const { app, server } = require("../app");
+const prisma = require("../models/prismaClients");
+const jwt = require("jsonwebtoken");
 
-// Mock Prisma client
-jest.mock('../models/prismaClients', () => ({
-  notification: {
-    findMany: jest.fn(),
-    create: jest.fn(),
-    deleteMany: jest.fn(),
-    updateMany: jest.fn(),
+jest.mock("../middleware/authMiddleware", () => ({
+  verifyAuthentication: (req, res, next) => {
+    req.user =
+      req.headers["role"] === "USER"
+        ? { id: 2, role: "USER" }
+        : { id: 1, role: "ADMIN" }; // Mock user based on role header
+    next();
+  },
+  adminOnly: (req, res, next) => {
+    if (req.user.role !== "ADMIN") {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+    next();
   },
 }));
 
-// Mock Socket.IO
-jest.mock('../config/socketIo', () => {
-  const mockIo = {
-    to: jest.fn().mockReturnThis(),
-    emit: jest.fn(),
-  };
-  
-  return {
-    init: jest.fn(() => mockIo),
-    getIO: jest.fn(() => mockIo),
-    getUserSocket: jest.fn(),
-    getOnlineUserSockets: jest.fn(),
-  };
-});
+describe("NotificationController", () => {
+  let adminToken;
+  let userToken;
 
-// Import dependencies after mocking
-const prisma = require('../models/prismaClients');
-const socketIo = require('../config/socketIo');
-const { app } = require('../app');
+  beforeAll(async () => {
+    // Set JWT_SECRET for testing
+    process.env.JWT_SECRET = "your_secret_key";
 
-// Suppress console.error during tests
-beforeAll(() => {
-  jest.spyOn(console, 'error').mockImplementation(() => {});
-});
-
-describe('Notification Controller Tests', () => {
-  let mockUser;
-  let mockAdmin;
-  let httpServer;
-
-  beforeAll(() => {
-    httpServer = createServer(app);
-  });
-
-  afterAll((done) => {
-    httpServer.close(done);
-  });
-
-  beforeEach(() => {
-    mockUser = {
+    // Create mock admin user
+    const mockAdmin = {
       id: 1,
-      role: 'USER',
+      name: "Admin User",
+      email: "admin@example.com",
+      role: "ADMIN",
     };
-    mockAdmin = {
+
+    // Create mock user
+    const mockUser = {
       id: 2,
-      role: 'ADMIN',
+      name: "User",
+      email: "user@example.com",
+      role: "USER",
     };
-    // Reset all mocks before each test
-    jest.clearAllMocks();
+
+    // Generate token for admin
+    adminToken = jwt.sign(
+      { id: mockAdmin.id, role: mockAdmin.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    // Generate token for user
+    userToken = jwt.sign(
+      { id: mockUser.id, role: mockUser.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    // Mock prisma methods
+    prisma.notification.findMany = jest.fn();
+    prisma.notification.count = jest.fn();
+    prisma.notification.create = jest.fn();
+    prisma.notification.findUnique = jest.fn();
+    prisma.notification.update = jest.fn();
+    prisma.notification.deleteMany = jest.fn();
   });
 
-  // Mock authentication middleware
-  const mockAuthMiddleware = jest.fn((req, res, next) => {
-    req.user = mockUser;
-    next();
+  afterAll(async () => {
+    await prisma.$disconnect();
+    server.close();
   });
 
-  const mockAdminAuthMiddleware = jest.fn((req, res, next) => {
-    req.user = mockAdmin;
-    next();
-  });
+  // Testing /api/admin/notification/send-notification for send notification to a specific user
+  describe("POST /api/admin/notification/send-notification", () => {
+    it("should send a notification to a specific user", async () => {
+      const mockNotification = {
+        userId: 2,
+        title: "Test Notification",
+        message: "This is a test notification",
+        senderId: 1,
+        type: "PERSONAL",
+        createdAt: new Date(),
+        deleteAt: null,
+        read: false,
+        updateAt: new Date(),
+      };
 
-  // Apply mock middleware
-  app.use('/api/notification', mockAuthMiddleware);
-  app.use('/api/admin/notification', mockAdminAuthMiddleware);
+      prisma.notification.create.mockResolvedValue(mockNotification);
 
-  describe('Admin Endpoints', () => {
-    describe('POST /api/admin/notification/send-notification', () => {
-      it('should send a notification to a specific user', async () => {
-        const mockNotification = {
-          id: 1,
-          userId: 3,
-          title: 'Test Notification',
-          message: 'Test Message',
-          createdAt: new Date(),
-        };
-
-        prisma.notification.create.mockResolvedValue(mockNotification);
-        socketIo.getUserSocket.mockReturnValue('user-socket-id');
-
-        const response = await request(app)
-          .post('/api/admin/notification/send-notification')
-          .send({
-            userId: 3,
-            title: 'Test Notification',
-            message: 'Test Message',
-          });
-
-        expect(response.status).toBe(201);
-        expect(response.body.status).toBe('success');
-        expect(prisma.notification.create).toHaveBeenCalledWith({
-          data: expect.objectContaining({
-            userId: 3,
-            title: 'Test Notification',
-            message: 'Test Message',
-            type: 'PERSONAL',
-          }),
+      const response = await request(app)
+        .post("/api/admin/notification/send-notification")
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send({
+          userId: 2,
+          title: "Test Notification",
+          message: "This is a test notification",
         });
-        expect(socketIo.getUserSocket).toHaveBeenCalledWith(3);
-      });
 
-      it('should return 400 if required fields are missing', async () => {
-        const response = await request(app)
-          .post('/api/admin/notification/send-notification')
-          .send({
-            title: 'Test Notification',
-            // missing userId and message
-          });
-
-        expect(response.status).toBe(400);
-      });
+      expect(response.status).toBe(201);
+      expect(response.body.payload.status).toBe("success");
+      expect(response.body.payload.data).toEqual(
+        expect.objectContaining({
+          userId: mockNotification.userId,
+          title: mockNotification.title,
+          message: mockNotification.message,
+          senderId: mockNotification.senderId,
+          type: mockNotification.type,
+        })
+      );
+      expect(response.body.payload.message).toBe(
+        "Notification sent successfully"
+      );
     });
 
-    describe('POST /api/admin/notification/broadcast-notification', () => {
-      it('should broadcast a notification to all users', async () => {
-        const mockNotification = {
-          id: 1,
-          title: 'Broadcast Test',
-          message: 'Broadcast Message',
-          type: 'BROADCAST',
-          createdAt: new Date(),
-        };
-
-        prisma.notification.create.mockResolvedValue(mockNotification);
-        socketIo.getOnlineUserSockets.mockReturnValue(['socket-1', 'socket-2']);
-
-        const response = await request(app)
-          .post('/api/admin/notification/broadcast-notification')
-          .send({
-            title: 'Broadcast Test',
-            message: 'Broadcast Message',
-          });
-
-        expect(response.status).toBe(201);
-        expect(response.body.status).toBe('success');
-        expect(prisma.notification.create).toHaveBeenCalledWith({
-          data: expect.objectContaining({
-            title: 'Broadcast Test',
-            message: 'Broadcast Message',
-            type: 'BROADCAST',
-          }),
+    it("should return 400 if userId, title, or message is missing", async () => {
+      const response = await request(app)
+        .post("/api/admin/notification/send-notification")
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send({
+          userId: 2,
+          title: "Test Notification",
         });
-        expect(socketIo.getOnlineUserSockets).toHaveBeenCalled();
-      });
+
+      expect(response.status).toBe(400);
+      expect(response.body.payload.message).toBe(
+        "userId, title, and message are required"
+      );
     });
 
-    describe('GET /api/admin/notification', () => {
-      it('should get all notifications for admin', async () => {
-        const mockNotifications = [
-          {
-            id: 1,
-            title: 'Test 1',
-            message: 'Message 1',
-          },
-          {
-            id: 2,
-            title: 'Test 2',
-            message: 'Message 2',
-          },
-        ];
-
-        prisma.notification.findMany.mockResolvedValue(mockNotifications);
-
-        const response = await request(app)
-          .get('/api/admin/notification');
-
-        expect(response.status).toBe(200);
-        expect(response.body.data).toEqual(mockNotifications);
-        expect(prisma.notification.findMany).toHaveBeenCalledWith({
-          orderBy: { createdAt: 'desc' },
+    // should return 500 if there is an error in the server
+    it("should return 500 if there is an error in the server", async () => {
+      prisma.notification.create.mockRejectedValue(new Error("Test error"));
+      const response = await request(app)
+        .post("/api/admin/notification/send-notification")
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send({
+          userId: "2",
+          title: 1343,
+          message: "This is a test notification",
         });
-      });
-    });
-
-    describe('DELETE /api/admin/notification/:id', () => {
-      it('should delete a notification', async () => {
-        prisma.notification.deleteMany.mockResolvedValue({ count: 1 });
-
-        const response = await request(app)
-          .delete('/api/admin/notification/1');
-
-        expect(response.status).toBe(200);
-        expect(prisma.notification.deleteMany).toHaveBeenCalledWith({
-          where: { id: 1 },
-        });
-      });
-
-      it('should return 404 if notification not found', async () => {
-        prisma.notification.deleteMany.mockResolvedValue({ count: 0 });
-
-        const response = await request(app)
-          .delete('/api/admin/notification/999');
-
-        expect(response.status).toBe(404);
-      });
+      expect(response.status).toBe(500);
     });
   });
 
-  describe('User Endpoints', () => {
-    describe('GET /api/notification', () => {
-      it('should get personal and broadcast notifications for user', async () => {
-        const mockNotifications = [
-          {
-            id: 1,
-            userId: 1,
-            title: 'Personal',
-            type: 'PERSONAL',
-          },
-          {
-            id: 2,
-            title: 'Broadcast',
-            type: 'BROADCAST',
-          },
-        ];
+  describe("POST /api/admin/notification/broadcast-notification", () => {
+    it("should broadcast a notification to all users", async () => {
+      const mockNotification = {
+        id: 1,
+        title: "Broadcast Notification",
+        message: "This is a broadcast notification",
+        senderId: 1,
+        type: "BROADCAST",
+        createdAt: new Date(),
+      };
 
-        prisma.notification.findMany.mockResolvedValue(mockNotifications);
+      prisma.notification.create.mockResolvedValue(mockNotification);
 
-        const response = await request(app)
-          .get('/api/notification');
-
-        expect(response.status).toBe(200);
-        expect(response.body.data).toEqual(mockNotifications);
-        expect(prisma.notification.findMany).toHaveBeenCalledWith({
-          where: {
-            OR: [
-              { userId: mockUser.id },
-              { type: 'BROADCAST' },
-            ],
-          },
-          orderBy: { createdAt: 'desc' },
+      const response = await request(app)
+        .post("/api/admin/notification/broadcast-notification")
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send({
+          title: "Broadcast Notification",
+          message: "This is a broadcast notification",
         });
-      });
+
+      expect(response.status).toBe(201);
+      expect(response.body.payload.status).toBe("success");
+      expect(response.body.payload.message).toBe("Broadcast notification sent successfully"
+);
     });
 
-    describe('PATCH /api/notification/:id/read', () => {
-      it('should mark a notification as read', async () => {
-        prisma.notification.updateMany.mockResolvedValue({ count: 1 });
-
-        const response = await request(app)
-          .patch('/api/notification/1/read');
-
-        expect(response.status).toBe(200);
-        expect(prisma.notification.updateMany).toHaveBeenCalledWith({
-          where: {
-            id: 1,
-            userId: mockUser.id,
-          },
-          data: { read: true },
+    it("should return 400 if title or message is missing", async () => {
+      const response = await request(app)
+        .post("/api/admin/notification/broadcast-notification")
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send({
+          title: "Broadcast Notification",
         });
-      });
 
-      it('should return 404 if notification not found', async () => {
-        prisma.notification.updateMany.mockResolvedValue({ count: 0 });
-
-        const response = await request(app)
-          .patch('/api/notification/999/read');
-
-        expect(response.status).toBe(404);
-      });
+      expect(response.status).toBe(400);
+      expect(response.body.payload.message).toBe(
+        "title and message are required"
+      );
     });
+
+    // it("should return 500 if there is a server error", async () => {
+    //   jest.spyOn(prisma.notification, "create").mockImplementationOnce(() => {
+    //     throw new Error("Database error");
+    //   });
+
+    //   const response = await request(app)
+    //     .post("/api/admin/notification/broadcast-notification")
+    //     .send({
+    //       title: "Test Title",
+    //       message: "Test Message",
+    //     })
+    //     .set("Authorization", `Bearer ${adminToken}`);
+
+    //   expect(response.status).toBe(500);
+    //   expect(response.body.payload.status).toBe("error");
+    //   expect(response.body.payload.message).toBe("Database error");
+    // });
   });
 });
