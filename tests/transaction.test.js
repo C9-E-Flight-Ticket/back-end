@@ -84,25 +84,25 @@ describe("TransactionController", () => {
         status: "Pending",
         userId: 2,
       };
-
+  
       const mockTicket = {
         id: 1,
         seatId: 9,
         transactionId: 1,
       };
-
+  
       const mockPassenger = {
         id: 1,
         name: "John Doe",
         transactionId: 1,
       };
-
+  
       prisma.transaction.create.mockResolvedValue({
         ...mockTransaction,
         Tickets: [mockTicket],
         Passengers: [mockPassenger],
       });
-
+  
       const response = await request(app)
         .post("/api/transaction/order")
         .set("Authorization", `Bearer ${userToken}`)
@@ -121,17 +121,17 @@ describe("TransactionController", () => {
             },
           ],
         });
-
+  
       bookingCode = response.body.payload.data.transaction.bookingCode;
       transactionId = response.body.payload.data.transaction.id;
-
+  
       expect(response.status).toBe(201);
       expect(response.body.payload.status).toBe("success");
       expect(response.body.payload.data.transaction).toHaveProperty("id");
       expect(response.body.payload.data.tickets).toHaveLength(1);
       expect(response.body.payload.data.passengers).toHaveLength(1);
     }, 10000);
-
+  
     it("should return 400 if input is invalid", async () => {
       const response = await request(app)
         .post("/api/transaction/order")
@@ -140,10 +140,99 @@ describe("TransactionController", () => {
           seats: [],
           passengerDetails: [],
         });
-
+  
       expect(response.status).toBe(400);
       expect(response.body.payload.status).toBe("error");
       expect(response.body.payload.message).toBe("Invalid input");
+    });
+  
+  
+    it("should return 400 if seats do not match passenger details", async () => {
+      const response = await request(app)
+        .post("/api/transaction/order")
+        .set("Authorization", `Bearer ${userToken}`)
+        .send({
+          seats: [9],
+          passengerDetails: [
+            {
+              title: "Mr",
+              name: "John Doe",
+              familyName: "Doe",
+              dateOfBirth: "1990-01-01",
+              nationality: "USA",
+              identityNumber: "123456789",
+              issuingCountry: "USA",
+              category: "Adult",
+            },
+            {
+              title: "Ms",
+              name: "Jane Doe",
+              familyName: "Doe",
+              dateOfBirth: "1992-01-01",
+              nationality: "USA",
+              identityNumber: "987654321",
+              issuingCountry: "USA",
+              category: "Adult",
+            },
+          ],
+        });
+  
+      expect(response.status).toBe(400);
+      expect(response.body.payload.status).toBe("error");
+      expect(response.body.payload.message).toBe(
+        "Invalid input: Jumlah kursi tidak sesuai dengan jumlah penumpang"
+      );
+    });
+  
+    it("should return 400 if some seats are not available", async () => {  
+      const response = await request(app)
+        .post("/api/transaction/order")
+        .set("Authorization", `Bearer ${userToken}`)
+        .send({
+          seats: [81536],
+          passengerDetails: [
+            {
+              title: "Mr",
+              name: "John Doe",
+              familyName: "Doe",
+              dateOfBirth: "1990-01-01",
+              nationality: "USA",
+              identityNumber: "123456789",
+              issuingCountry: "USA",
+              category: "Adult",
+            },
+          ],
+        });
+  
+      expect(response.status).toBe(400);
+      expect(response.body.payload.status).toBe("error");
+      expect(response.body.payload.message).toBe("Beberapa kursi tidak tersedia");
+    });
+  
+    it("should return 500 if there is a server error", async () => {
+      prisma.transaction.create.mockRejectedValue(new Error("Database error"));
+  
+      const response = await request(app)
+        .post("/api/transaction/order")
+        .set("Authorization", `Bearer ${userToken}`)
+        .send({
+          seats: ["salah"],
+          passengerDetails: [
+            {
+              title: "Mr",
+              name: "John Doe",
+              familyName: "Doe",
+              dateOfBirth: "1990-01-01",
+              nationality: "USA",
+              identityNumber: "123456789",
+              issuingCountry: "USA",
+              category: "Adult",
+            },
+          ],
+        });
+  
+      expect(response.status).toBe(500);
+      expect(response.body.payload.status).toBe("error");
     });
   });
 

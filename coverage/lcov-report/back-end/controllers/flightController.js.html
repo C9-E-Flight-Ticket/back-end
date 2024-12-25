@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">3.57% </span>
+                <span class="strong">3.58% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>23/643</span>
+                <span class='fraction'>23/641</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">3.57% </span>
+                <span class="strong">3.58% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>23/643</span>
+                <span class='fraction'>23/641</span>
             </div>
         
             
@@ -704,9 +704,7 @@
 <a name='L639'></a><a href='#L639'>639</a>
 <a name='L640'></a><a href='#L640'>640</a>
 <a name='L641'></a><a href='#L641'>641</a>
-<a name='L642'></a><a href='#L642'>642</a>
-<a name='L643'></a><a href='#L643'>643</a>
-<a name='L644'></a><a href='#L644'>644</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L642'></a><a href='#L642'>642</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -966,8 +964,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -1619,7 +1615,7 @@ class FlightController {
 <span class="cstat-no" title="statement not covered" >        offset,</span>
 <span class="cstat-no" title="statement not covered" >        sort,</span>
 <span class="cstat-no" title="statement not covered" >      } = req.query;</span>
-<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  </span>
 <span class="cstat-no" title="statement not covered" >      const query = {</span>
 <span class="cstat-no" title="statement not covered" >        where: {</span>
 <span class="cstat-no" title="statement not covered" >          AND: [],</span>
@@ -1633,7 +1629,7 @@ class FlightController {
 <span class="cstat-no" title="statement not covered" >        skip: offset ? parseInt(offset) : undefined,</span>
 <span class="cstat-no" title="statement not covered" >        orderBy: [],</span>
 <span class="cstat-no" title="statement not covered" >      };</span>
-<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  </span>
 <span class="cstat-no" title="statement not covered" >      if (arrivalCity) {</span>
 <span class="cstat-no" title="statement not covered" >        query.where.AND.push({</span>
 <span class="cstat-no" title="statement not covered" >          departureAirport: {</span>
@@ -1644,7 +1640,7 @@ class FlightController {
 <span class="cstat-no" title="statement not covered" >          },</span>
 <span class="cstat-no" title="statement not covered" >        });</span>
 <span class="cstat-no" title="statement not covered" >      }</span>
-<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  </span>
 <span class="cstat-no" title="statement not covered" >      if (departureCity) {</span>
 <span class="cstat-no" title="statement not covered" >        query.where.AND.push({</span>
 <span class="cstat-no" title="statement not covered" >          arrivalAirport: {</span>
@@ -1655,14 +1651,14 @@ class FlightController {
 <span class="cstat-no" title="statement not covered" >          },</span>
 <span class="cstat-no" title="statement not covered" >        });</span>
 <span class="cstat-no" title="statement not covered" >      }</span>
-<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  </span>
 <span class="cstat-no" title="statement not covered" >      if (returnDate) {</span>
 <span class="cstat-no" title="statement not covered" >        const startOfDay = new Date(returnDate);</span>
 <span class="cstat-no" title="statement not covered" >        startOfDay.setHours(0, 0, 0, 0);</span>
-<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  </span>
 <span class="cstat-no" title="statement not covered" >        const endOfDay = new Date(returnDate);</span>
 <span class="cstat-no" title="statement not covered" >        endOfDay.setHours(23, 59, 59, 999);</span>
-<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  </span>
 <span class="cstat-no" title="statement not covered" >        query.where.AND.push({</span>
 <span class="cstat-no" title="statement not covered" >          departureTime: {</span>
 <span class="cstat-no" title="statement not covered" >            gte: startOfDay,</span>
@@ -1670,7 +1666,7 @@ class FlightController {
 <span class="cstat-no" title="statement not covered" >          },</span>
 <span class="cstat-no" title="statement not covered" >        });</span>
 <span class="cstat-no" title="statement not covered" >      }</span>
-<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  </span>
 <span class="cstat-no" title="statement not covered" >      if (seatClass) {</span>
 <span class="cstat-no" title="statement not covered" >        query.where.AND.push({</span>
 <span class="cstat-no" title="statement not covered" >          seats: {</span>
@@ -1681,11 +1677,11 @@ class FlightController {
 <span class="cstat-no" title="statement not covered" >          },</span>
 <span class="cstat-no" title="statement not covered" >        });</span>
 <span class="cstat-no" title="statement not covered" >      }</span>
-<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  </span>
 <span class="cstat-no" title="statement not covered" >      if (query.where.AND.length === 0) {</span>
 <span class="cstat-no" title="statement not covered" >        delete query.where.AND;</span>
 <span class="cstat-no" title="statement not covered" >      }</span>
-<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  </span>
 <span class="cstat-no" title="statement not covered" >      if (sort) {</span>
 <span class="cstat-no" title="statement not covered" >        switch (sort) {</span>
 <span class="cstat-no" title="statement not covered" >          case "price":</span>
@@ -1710,23 +1706,21 @@ class FlightController {
 <span class="cstat-no" title="statement not covered" >            break;</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" >      }</span>
-<span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >      const totalReturnFlights = await prisma.flight.count({</span>
-<span class="cstat-no" title="statement not covered" >        where: query.where,</span>
-<span class="cstat-no" title="statement not covered" >      });</span>
-<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  </span>
 <span class="cstat-no" title="statement not covered" >      const returnFlights = await prisma.flight.findMany(query);</span>
-<span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >      if (totalReturnFlights === 0) {</span>
+<span class="cstat-no" title="statement not covered" >  </span>
+<span class="cstat-no" title="statement not covered" >      if (returnFlights.length === 0) {</span>
 <span class="cstat-no" title="statement not covered" >        return next(</span>
 <span class="cstat-no" title="statement not covered" >          new AppError("Tidak ada penerbangan kembali yang ditemukan", 404)</span>
 <span class="cstat-no" title="statement not covered" >        );</span>
 <span class="cstat-no" title="statement not covered" >      }</span>
-<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  </span>
+<span class="cstat-no" title="statement not covered" >      const totalReturnFlights = returnFlights.length;</span>
+<span class="cstat-no" title="statement not covered" >  </span>
 <span class="cstat-no" title="statement not covered" >      const totalPages = limit</span>
 <span class="cstat-no" title="statement not covered" >        ? Math.ceil(totalReturnFlights / parseInt(limit))</span>
 <span class="cstat-no" title="statement not covered" >        : 1;</span>
-<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  </span>
 <span class="cstat-no" title="statement not covered" >      const pagination = {</span>
 <span class="cstat-no" title="statement not covered" >        totalItems: totalReturnFlights,</span>
 <span class="cstat-no" title="statement not covered" >        currentPage: offset</span>
@@ -1735,7 +1729,7 @@ class FlightController {
 <span class="cstat-no" title="statement not covered" >        pageSize: limit ? parseInt(limit) : totalReturnFlights,</span>
 <span class="cstat-no" title="statement not covered" >        totalPages: totalPages,</span>
 <span class="cstat-no" title="statement not covered" >      };</span>
-<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  </span>
 <span class="cstat-no" title="statement not covered" >      response(</span>
 <span class="cstat-no" title="statement not covered" >        200,</span>
 <span class="cstat-no" title="statement not covered" >        "success",</span>
@@ -1922,15 +1916,15 @@ class FlightController {
 <span class="cstat-no" title="statement not covered" >        departureTime,</span>
 <span class="cstat-no" title="statement not covered" >        arrivalTime,</span>
 <span class="cstat-no" title="statement not covered" >      } = req.body;</span>
-<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  </span>
 <span class="cstat-no" title="statement not covered" >      const existingFlight = await prisma.flight.findUnique({</span>
 <span class="cstat-no" title="statement not covered" >        where: { id: parseInt(id) },</span>
 <span class="cstat-no" title="statement not covered" >      });</span>
-<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  </span>
 <span class="cstat-no" title="statement not covered" >      if (!existingFlight) {</span>
 <span class="cstat-no" title="statement not covered" >        return next(new AppError("Flight tidak ditemukan", 404));</span>
 <span class="cstat-no" title="statement not covered" >      }</span>
-<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  </span>
 <span class="cstat-no" title="statement not covered" >      const updatedFlight = await prisma.flight.update({</span>
 <span class="cstat-no" title="statement not covered" >        where: { id: parseInt(id) },</span>
 <span class="cstat-no" title="statement not covered" >        data: {</span>
@@ -1952,7 +1946,7 @@ class FlightController {
 <span class="cstat-no" title="statement not covered" >          arrivalAirport: true,</span>
 <span class="cstat-no" title="statement not covered" >        },</span>
 <span class="cstat-no" title="statement not covered" >      });</span>
-<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  </span>
 <span class="cstat-no" title="statement not covered" >      return response(</span>
 <span class="cstat-no" title="statement not covered" >        200,</span>
 <span class="cstat-no" title="statement not covered" >        "success",</span>
@@ -1968,22 +1962,22 @@ class FlightController {
 <span class="fstat-no" title="function not covered" >  static async deleteFlight(req, res, next) {</span>
 <span class="cstat-no" title="statement not covered" >    try {</span>
 <span class="cstat-no" title="statement not covered" >      const { id } = req.params;</span>
-<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  </span>
 <span class="cstat-no" title="statement not covered" >      const existingFlight = await prisma.flight.findUnique({</span>
 <span class="cstat-no" title="statement not covered" >        where: { id: parseInt(id) },</span>
 <span class="cstat-no" title="statement not covered" >      });</span>
-<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  </span>
 <span class="cstat-no" title="statement not covered" >      if (!existingFlight) {</span>
 <span class="cstat-no" title="statement not covered" >        return next(new AppError("Flight tidak ditemukan", 404));</span>
 <span class="cstat-no" title="statement not covered" >      }</span>
-<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  </span>
 <span class="cstat-no" title="statement not covered" >      await prisma.flight.update({</span>
 <span class="cstat-no" title="statement not covered" >        where: { id: parseInt(id) },</span>
 <span class="cstat-no" title="statement not covered" >        data: {</span>
 <span class="cstat-no" title="statement not covered" >          deleteAt: new Date(),</span>
 <span class="cstat-no" title="statement not covered" >        },</span>
 <span class="cstat-no" title="statement not covered" >      });</span>
-<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  </span>
 <span class="cstat-no" title="statement not covered" >      return response(200, "success", null, "Flight berhasil dihapus", res);</span>
 <span class="cstat-no" title="statement not covered" >    } catch (error) {</span>
 <span class="cstat-no" title="statement not covered" >      next(error);</span>
@@ -1999,7 +1993,7 @@ module.exports = FlightController;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2024-12-25T08:29:25.887Z
+                at 2024-12-25T13:18:08.330Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

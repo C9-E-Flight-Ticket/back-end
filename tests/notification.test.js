@@ -128,7 +128,6 @@ describe("NotificationController", () => {
       );
     });
 
-    // should return 500 if there is an error in the server
     it("should return 500 if there is an error in the server", async () => {
       prisma.notification.create.mockRejectedValue(new Error("Test error"));
       const response = await request(app)
@@ -166,8 +165,7 @@ describe("NotificationController", () => {
 
       expect(response.status).toBe(201);
       expect(response.body.payload.status).toBe("success");
-      expect(response.body.payload.message).toBe("Broadcast notification sent successfully"
-);
+      expect(response.body.payload.message).toBe("Broadcast notification sent successfully");
     });
 
     it("should return 400 if title or message is missing", async () => {
@@ -184,22 +182,156 @@ describe("NotificationController", () => {
       );
     });
 
-    // it("should return 500 if there is a server error", async () => {
-    //   jest.spyOn(prisma.notification, "create").mockImplementationOnce(() => {
-    //     throw new Error("Database error");
-    //   });
+    it("should return 500 if there is a server error", async () => {
+      prisma.notification.create.mockRejectedValue(new Error("Database error"));
 
-    //   const response = await request(app)
-    //     .post("/api/admin/notification/broadcast-notification")
-    //     .send({
-    //       title: "Test Title",
-    //       message: "Test Message",
-    //     })
-    //     .set("Authorization", `Bearer ${adminToken}`);
+      const response = await request(app)
+        .post("/api/admin/notification/broadcast-notification")
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send({
+          title: "Broadcast Notification",
+          message: "This is a broadcast notification",
+        });
 
-    //   expect(response.status).toBe(500);
-    //   expect(response.body.payload.status).toBe("error");
-    //   expect(response.body.payload.message).toBe("Database error");
-    // });
+      expect(response.status).toBe(500);
+      expect(response.body.payload.status).toBe("error");
+      expect(response.body.payload.message).toBe("Database error");
+    });
+  });
+
+  describe("GET /api/admin/notification", () => {
+    it("should get all notifications for admin", async () => {
+      const mockNotifications = [
+        { id: 1, title: "Notification 1", message: "Message 1", createdAt: new Date() },
+        { id: 2, title: "Notification 2", message: "Message 2", createdAt: new Date() },
+      ];
+
+      prisma.notification.findMany.mockResolvedValue(mockNotifications);
+
+      const response = await request(app)
+        .get("/api/admin/notification")
+        .set("Authorization", `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.payload.status).toBe("success");
+    });
+
+    it("should return 500 if there is a server error", async () => {
+      prisma.notification.findMany.mockRejectedValue(new Error("Database error"));
+
+      const response = await request(app)
+        .get("/api/admin/notification")
+        .set("Authorization", `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(500);
+      expect(response.body.payload.status).toBe("error");
+      expect(response.body.payload.message).toBe("Database error");
+    });
+  });
+
+  describe("DELETE /api/admin/notification/:id", () => {
+    it("should delete a notification for admin", async () => {
+      prisma.notification.deleteMany.mockResolvedValue({ count: 1 });
+
+      const response = await request(app)
+        .delete("/api/admin/notification/1")
+        .set("Authorization", `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.payload.status).toBe("success");
+      expect(response.body.payload.message).toBe("Notification deleted successfully");
+    });
+
+    it("should return 404 if notification not found", async () => {
+      prisma.notification.deleteMany.mockResolvedValue({ count: 0 });
+
+      const response = await request(app)
+        .delete("/api/admin/notification/999")
+        .set("Authorization", `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(404);
+      expect(response.body.payload.status).toBe("error");
+      expect(response.body.payload.message).toBe("Notification not found");
+    });
+
+    it("should return 500 if there is a server error", async () => {
+      prisma.notification.deleteMany.mockRejectedValue(new Error("Database error"));
+
+      const response = await request(app)
+        .delete("/api/admin/notification/1")
+        .set("Authorization", `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(500);
+      expect(response.body.payload.status).toBe("error");
+      expect(response.body.payload.message).toBe("Database error");
+    });
+  });
+
+  describe("GET /api/notification", () => {
+    it("should get personal and broadcast notifications for user", async () => {
+      const mockNotifications = [
+        { id: 1, title: "Notification 1", message: "Message 1", userId: 2, type: "PERSONAL", createdAt: new Date() },
+        { id: 2, title: "Notification 2", message: "Message 2", type: "BROADCAST", createdAt: new Date() },
+      ];
+
+      prisma.notification.findMany.mockResolvedValue(mockNotifications);
+
+      const response = await request(app)
+        .get("/api/notification")
+        .set("Authorization", `Bearer ${userToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.payload.status).toBe("success");
+    });
+
+    it("should return 500 if there is a server error", async () => {
+      prisma.notification.findMany.mockRejectedValue(new Error("Database error"));
+
+      const response = await request(app)
+        .get("/api/notification")
+        .set("Authorization", `Bearer ${userToken}`);
+
+      expect(response.status).toBe(500);
+      expect(response.body.payload.status).toBe("error");
+      expect(response.body.payload.message).toBe("Database error");
+    });
+  });
+
+  describe("PATCH /api/notification/:id/read", () => {
+    it("should mark a notification as read for user", async () => {
+      prisma.notification.updateMany.mockResolvedValue({ count: 1 });
+
+      const response = await request(app)
+        .patch("/api/notification/1/read")
+        .set("Authorization", `Bearer ${userToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.payload.status).toBe("success");
+      expect(response.body.payload.message).toBe("Notification marked as read successfully");
+    });
+
+    it("should return 404 if notification not found", async () => {
+      prisma.notification.updateMany.mockResolvedValue({ count: 0 });
+
+      const response = await request(app)
+        .patch("/api/notification/999/read")
+        .set("Authorization", `Bearer ${userToken}`);
+
+      expect(response.status).toBe(404);
+      expect(response.body.payload.status).toBe("error");
+      expect(response.body.payload.message).toBe("Notification not found");
+    });
+
+    it("should return 500 if there is a server error", async () => {
+      prisma.notification.updateMany.mockRejectedValue(new Error("Database error"));
+
+      const response = await request(app)
+        .patch("/api/notification/1/read")
+        .set("Authorization", `Bearer ${userToken}`);
+
+      expect(response.status).toBe(500);
+      expect(response.body.payload.status).toBe("error");
+      expect(response.body.payload.message).toBe("Database error");
+    });
   });
 });

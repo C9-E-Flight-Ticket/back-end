@@ -15,13 +15,6 @@ class TransactionController {
 
       const userId = req.user?.id;
 
-      const currentUser = await prisma.user.findUnique({
-        where: { id: userId },
-      });
-
-      if (!currentUser) {
-        return next(new AppError("User not found", 404));
-      }
 
       // Validasi input lainnya
       if (
