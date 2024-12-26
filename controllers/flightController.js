@@ -268,7 +268,7 @@ class FlightController {
         offset,
         sort,
       } = req.query;
-
+  
       const query = {
         where: {
           AND: [],
@@ -282,7 +282,7 @@ class FlightController {
         skip: offset ? parseInt(offset) : undefined,
         orderBy: [],
       };
-
+  
       if (arrivalCity) {
         query.where.AND.push({
           departureAirport: {
@@ -293,7 +293,7 @@ class FlightController {
           },
         });
       }
-
+  
       if (departureCity) {
         query.where.AND.push({
           arrivalAirport: {
@@ -304,14 +304,14 @@ class FlightController {
           },
         });
       }
-
+  
       if (returnDate) {
         const startOfDay = new Date(returnDate);
         startOfDay.setHours(0, 0, 0, 0);
-
+  
         const endOfDay = new Date(returnDate);
         endOfDay.setHours(23, 59, 59, 999);
-
+  
         query.where.AND.push({
           departureTime: {
             gte: startOfDay,
@@ -319,7 +319,7 @@ class FlightController {
           },
         });
       }
-
+  
       if (seatClass) {
         query.where.AND.push({
           seats: {
@@ -330,11 +330,11 @@ class FlightController {
           },
         });
       }
-
+  
       if (query.where.AND.length === 0) {
         delete query.where.AND;
       }
-
+  
       if (sort) {
         switch (sort) {
           case "price":
@@ -359,23 +359,21 @@ class FlightController {
             break;
         }
       }
-
-      const totalReturnFlights = await prisma.flight.count({
-        where: query.where,
-      });
-
+  
       const returnFlights = await prisma.flight.findMany(query);
-
-      if (totalReturnFlights === 0) {
+  
+      if (returnFlights.length === 0) {
         return next(
           new AppError("Tidak ada penerbangan kembali yang ditemukan", 404)
         );
       }
-
+  
+      const totalReturnFlights = returnFlights.length;
+  
       const totalPages = limit
         ? Math.ceil(totalReturnFlights / parseInt(limit))
         : 1;
-
+  
       const pagination = {
         totalItems: totalReturnFlights,
         currentPage: offset
@@ -384,7 +382,7 @@ class FlightController {
         pageSize: limit ? parseInt(limit) : totalReturnFlights,
         totalPages: totalPages,
       };
-
+  
       response(
         200,
         "success",
@@ -571,15 +569,15 @@ class FlightController {
         departureTime,
         arrivalTime,
       } = req.body;
-
+  
       const existingFlight = await prisma.flight.findUnique({
         where: { id: parseInt(id) },
       });
-
+  
       if (!existingFlight) {
         return next(new AppError("Flight tidak ditemukan", 404));
       }
-
+  
       const updatedFlight = await prisma.flight.update({
         where: { id: parseInt(id) },
         data: {
@@ -601,7 +599,7 @@ class FlightController {
           arrivalAirport: true,
         },
       });
-
+  
       return response(
         200,
         "success",
@@ -617,22 +615,22 @@ class FlightController {
   static async deleteFlight(req, res, next) {
     try {
       const { id } = req.params;
-
+  
       const existingFlight = await prisma.flight.findUnique({
         where: { id: parseInt(id) },
       });
-
+  
       if (!existingFlight) {
         return next(new AppError("Flight tidak ditemukan", 404));
       }
-
+  
       await prisma.flight.update({
         where: { id: parseInt(id) },
         data: {
           deleteAt: new Date(),
         },
       });
-
+  
       return response(200, "success", null, "Flight berhasil dihapus", res);
     } catch (error) {
       next(error);

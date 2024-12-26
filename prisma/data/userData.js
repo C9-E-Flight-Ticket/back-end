@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt')
 
-const password = 'qwerty';
+const password = 'qwerty123';
 const hashedPassword = bcrypt.hashSync(password, 10);
 
 const userData = [
@@ -12,7 +12,7 @@ const userData = [
     role: "ADMIN"
   },
   {
-    name: "Pras",
+    name: "user",
     email: "user@example.com",
     password: hashedPassword,
     phoneNumber: "+6281234567891",
@@ -26,8 +26,19 @@ const userData = [
     phoneNumber: "+6281234567892",
     role: "USER",
     is_verified: true,
-    createAt: new Date("2024-03-03T08:00:00Z"),
+    createAt: new Date(),
   },
+  {
+    id: 4, // Pengguna ketiga
+    name: "test",
+    email: "test@example.com",
+    password: hashedPassword,
+    phoneNumber: "+6281234567892",
+    role: "USER",
+    is_verified: true,
+    createAt: new Date(),
+  },
+  
 ];
 
 module.exports = { userData };

@@ -15,13 +15,6 @@ class TransactionController {
 
       const userId = req.user?.id;
 
-      const currentUser = await prisma.user.findUnique({
-        where: { id: userId },
-      });
-
-      if (!currentUser) {
-        return next(new AppError("User not found", 404));
-      }
 
       // Validasi input lainnya
       if (
@@ -440,10 +433,6 @@ class TransactionController {
 
       const userId = req.user?.id;
 
-      if (!userId) {
-        return next(new AppError("User not authenticated", 401));
-      }
-
       const query = {
         userId: userId,
       };
@@ -577,17 +566,6 @@ class TransactionController {
       if (!transaction) {
         return next(
           new AppError("Transaction not found or unauthorized access", 404)
-        );
-      }
-
-      // console.log(`User ${userId} accessing transaction ${bookingCode}`);
-
-      if (transaction.userId !== userId) {
-        return next(
-          new AppError(
-            "Unauthorized: You do not have access to this transaction",
-            403
-          )
         );
       }
 
