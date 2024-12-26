@@ -41,12 +41,14 @@
     "pdfkit": "^0.15.1",
     "qrcode": "^1.5.4",
     "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "yamljs": "^0.3.0"
   },
   "devDependencies": {
     "cross-env": "^7.0.3",
+    "jest-mock-extended": "^4.0.0-beta1",
     "prisma": "^5.22.0",
     "supertest": "^7.0.0"
   },
@@ -62,5 +64,4 @@
     "url": "https://github.com/C9-E-Flight-Ticket/back-end/issues"
   },
   "homepage": "https://github.com/C9-E-Flight-Ticket/back-end#readme"
-
 }

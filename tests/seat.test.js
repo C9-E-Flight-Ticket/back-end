@@ -9,7 +9,7 @@ describe("SeatController - getDetailFlight", () => {
     // Login dengan pengguna yang sudah ada (jika diperlukan autentikasi)
     const response = await request(app)
       .post("/api/auth/login")
-      .send({ email: "user3@example.com", password: "qwerty123" });
+      .send({ email: "test@example.com", password: "qwerty123" });
 
     if (response.status === 200 && response.body.payload.status === "success") {
       token = response.body.payload.data; // Ambil token langsung dari data respons
