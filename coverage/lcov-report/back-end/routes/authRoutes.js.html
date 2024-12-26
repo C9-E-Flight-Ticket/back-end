@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">90.32% </span>
+                <span class="strong">91.89% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>56/62</span>
+                <span class='fraction'>68/74</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">90.32% </span>
+                <span class="strong">91.89% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>56/62</span>
+                <span class='fraction'>68/74</span>
             </div>
         
             
@@ -125,7 +125,31 @@
 <a name='L60'></a><a href='#L60'>60</a>
 <a name='L61'></a><a href='#L61'>61</a>
 <a name='L62'></a><a href='#L62'>62</a>
-<a name='L63'></a><a href='#L63'>63</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -190,62 +214,74 @@
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">const express = require("express");
 const router = express.Router();
 const { asyncErrorHandler } = require("../middleware/errorMiddleware");
-const AuthMiddleware = require('../middleware/authMiddleware');
-const LoginController = require('../controllers/loginController');
-const RegisterController = require('../controllers/registerController');
-const ForgotPasswordController = require('../controllers/forgotpasswordController');
-const resendOtp = require('../utils/resendOtp');
+const AuthMiddleware = require("../middleware/authMiddleware");
+const LoginController = require("../controllers/loginController");
+const RegisterController = require("../controllers/registerController");
+const ForgotPasswordController = require("../controllers/forgotpasswordController");
+const resendOtp = require("../utils/resendOtp");
 const passport = require("../libs/passport");
 const OauthController = require("../controllers/oauthController");
 &nbsp;
 // Login routes
-router.post('/login', asyncErrorHandler(LoginController.login));
+router.post("/login", asyncErrorHandler(LoginController.login));
 &nbsp;
 // Registration routes
-router.post('/register', asyncErrorHandler(RegisterController.register));
-router.post('/verify-email/:id', asyncErrorHandler(RegisterController.verifyEmail));
-router.post('/resend-otp/:id', resendOtp);
+router.post("/register", asyncErrorHandler(RegisterController.register));
+router.post(
+  "/verify-email/:id",
+  asyncErrorHandler(RegisterController.verifyEmail)
+);
+router.post("/resend-otp/:id", resendOtp);
 &nbsp;
 // Forgot Password Routes
-router.post('/forgot-password', asyncErrorHandler(ForgotPasswordController.forgotPassword));
-router.post('/verify-otp/:id', asyncErrorHandler(ForgotPasswordController.verifyOTP));
-router.post('/reset-password/:id', asyncErrorHandler(ForgotPasswordController.resetPassword));
-router.post('/resend-password-otp/:id', (req, res) =&gt; {
-<span class="cstat-no" title="statement not covered" >    req.body.type = 'PASSWORD_RESET';</span>
-<span class="cstat-no" title="statement not covered" >    resendOtp(req, res);</span>
+router.post(
+  "/forgot-password",
+  asyncErrorHandler(ForgotPasswordController.forgotPassword)
+);
+router.post(
+  "/verify-otp/:id",
+  asyncErrorHandler(ForgotPasswordController.verifyOTP)
+);
+router.post(
+  "/reset-password/:id",
+  asyncErrorHandler(ForgotPasswordController.resetPassword)
+);
+router.post("/resend-password-otp/:id", (req, res) =&gt; {
+<span class="cstat-no" title="statement not covered" >  req.body.type = "PASSWORD_RESET";</span>
+<span class="cstat-no" title="statement not covered" >  resendOtp(req, res);</span>
 });
 &nbsp;
 // Oauth Routes
 router.get(
-    "/google",
-    passport.authenticate("google", {
-        scope: ["profile", "email"],
-        session: true,
-    })
+  "/google",
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+    session: true,
+  })
 );
 router.get(
-    "/google/callback",
-    passport.authenticate("google", {
-        failureRedirect: "/api/auth/google/failure",
-        session: true,
-    }),
-    asyncErrorHandler(OauthController.googleCallback)
+  "/google/callback",
+  passport.authenticate("google", {
+    failureRedirect: "/api/auth/google/failure",
+    session: true,
+  }),
+  asyncErrorHandler(OauthController.googleCallback)
 );
 router.get("/google/failure", asyncErrorHandler(OauthController.googleFailure));
 &nbsp;
 // Logout routes
 router.get(
-    "/logout",
-    AuthMiddleware.verifyAuthentication,
-    asyncErrorHandler(LoginController.logout)
+  "/logout",
+  AuthMiddleware.verifyAuthentication,
+  asyncErrorHandler(LoginController.logout)
 );
 &nbsp;
 // Example Get profile
 router.get("/profile", AuthMiddleware.verifyAuthentication, (req, res) =&gt; {
-<span class="cstat-no" title="statement not covered" >    res.json({</span>
-<span class="cstat-no" title="statement not covered" >        status: "success",</span>
-<span class="cstat-no" title="statement not covered" >        data: req.user,</span>
-<span class="cstat-no" title="statement not covered" >    });</span>
+<span class="cstat-no" title="statement not covered" >  res.json({</span>
+<span class="cstat-no" title="statement not covered" >    status: "success",</span>
+<span class="cstat-no" title="statement not covered" >    data: req.user,</span>
+<span class="cstat-no" title="statement not covered" >  });</span>
 });
 &nbsp;
 module.exports = router;
@@ -256,7 +292,7 @@ module.exports = router;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2024-12-22T20:03:07.952Z
+                at 2024-12-26T16:27:41.541Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

@@ -21,7 +21,7 @@ const swaggerDocument = YAML.load(path.join(__dirname, "./docs/swagger.yml"));
 
 const app = express();
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3030;
 
 app.use(helmet());
 
@@ -76,7 +76,6 @@ app.use("/api/seat", seatRoute);
 app.use("/api/notification", notificationRoutes);
 app.use("/api/profile", profileRoute);
 
-// Request logging middleware
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
   next();

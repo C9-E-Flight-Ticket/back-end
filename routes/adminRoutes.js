@@ -4,12 +4,9 @@ const { asyncErrorHandler } = require("../middleware/errorMiddleware");
 const AuthMiddleware = require('../middleware/authMiddleware');
 
 const TransactionController = require("../controllers/transactionController");
-const TicketController = require("../controllers/ticketController");
 const FlightController = require("../controllers/flightController");
-const SeatController = require("../controllers/seatController");
 const AirportController = require("../controllers/airportController");
 const airlineController = require("../controllers/airlineController");
-const PassengerController = require("../controllers/passengerController");
 const NotificationController = require("../controllers/notificationController");
 
 router.use(AuthMiddleware.verifyAuthentication);
@@ -21,13 +18,6 @@ router.delete('/transaction/:id/soft-delete', asyncErrorHandler(TransactionContr
 router.patch('/transaction/:id/restore', asyncErrorHandler(TransactionController.restoreTransaction));
 
 
-// ticket
-router.get("/ticket", asyncErrorHandler(TicketController.getAllTickets));
-router.get("/ticket/:id", asyncErrorHandler(TicketController.getTicketById));
-router.post("/ticket", asyncErrorHandler(TicketController.createTicket));
-router.patch("/ticket/:id", asyncErrorHandler(TicketController.updateTicket));
-router.delete("/ticket/:id", asyncErrorHandler(TicketController.deleteTicket));
-
 // flight
 router.get('/flight/createFlight', asyncErrorHandler(FlightController.getCreateFlight));
 router.get('/flight', asyncErrorHandler(FlightController.getFlights));
@@ -35,13 +25,6 @@ router.get('/flight/:id', asyncErrorHandler(FlightController.getFlight));
 router.post('/flight', asyncErrorHandler(FlightController.createFlight));
 router.put('/flight/:id', asyncErrorHandler(FlightController.updateFlight));
 router.delete('/flight/:id', asyncErrorHandler(FlightController.deleteFlight));
-
-// seat
-router.get("/seat/", SeatController.getAllSeats);
-router.get("/seat/:id", SeatController.getSeatById);
-router.post("/seat/", SeatController.createSeat);
-router.put("/seat/:id", SeatController.updateSeat);
-router.delete("/seat/:id", SeatController.deleteSeat);
 
 // airline
 router.get("/airline/get", asyncErrorHandler(airlineController.getAirlines));
@@ -55,14 +38,6 @@ router.get("/airport/:id", asyncErrorHandler(AirportController.getAirportById));
 router.post("/airport/", asyncErrorHandler(AirportController.createAirport));
 router.put("/airport/:id", asyncErrorHandler(AirportController.updateAirport));
 router.delete("/airport/:id", asyncErrorHandler(AirportController.deleteAirport));
-
-// passenger
-router.get('/passenger', PassengerController.getAllPassengers);
-router.get('/passenger/:id', PassengerController.getPassengerById);
-router.get('/passenger/createMany', PassengerController.getCreatePassengerData);
-router.post('/passenger', PassengerController.createPassenger);
-router.put('/passenger/:id', PassengerController.updatePassenger);
-router.delete('/passenger/:id', PassengerController.deletePassenger);
 
 // notification
 router.get('/notification', asyncErrorHandler(NotificationController.getAllNotificationsForAdmin));

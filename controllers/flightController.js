@@ -148,10 +148,16 @@ class FlightController {
       if (sort) {
         switch (sort) {
           case "price":
-            query.orderBy.push({ price: "asc" });
+            query.include = {
+              ...query.include,
+              seats: true
+            };
+            query.orderBy.push({ 
+              departureTime: "asc"  // Default sorting when price sorting is applied
+            });
             break;
           case "duration":
-            query.orderBy.push({ duration: "asc" });
+            query.orderBy.push({ departureTime: "asc" });
             break;
           case "earlierDeparture":
             query.orderBy.push({ departureTime: "asc" });
@@ -169,7 +175,30 @@ class FlightController {
       }
 
       // Ambil penerbangan
-      const flights = await prisma.flight.findMany(query);
+      let flights = await prisma.flight.findMany(query);
+
+      // Transform and sort by price if needed
+      if (sort === 'price') {
+        flights = flights.map(flight => ({
+          ...flight,
+          minPrice: flight.seats.length > 0 
+            ? Math.min(...flight.seats.map(seat => Number(seat.price)))
+            : 0
+        }))
+        .sort((a, b) => a.minPrice - b.minPrice);
+      }
+
+      // Sort by duration if needed
+      if (sort === 'duration') {
+        flights.sort((a, b) => {
+          const durationA = new Date(a.arrivalTime) - new Date(a.departureTime);
+          const durationB = new Date(b.arrivalTime) - new Date(b.departureTime);
+          return durationA - durationB;
+        });
+      }
+
+      // Remove seats from the response
+      flights = flights.map(({ seats, minPrice, ...flight }) => flight);
 
       // Filter untuk homepage - hanya rute baru
       const uniqueFlights =
@@ -268,7 +297,7 @@ class FlightController {
         offset,
         sort,
       } = req.query;
-
+  
       const query = {
         where: {
           AND: [],
@@ -282,7 +311,7 @@ class FlightController {
         skip: offset ? parseInt(offset) : undefined,
         orderBy: [],
       };
-
+  
       if (arrivalCity) {
         query.where.AND.push({
           departureAirport: {
@@ -293,7 +322,7 @@ class FlightController {
           },
         });
       }
-
+  
       if (departureCity) {
         query.where.AND.push({
           arrivalAirport: {
@@ -304,14 +333,14 @@ class FlightController {
           },
         });
       }
-
+  
       if (returnDate) {
         const startOfDay = new Date(returnDate);
         startOfDay.setHours(0, 0, 0, 0);
-
+  
         const endOfDay = new Date(returnDate);
         endOfDay.setHours(23, 59, 59, 999);
-
+  
         query.where.AND.push({
           departureTime: {
             gte: startOfDay,
@@ -319,7 +348,7 @@ class FlightController {
           },
         });
       }
-
+  
       if (seatClass) {
         query.where.AND.push({
           seats: {
@@ -330,18 +359,24 @@ class FlightController {
           },
         });
       }
-
+  
       if (query.where.AND.length === 0) {
         delete query.where.AND;
       }
-
+  
       if (sort) {
         switch (sort) {
           case "price":
-            query.orderBy.push({ price: "asc" });
+            query.include = {
+              ...query.include,
+              seats: true
+            };
+            query.orderBy.push({ 
+              departureTime: "asc"  // Default sorting when price sorting is applied
+            });
             break;
           case "duration":
-            query.orderBy.push({ duration: "asc" });
+            query.orderBy.push({ departureTime: "asc" });
             break;
           case "earlierDeparture":
             query.orderBy.push({ departureTime: "asc" });
@@ -364,18 +399,43 @@ class FlightController {
         where: query.where,
       });
 
-      const returnFlights = await prisma.flight.findMany(query);
+      let returnFlights = await prisma.flight.findMany(query);
+
+      // Transform and sort by price if needed
+      if (sort === 'price') {
+        returnFlights = returnFlights.map(flight => ({
+          ...flight,
+          minPrice: flight.seats.length > 0 
+            ? Math.min(...flight.seats.map(seat => Number(seat.price)))
+            : 0
+        }))
+        .sort((a, b) => a.minPrice - b.minPrice);
+      }
+
+      // Sort by duration if needed
+      if (sort === 'duration') {
+        returnFlights.sort((a, b) => {
+          const durationA = new Date(a.arrivalTime) - new Date(a.departureTime);
+          const durationB = new Date(b.arrivalTime) - new Date(b.departureTime);
+          return durationA - durationB;
+        });
+      }
+
+      // Remove seats from the response
+      returnFlights = returnFlights.map(({ seats, minPrice, ...flight }) => flight);
 
       if (totalReturnFlights === 0) {
         return next(
           new AppError("Tidak ada penerbangan kembali yang ditemukan", 404)
         );
       }
-
+  
+      const totalReturnFlights = returnFlights.length;
+  
       const totalPages = limit
         ? Math.ceil(totalReturnFlights / parseInt(limit))
         : 1;
-
+  
       const pagination = {
         totalItems: totalReturnFlights,
         currentPage: offset
@@ -384,7 +444,7 @@ class FlightController {
         pageSize: limit ? parseInt(limit) : totalReturnFlights,
         totalPages: totalPages,
       };
-
+  
       response(
         200,
         "success",
@@ -571,15 +631,15 @@ class FlightController {
         departureTime,
         arrivalTime,
       } = req.body;
-
+  
       const existingFlight = await prisma.flight.findUnique({
         where: { id: parseInt(id) },
       });
-
+  
       if (!existingFlight) {
         return next(new AppError("Flight tidak ditemukan", 404));
       }
-
+  
       const updatedFlight = await prisma.flight.update({
         where: { id: parseInt(id) },
         data: {
@@ -601,7 +661,7 @@ class FlightController {
           arrivalAirport: true,
         },
       });
-
+  
       return response(
         200,
         "success",
@@ -617,22 +677,22 @@ class FlightController {
   static async deleteFlight(req, res, next) {
     try {
       const { id } = req.params;
-
+  
       const existingFlight = await prisma.flight.findUnique({
         where: { id: parseInt(id) },
       });
-
+  
       if (!existingFlight) {
         return next(new AppError("Flight tidak ditemukan", 404));
       }
-
+  
       await prisma.flight.update({
         where: { id: parseInt(id) },
         data: {
           deleteAt: new Date(),
         },
       });
-
+  
       return response(200, "success", null, "Flight berhasil dihapus", res);
     } catch (error) {
       next(error);
