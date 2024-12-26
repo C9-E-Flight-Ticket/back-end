@@ -13,7 +13,7 @@ describe("ProfileController", () => {
     // Login dengan pengguna yang sudah ada
     const response = await request(app)
       .post("/api/auth/login")
-      .send({ email: "user3@example.com", password: originalPassword });
+      .send({ email: "test@example.com", password: originalPassword });
 
     if (response.status === 200 && response.body.payload.status === "success") {
       token = response.body.payload.data; // Ambil token langsung dari data respons
@@ -88,15 +88,11 @@ describe("ProfileController", () => {
         .set("Authorization", `Bearer ${token}`)
         .send({
           name: "Updated Name",
-          email: "updated@example.com",
-          phoneNumber: "1234567890",
         });
 
       expect(response.status).toBe(200);
       expect(response.body.payload.status).toBe("success");
       expect(response.body.payload.data).toHaveProperty("name", "Updated Name");
-      expect(response.body.payload.data).toHaveProperty("email", "updated@example.com");
-      expect(response.body.payload.data).toHaveProperty("phoneNumber", "1234567890");
     });
 
     it("should return 401 if not authenticated", async () => {

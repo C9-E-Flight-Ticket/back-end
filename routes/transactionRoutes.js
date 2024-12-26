@@ -11,7 +11,6 @@ router.post("/midtrans/notification", asyncErrorHandler(TransactionController.ha
 router.use(AuthMiddleware.verifyAuthentication);
 
 router.post("/order", asyncErrorHandler(TransactionController.createTicketTransaction));
-// router.post("/midtrans-callback", asyncErrorHandler(TransactionController.handleMidtransCallback));
 router.get('/status/:bookingCode', asyncErrorHandler(TransactionController.getTransactionStatus));
 router.get('/transactions', asyncErrorHandler(TransactionController.getAllTransactionsByUser));
 router.get('/generate-pdf/:bookingCode', asyncErrorHandler(TransactionController.generateTransactionPDF));

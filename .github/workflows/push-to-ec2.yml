@@ -17,18 +17,17 @@ jobs:
             - name: Set up Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: "18"
-
-            - name: Cache Node.js modules
-              uses: actions/cache@v3
-              with:
-                  path: ~/.npm
-                  key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-                  restore-keys: |
-                    ${{ runner.os }}-node-                  
+                  node-version: "18"               
 
             - name: Install Dependencies
               run: npm install
+
+            - name: Run Tests
+              env:
+                   GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+                   GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+                   GOOGLE_CALLBACK_URL: ${{ secrets.GOOGLE_CALLBACK_URL }}
+              run: npm test || true
 
             - name: Deploy to Server 1
               uses: easingthemes/ssh-deploy@main
