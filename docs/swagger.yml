@@ -1847,121 +1847,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
-  ## Passenger
-
-  /api/admin/passenger:
-    get:
-      tags:
-        - Admin - Passenger
-      security:
-        - BearerAuth: []
-        - CookieAuth: []
-      summary: Ambil semua data penumpang
-      responses:
-        200:
-          description: Berhasil mendapatkan semua data penumpang
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Passenger'
-        500:
-          description: Kesalahan server
-    post:
-      tags:
-        - Admin - Passenger
-      security:
-        - BearerAuth: []
-        - CookieAuth: []
-      summary: Tambah data penumpang baru
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PassengerInput'
-      responses:
-        201:
-          description: Penumpang berhasil dibuat
-        500:
-          description: Kesalahan server
-
-  /api/admin/passenger/{id}:
-    get:
-      tags:
-        - Admin - Passenger
-      security:
-        - BearerAuth: []
-        - CookieAuth: []
-      summary: Ambil data penumpang berdasarkan ID
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: ID penumpang
-          schema:
-            type: integer
-      responses:
-        200:
-          description: Berhasil mendapatkan data penumpang
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Passenger'
-        404:
-          description: Penumpang tidak ditemukan
-        500:
-          description: Kesalahan server
-    put:
-      tags:
-        - Admin - Passenger
-      security:
-        - BearerAuth: []
-        - CookieAuth: []
-      summary: Perbarui data penumpang berdasarkan ID
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: ID penumpang
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PassengerInput'
-      responses:
-        200:
-          description: Data penumpang berhasil diperbarui
-        404:
-          description: Penumpang tidak ditemukan
-        500:
-          description: Kesalahan server
-    delete:
-      tags:
-        - Admin - Passenger
-      security:
-        - BearerAuth: []
-        - CookieAuth: []
-      summary: Hapus data penumpang berdasarkan ID
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: ID penumpang
-          schema:
-            type: integer
-      responses:
-        200:
-          description: Penumpang berhasil dihapus
-        404:
-          description: Penumpang tidak ditemukan
-        500:
-          description: Kesalahan server
-
   ## Notification
 
   /api/admin/notification/send-notification:
@@ -2161,6 +2046,113 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  ## Transaction
+
+  /api/admin/transaction/history:
+    get:
+      tags:
+        - Admin - Transaction
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      summary: Get All Transactions for Admin
+      description: Retrieve a list of all transactions for admin.
+      responses:
+        "200":
+          description: Transactions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Transactions retrieved successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Transaction"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/admin/transaction/{id}/soft-delete:
+    delete:
+      tags:
+        - Admin - Transaction
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      summary: Soft Delete a Transaction
+      description: Soft delete a transaction by setting the `deleteAt` timestamp.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the transaction to soft delete.
+      responses:
+        "200":
+          description: Transaction soft deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Transaction soft deleted successfully
+                  data:
+                    $ref: "#/components/schemas/Transaction"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+          description: Transaction not found
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/admin/transaction/{id}/restore:
+    patch:
+      tags:
+        - Admin - Transaction
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      summary: Restore a Soft Deleted Transaction
+      description: Restore a soft deleted transaction by removing the `deleteAt` timestamp.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID of the transaction to restore.
+      responses:
+        "200":
+          description: Transaction restored successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Transaction restored successfully
+                  data:
+                    $ref: "#/components/schemas/Transaction"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+          description: Transaction not found
+        "500":
+          $ref: "#/components/responses/ServerError"
 
 components:
   schemas:
@@ -2187,6 +2179,43 @@ components:
                   type: string
                 phoneNumber:
                   type: string
+
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        userId:
+          type: integer
+          example: 1
+        flightId:
+          type: integer
+          example: 1
+        bookingCode:
+          type: string
+          example: "ABC123"
+        status:
+          type: string
+          example: "CONFIRMED"
+        totalAmount:
+          type: number
+          format: float
+          example: 150.00
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-12-25T08:00:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2024-12-25T08:00:00Z"
+        deleteAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: null
+
 
     Flight:
       type: object
