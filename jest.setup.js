@@ -1,10 +1,5 @@
-// jest.setup.js
-// beforeAll(() => {
-//   jest.spyOn(console, "log").mockImplementation(() => {});
-//   jest.spyOn(console, "error").mockImplementation(() => {});
-// });
+require("dotenv").config()
 
-// afterAll(() => {
-//   console.log.mockRestore();
-//   console.error.mockRestore();
-// });
+GOOGLE_CLIENT_ID=process.env.GOOGLE_CLIENT_ID
+GOOGLE_CLIENT_SECRET=process.env.GOOGLE_CLIENT_SECRET
+GOOGLE_CALLBACK_URL=process.env.GOOGLE_CALLBACK_URL
