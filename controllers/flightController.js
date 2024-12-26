@@ -148,10 +148,16 @@ class FlightController {
       if (sort) {
         switch (sort) {
           case "price":
-            query.orderBy.push({ price: "asc" });
+            query.include = {
+              ...query.include,
+              seats: true
+            };
+            query.orderBy.push({ 
+              departureTime: "asc"  // Default sorting when price sorting is applied
+            });
             break;
           case "duration":
-            query.orderBy.push({ duration: "asc" });
+            query.orderBy.push({ departureTime: "asc" });
             break;
           case "earlierDeparture":
             query.orderBy.push({ departureTime: "asc" });
@@ -169,7 +175,30 @@ class FlightController {
       }
 
       // Ambil penerbangan
-      const flights = await prisma.flight.findMany(query);
+      let flights = await prisma.flight.findMany(query);
+
+      // Transform and sort by price if needed
+      if (sort === 'price') {
+        flights = flights.map(flight => ({
+          ...flight,
+          minPrice: flight.seats.length > 0 
+            ? Math.min(...flight.seats.map(seat => Number(seat.price)))
+            : 0
+        }))
+        .sort((a, b) => a.minPrice - b.minPrice);
+      }
+
+      // Sort by duration if needed
+      if (sort === 'duration') {
+        flights.sort((a, b) => {
+          const durationA = new Date(a.arrivalTime) - new Date(a.departureTime);
+          const durationB = new Date(b.arrivalTime) - new Date(b.departureTime);
+          return durationA - durationB;
+        });
+      }
+
+      // Remove seats from the response
+      flights = flights.map(({ seats, minPrice, ...flight }) => flight);
 
       // Filter untuk homepage - hanya rute baru
       const uniqueFlights =
@@ -338,10 +367,16 @@ class FlightController {
       if (sort) {
         switch (sort) {
           case "price":
-            query.orderBy.push({ price: "asc" });
+            query.include = {
+              ...query.include,
+              seats: true
+            };
+            query.orderBy.push({ 
+              departureTime: "asc"  // Default sorting when price sorting is applied
+            });
             break;
           case "duration":
-            query.orderBy.push({ duration: "asc" });
+            query.orderBy.push({ departureTime: "asc" });
             break;
           case "earlierDeparture":
             query.orderBy.push({ departureTime: "asc" });
@@ -359,10 +394,37 @@ class FlightController {
             break;
         }
       }
-  
-      const returnFlights = await prisma.flight.findMany(query);
-  
-      if (returnFlights.length === 0) {
+
+      const totalReturnFlights = await prisma.flight.count({
+        where: query.where,
+      });
+
+      let returnFlights = await prisma.flight.findMany(query);
+
+      // Transform and sort by price if needed
+      if (sort === 'price') {
+        returnFlights = returnFlights.map(flight => ({
+          ...flight,
+          minPrice: flight.seats.length > 0 
+            ? Math.min(...flight.seats.map(seat => Number(seat.price)))
+            : 0
+        }))
+        .sort((a, b) => a.minPrice - b.minPrice);
+      }
+
+      // Sort by duration if needed
+      if (sort === 'duration') {
+        returnFlights.sort((a, b) => {
+          const durationA = new Date(a.arrivalTime) - new Date(a.departureTime);
+          const durationB = new Date(b.arrivalTime) - new Date(b.departureTime);
+          return durationA - durationB;
+        });
+      }
+
+      // Remove seats from the response
+      returnFlights = returnFlights.map(({ seats, minPrice, ...flight }) => flight);
+
+      if (totalReturnFlights === 0) {
         return next(
           new AppError("Tidak ada penerbangan kembali yang ditemukan", 404)
         );
