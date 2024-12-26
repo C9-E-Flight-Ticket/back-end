@@ -429,9 +429,7 @@ class FlightController {
           new AppError("Tidak ada penerbangan kembali yang ditemukan", 404)
         );
       }
-  
-      const totalReturnFlights = returnFlights.length;
-  
+    
       const totalPages = limit
         ? Math.ceil(totalReturnFlights / parseInt(limit))
         : 1;
