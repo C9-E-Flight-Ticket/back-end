@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "cross-env NODE_ENV=test jest --detectOpenHandles --silent",
+    "test": "cross-env NODE_ENV=test jest --silent",
     "seed": "node ./prisma/seed.js",
     "deleteSeed": "node ./prisma/deleteSeed.js",
     "start": "pm2 start app.js",
