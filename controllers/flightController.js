@@ -198,7 +198,7 @@ class FlightController {
       }
 
       // Remove seats from the response
-      flights = flights.map(({ seats, minPrice, ...flight }) => flight);
+      // flights = flights.map(({ seats, minPrice, ...flight }) => flight);
 
       // Filter untuk homepage - hanya rute baru
       const uniqueFlights =
